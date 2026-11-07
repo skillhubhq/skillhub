@@ -20,6 +20,15 @@ export interface DraftFile {
 }
 
 /**
+ * 草稿目录是持久资产；枚举不要求 frontmatter 有效，允许重启后继续修复未完成内容。
+ */
+export interface DraftSummary {
+    "id": string;
+    "name": string;
+    "updated_at": string;
+}
+
+/**
  * DraftWorkspace 是客户端私有副本，编辑不会覆盖来源目录或已安装内容。
  */
 export interface DraftWorkspace {

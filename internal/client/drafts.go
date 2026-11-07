@@ -4,15 +4,19 @@ import (
 	"context"
 	"errors"
 	"io"
+	"io/fs"
 	"os"
 	"path"
 	"path/filepath"
+	"sort"
 	"strings"
+	"time"
 	"unicode/utf8"
 
 	"github.com/gofrs/flock"
 	"github.com/google/uuid"
 	"github.com/skillhubhq/skillhub/internal/packageformat"
+	"go.yaml.in/yaml/v3"
 )
 
 // DraftWorkspace 是客户端私有副本，编辑不会覆盖来源目录或已安装内容。
@@ -200,4 +204,110 @@ func (s *Store) SaveDraftFile(ctx context.Context, id, name, expected, text stri
 		return DraftFile{}, err
 	}
 	return DraftFile{Path: name, Text: text, Digest: packageformat.Digest([]byte(text))}, nil
+}
+
+// 草稿目录是持久资产；枚举不要求 frontmatter 有效，允许重启后继续修复未完成内容。
+type DraftSummary struct {
+	ID        string `json:"id"`
+	Name      string `json:"name"`
+	UpdatedAt string `json:"updated_at"`
+}
+
+func (s *Store) ListDrafts() ([]DraftSummary, error) {
+	root, err := os.OpenRoot(s.root)
+	if err != nil {
+		return nil, err
+	}
+	defer root.Close()
+	directory, err := root.OpenRoot("drafts")
+	if errors.Is(err, os.ErrNotExist) {
+		return []DraftSummary{}, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	defer directory.Close()
+	entries, err := fs.ReadDir(directory.FS(), ".")
+	if err != nil {
+		return nil, err
+	}
+	result := []DraftSummary{}
+	for _, entry := range entries {
+		if !entry.IsDir() || entry.Type()&os.ModeSymlink != 0 {
+			continue
+		}
+		if _, err := uuid.Parse(entry.Name()); err != nil {
+			continue
+		}
+		info, err := entry.Info()
+		if err != nil {
+			return nil, err
+		}
+		item := DraftSummary{ID: entry.Name(), UpdatedAt: info.ModTime().UTC().Format(time.RFC3339Nano)}
+		work, err := directory.OpenRoot(entry.Name())
+		if err != nil {
+			return nil, err
+		}
+		file, readErr := readDraftFile(work, "SKILL.md")
+		work.Close()
+		if readErr == nil {
+			lines := strings.Split(strings.ReplaceAll(file.Text, "\r\n", "\n"), "\n")
+			if len(lines) > 1 && lines[0] == "---" {
+				for i := 1; i < len(lines); i++ {
+					if lines[i] == "---" {
+						var meta struct {
+							Name string `yaml:"name"`
+						}
+						if yaml.Unmarshal([]byte(strings.Join(lines[1:i], "\n")), &meta) == nil && packageformat.ValidName(meta.Name) {
+							item.Name = meta.Name
+						}
+						break
+					}
+				}
+			}
+		}
+		result = append(result, item)
+	}
+	sort.Slice(result, func(i, j int) bool {
+		left, _ := time.Parse(time.RFC3339Nano, result[i].UpdatedAt)
+		right, _ := time.Parse(time.RFC3339Nano, result[j].UpdatedAt)
+		if left.Equal(right) {
+			return result[i].ID < result[j].ID
+		}
+		return left.After(right)
+	})
+	return result, nil
+}
+
+func (s *Store) OpenDraft(id string) (DraftWorkspace, error) {
+	root, err := s.openDraft(id)
+	if err != nil {
+		return DraftWorkspace{}, err
+	}
+	defer root.Close()
+	work := DraftWorkspace{ID: id, Directory: filepath.Join(s.root, "drafts", id), Files: []string{}}
+	err = fs.WalkDir(root.FS(), ".", func(name string, entry fs.DirEntry, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
+		}
+		if name == "." {
+			return nil
+		}
+		if !validDraftPath(name) || entry.Type()&os.ModeSymlink != 0 {
+			return errors.New("draft contains an unsafe path")
+		}
+		if entry.IsDir() {
+			return nil
+		}
+		info, err := entry.Info()
+		if err != nil {
+			return err
+		}
+		if !info.Mode().IsRegular() || len(work.Files) >= packageformat.MaxFiles {
+			return errors.New("draft contains unsupported files")
+		}
+		work.Files = append(work.Files, name)
+		return nil
+	})
+	return work, err
 }

@@ -4,6 +4,7 @@
 export type {
     CacheInfo,
     DraftFile,
+    DraftSummary,
     DraftWorkspace,
     InstallPlan,
     Installation,

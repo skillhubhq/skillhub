@@ -1,3 +1,4 @@
+import { runUpgradeSmoke } from "./nativeUpgrade";
 import { runSelectSmoke } from "./selectSmoke";
 import { skillTitle } from "./SkillIdentity";
 import { setLanguage, type Language } from "./i18n";
@@ -13,6 +14,7 @@ import { API } from "./ui";
 
 // 运行在测试构建的真实系统 WebView 内，通过生产绑定验证原生桥接与产品流程。
 export async function runNativeSmoke() {
+  if (await runUpgradeSmoke()) return;
   const checks: string[] = [];
   const started = performance.now();
   let error = "";

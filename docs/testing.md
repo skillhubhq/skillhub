@@ -2,6 +2,12 @@
 
 Use disposable databases, temporary client directories and synthetic packages. Never point integration tests at a shared Hub or production database. Store run reports in CI artifacts or ignored local storage; keep this guide focused on reproducible procedures.
 
+## Software acceptance scope
+
+Software release acceptance covers repository-controlled behavior: protocol compatibility, authorization and identity boundaries using local OIDC fixtures, publishing/review/install flows, native App state preservation, supported database migrations and recovery, security scans, and reproducible packaging. Run the supported-platform CI matrix against the exact candidate revision.
+
+A real Entra tenant, an organization's server/proxy/storage and clean managed-device installation are follow-up integration checks owned by the deployment operator. They are not prerequisites or blockers for the software release. Keep their status separate: passing code tests does not claim that those environments have been validated. Use the [deployment checklist](deployment-checklist.md) when preparing a particular installation.
+
 ## Core and protocol
 
 ```sh
@@ -72,10 +78,28 @@ The runner uses fresh fixtures and covers both client/server directions, alterna
 
 Before a release, also run against the last supported **released** binaries; the immediately preceding commit is not a substitute for that acceptance. No historical release baseline exists before the first release. Record exact revisions with the resulting artifact. Passing one pair does not establish a universal version-support guarantee.
 
+### Native App replacement
+
+Build the candidate native-smoke App and Hub/CLI binaries as above, then select an explicit comparison commit:
+
+```sh
+python3 scripts/desktop_upgrade.py \
+  --baseline-ref COMPARISON_COMMIT \
+  --candidate-app desktop/bin/SkillHub-smoke.app \
+  --server bin/skillhub-server --cli bin/skillhub \
+  --report .local/native-upgrade.json
+```
+
+On Windows use `.exe` paths. Run with an unlocked desktop and accessible OS credential store. The helper builds a detached comparison checkout, overlays only the native upgrade test instrumentation and records its hashes/revision. Its production core/UI remain from that commit. Use `--baseline-app PATH` instead when supplying an already instrumented baseline; record its source revision separately. Unsupported comparison instrumentation fails rather than falling back to the candidate.
+
+The runner seeds two independent Hub accounts through the real OS credential store, two saved drafts (valid and incomplete), four installations (Codex/Claude Code × global/project), a project manifest/lock and a local file modification. It removes login passwords before subsequent phases; no environment-token injection substitutes for saved credentials. It restarts the baseline, replaces the same App path with a distinct candidate, restarts it, then restores the compatible baseline binary. macOS replacement uses a verified, read-only mounted DMG. Each phase checks records, credential/file digests and real authenticated App/CLI requests; the candidate also reopens drafts through the publication UI.
+
+Fixture Hubs, client state, installation directories and credential references are isolated and cleaned up. The smoke bundle uses a separate application identity; production App state is untouched. These tests do not simulate browser quarantine, signing identity changes, different device/user migration or a future incompatible schema. CI runs the same replacement regression on macOS and Windows; clean-device distribution checks remain separate.
+
 ## Security and deployment
 
 CI scans source/history for secrets and checks dependencies with the pinned tooling. Static scans are bounded evidence; review archives and dependencies before distribution. Environment addresses, tenant identifiers, credentials and completed operational reports belong outside the source repository.
 
 GitHub CodeQL default setup analyzes Go, JavaScript/TypeScript, Python and Actions with extended queries and both remote and local input sources. Review findings against the security boundaries in [SECURITY.md](../SECURITY.md); a passing analysis job only confirms that the scanner ran. Fix actionable findings, and record the data-flow and validation evidence when dismissing a false positive. Do not disable queries to hide findings.
 
-Complete the [deployment checklist](deployment-checklist.md) against the actual identity provider, reverse proxy, database/storage and installation devices. Local fixtures cannot certify those integrations.
+The [deployment checklist](deployment-checklist.md) records optional-to-release, environment-specific follow-up against the actual identity provider, reverse proxy, database/storage and installation devices. Local fixtures cannot certify those integrations, and pending integration work does not fail code-level acceptance.

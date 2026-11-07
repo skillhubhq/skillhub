@@ -11,6 +11,7 @@ import {
   API,
   DirectoryField,
   Field,
+  Modal,
   Empty,
   splitList,
   statusLabel,
@@ -41,6 +42,23 @@ export function PublishWizard({ source }: { source: string }) {
     [source, previousID],
   );
   const [editing, setEditing] = useState(false);
+  const [savedDrafts, setSavedDrafts] = useState<Awaited<
+    ReturnType<typeof API.ListDrafts>
+  > | null>(null);
+  const resumeDraft = async (id: string) => {
+    const work = await API.OpenDraft(id);
+    setWorkspace({ ...work, files: work.files ?? [] });
+    setDirectory(work.directory);
+    setDraft(null);
+    try {
+      setDraft(await API.InspectDirectory(work.directory));
+    } catch {
+      /* 未完成的内容仍可继续编辑。 */
+    }
+    setSavedDrafts(null);
+    setEditing(true);
+  };
+
   const [workspace, setWorkspace] = useState<{
     id: string;
     directory: string;
@@ -329,6 +347,43 @@ export function PublishWizard({ source }: { source: string }) {
           )}
         </section>
       )}
+      {savedDrafts !== null && (
+        <Modal
+          title={t("Saved drafts", "已保存草稿")}
+          onClose={() => setSavedDrafts(null)}
+        >
+          <p className="muted">
+            {t(
+              "Saved skill files stay on this device. Choose publication details when you are ready to submit.",
+              "已保存的技能文件保留在此设备上；提交前再选择发布信息。",
+            )}
+          </p>
+          {savedDrafts.length === 0 ? (
+            <Empty title={t("No saved drafts", "暂无已保存草稿")} />
+          ) : (
+            <div className="saved-draft-list">
+              {savedDrafts.map((item) => (
+                <button
+                  key={item.id}
+                  disabled={ui.busy}
+                  onClick={() => void ui.run(() => resumeDraft(item.id))}
+                >
+                  <span>
+                    <strong>
+                      {item.name || t("Untitled skill", "未命名技能")}
+                    </strong>
+                    <small>
+                      {item.id.slice(0, 8)} ·{" "}
+                      {new Date(item.updated_at).toLocaleString()}
+                    </small>
+                  </span>
+                  <span>{t("Continue editing", "继续编辑")} →</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </Modal>
+      )}
       <div className="publish-layout">
         <div className="panel publish-main">
           <ol className="steps">
@@ -417,6 +472,16 @@ export function PublishWizard({ source }: { source: string }) {
                     onClick={() => void ui.run(() => startEditor(true))}
                   >
                     {t("Create a skill", "创建技能")}
+                  </button>
+                  <button
+                    disabled={ui.busy}
+                    onClick={() =>
+                      void ui.run(async () =>
+                        setSavedDrafts((await API.ListDrafts()) ?? []),
+                      )
+                    }
+                  >
+                    {t("Open saved draft", "打开已保存草稿")}
                   </button>
                   {previous.value && (
                     <button

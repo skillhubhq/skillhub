@@ -53,7 +53,7 @@ A project manifest describes desired exact versions and tools. Its lock records 
 
 The shared bounded cache requires online authorization before reuse. Clearing it preserves credentials and installations. Network/login failures remain failed checks; they do not claim a version is withdrawn or current. Unavailable exact versions offer retry and an explicit available-version action without silently changing the installation target.
 
-The App supports local draft editing and package preview. Web offers archive publication and tool-specific installation instructions/downloads; browser UI does not write directly into local tool directories.
+The App supports local draft editing and package preview. Saved drafts can be reopened from the publication page after restart, including incomplete metadata that still needs repair. Only saved skill files persist: unsaved editor text and unsubmitted publication form choices are not restored. Web offers archive publication and tool-specific installation instructions/downloads; browser UI does not write directly into local tool directories.
 
 ## Deployment and distribution
 

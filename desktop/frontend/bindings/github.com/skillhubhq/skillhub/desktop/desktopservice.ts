@@ -177,6 +177,10 @@ export function InspectDirectory(directory: string): $CancellablePromise<$models
     return $Call.ByID(810732014, directory);
 }
 
+export function ListDrafts(): $CancellablePromise<client$0.DraftSummary[] | null> {
+    return $Call.ByID(128189985);
+}
+
 export function ListInstalled(): $CancellablePromise<client$0.Installation[] | null> {
     return $Call.ByID(1550436997);
 }
@@ -219,6 +223,10 @@ export function NewRequestID(): $CancellablePromise<string> {
 
 export function Notifications(source: string, token: string): $CancellablePromise<client$0.NotificationPage> {
     return $Call.ByID(3101206255, source, token);
+}
+
+export function OpenDraft(id: string): $CancellablePromise<client$0.DraftWorkspace> {
+    return $Call.ByID(3218610880, id);
 }
 
 export function OpenLoginBrowser(id: string): $CancellablePromise<void> {

@@ -10,6 +10,22 @@ Release notes are rendered as inert text. Download opens the official exact-vers
 
 Sources, credential references, local inventory, drafts, preferences and installed skill files live outside the App bundle. Preserve these when replacing the App. Back up client state before a version with a state-format change. Downgrades require a compatible binary/state snapshot; never roll back skill directories as a side effect of replacing the application.
 
+## State preservation
+
+| State | Storage and replacement behavior |
+| --- | --- |
+| Connections, credential references, inventory and project shortcuts | Client data directory: `SKILLHUB_HOME` when explicitly configured, otherwise the OS user configuration directory's `skillhub` subdirectory |
+| Saved skill drafts | `drafts/` beneath the client data directory; reopen with Publish → Open saved draft |
+| Source credentials | OS credential store, referenced by the client database; not bundled into App files or a client-directory backup |
+| Language, theme and selected community | The App's WebView profile; preserve the same OS account and application identity |
+| Installed skills and project manifests/locks | Their existing global or project directories; replacing the App does not rewrite them |
+
+Before replacement, save editor files and quit both App and CLI. Back up the entire closed client directory and any project/global files you need to recover; retain the prior binary and a device backup that includes the WebView profile. Do not copy only an active SQLite database file. A directory backup is not a portable credential backup: a new account or device may need to authenticate each connection again. Keep deployment credentials out of these artifacts.
+
+After reopening, verify both Hub identities, language/theme, saved draft contents and local inventory. Reopen a project and compare its lock and installed files, including local edits. Check that no skill update was applied as a side effect. Unsaved editor text and unsubmitted publication form choices are not persistent drafts. Browser publication drafts remain page-local.
+
+For rollback, first quit all clients. Use the prior binary directly only if it supports the existing state format; an unsupported newer schema must be rejected without mutation. Otherwise recover a matching pre-upgrade client snapshot and reconcile any installations or edits made since that snapshot before resuming work. A successful same-format rollback test does not promise arbitrary downgrades. Hub database recovery is a separate operator procedure.
+
 ## Update boundaries
 
 | Component | Owner | Effect |
