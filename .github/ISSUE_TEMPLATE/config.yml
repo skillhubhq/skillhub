@@ -3,3 +3,6 @@ contact_links:
   - name: Security reporting
     url: https://github.com/skillhubhq/skillhub/blob/main/SECURITY.md
     about: Read the private vulnerability reporting policy.
+  - name: Questions and ideas
+    url: https://github.com/skillhubhq/skillhub/discussions
+    about: Ask for help, discuss workflows or share ideas with the community.

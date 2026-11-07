@@ -33,6 +33,12 @@ Read `AGENTS.md`, `docs/product.md` and `docs/architecture.md`. Proto owns RPC c
 
 Handwritten identifiers and errors use English. Non-obvious Go/Proto comments follow the repository's Chinese-comment convention. Generated code must be regenerated, not edited manually.
 
+## Pull request checks
+
+`main` requires a pull request with passing protocol, security, quality, Go, PostgreSQL and desktop checks. Keep the branch up to date and resolve review conversations before merging. Pull requests use squash merges and Conventional Commit titles; direct pushes, force pushes and branch deletion are blocked, including for administrators.
+
+CI runs on pull requests and pushes to `main`, so feature branches receive one validation run per change. Dependency update pull requests follow the same checks and are never merged automatically.
+
 ## Commit messages
 
 Use `type(scope): description` for commit subjects and squash-merge titles. Write a short English imperative description of the resulting behavior. Choose a scope such as `hub`, `cli`, `desktop`, `web`, `auth`, `storage` or `docs`.

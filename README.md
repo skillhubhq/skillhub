@@ -9,7 +9,7 @@
 <p align="center">A self-hosted home for discovering, sharing and reviewing agent skills.<br>Bring them to Codex and Claude Code with the desktop app or CLI.</p>
 
 <p align="center">
-  <a href="https://github.com/skillhubhq/skillhub/actions/workflows/ci.yml"><img src="https://img.shields.io/badge/CI-GitHub_Actions-59677c" alt="CI"></a>
+  <a href="https://github.com/skillhubhq/skillhub/actions/workflows/ci.yml"><img src="https://github.com/skillhubhq/skillhub/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-063beb" alt="Apache-2.0 license"></a>
   <a href="docs/configuration.md"><img src="https://img.shields.io/badge/deployment-self--hosted-59677c" alt="Self-hosted"></a>
 </p>
