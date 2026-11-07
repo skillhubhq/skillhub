@@ -10,6 +10,7 @@ import {
   useContext,
   useEffect,
   useId,
+  useLayoutEffect,
   useRef,
   useState,
   type ReactNode,
@@ -205,10 +206,16 @@ export function Modal({
   const ref = useRef<HTMLDialogElement>(null);
   const id = useId();
   const { busy, error } = useUI();
-  useEffect(() => {
+  useLayoutEffect(() => {
     const dialog = ref.current!;
+    const trigger = document.activeElement;
     dialog.showModal();
-    return () => dialog.close();
+    return () => {
+      // 在 React 移除 dialog 前关闭，避免 Chromium 丢失原始焦点目标。
+      dialog.close();
+      if (trigger instanceof HTMLElement && trigger.isConnected)
+        trigger.focus({ preventScroll: true });
+    };
   }, []);
   return (
     <dialog
