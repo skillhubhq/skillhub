@@ -86,7 +86,20 @@ export async function runNativeSmoke() {
         await new Promise((resolve) => setTimeout(resolve, 50));
       }
     };
+    const clickManagementTab = async (label: string) => {
+      // 权限入口在身份返回后才出现；列表也可能先于全局请求状态更新。
+      const findButton = () =>
+        Array.from(
+          document.querySelectorAll<HTMLButtonElement>(".tabs button"),
+        ).find((button) => button.textContent === label && !button.disabled);
+      await waitForUI(() => !!findButton());
+      findButton()!.click();
+    };
     const chooseSelect = async (selector: string, value: string) => {
+      await waitForUI(() => {
+        const trigger = document.querySelector<HTMLButtonElement>(selector);
+        return !!trigger && !trigger.matches(":disabled");
+      });
       document.querySelector<HTMLButtonElement>(selector)!.click();
       await waitForUI(() => !!document.querySelector(".ui-select-menu"));
       const option = Array.from(
@@ -520,17 +533,7 @@ export async function runNativeSmoke() {
       "native governance mutation and read succeeded",
     );
     location.hash = "management?source=public";
-    await waitForUI(
-      () =>
-        !!Array.from(document.querySelectorAll(".tabs button")).find(
-          (b) => b.textContent === "Role grants",
-        ),
-    );
-    (
-      Array.from(document.querySelectorAll(".tabs button")).find(
-        (b) => b.textContent === "Users",
-      ) as HTMLButtonElement
-    ).click();
+    await clickManagementTab("Users");
     for (const [name, label, enabled] of [
       ["pending-approve", "Approve access", true],
       ["pending-reject", "Reject", false],
@@ -631,11 +634,7 @@ export async function runNativeSmoke() {
         );
       }
     }
-    (
-      Array.from(document.querySelectorAll(".tabs button")).find(
-        (b) => b.textContent === "Role grants",
-      ) as HTMLButtonElement
-    ).click();
+    await clickManagementTab("Role grants");
     await waitForUI(
       () => !!document.querySelector(".grant-scope input[role=combobox]"),
     );
@@ -1054,16 +1053,7 @@ export async function runNativeSmoke() {
       "opening notification marks read and navigates to feedback",
     );
     location.hash = "management?source=limited";
-    await waitForUI(() =>
-      Array.from(document.querySelectorAll(".tabs button")).some(
-        (b) => b.textContent === "Role grants",
-      ),
-    );
-    (
-      Array.from(document.querySelectorAll(".tabs button")).find(
-        (b) => b.textContent === "Role grants",
-      ) as HTMLButtonElement
-    ).click();
+    await clickManagementTab("Role grants");
     await waitForUI(() =>
       Array.from(document.querySelectorAll("button")).some(
         (b) => b.textContent === "Add role grant",
