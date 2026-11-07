@@ -96,6 +96,10 @@ export async function runNativeSmoke() {
       findButton()!.click();
     };
     const chooseSelect = async (selector: string, value: string) => {
+      await waitForUI(() => {
+        const trigger = document.querySelector<HTMLButtonElement>(selector);
+        return !!trigger && !trigger.matches(":disabled");
+      });
       document.querySelector<HTMLButtonElement>(selector)!.click();
       await waitForUI(() => !!document.querySelector(".ui-select-menu"));
       const option = Array.from(
