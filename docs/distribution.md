@@ -35,14 +35,14 @@ python3 scripts/collect_licenses.py --desktop --output desktop/bin/third-party
 python3 scripts/build_dmg.py --output desktop/bin/SkillHub-manual-preview.dmg
 ```
 
-The output includes `.dmg.sha256` and `.dmg.json` with revision, build kind and signature limitations. Existing output is refused. Dirty local builds are labeled local, not released as a new version. No Hub or client data is copied into the disk image. CI builds the image on macOS; release preparation verifies its version, source revision and checksum before including it alongside ZIP archives.
+The output includes `.dmg.sha256` and `.dmg.json` with revision, build kind and signature limitations. Existing output is refused. Dirty local builds are labeled local, not released as a new version. No Hub or client data is copied into the disk image. Source hygiene and packaging reject SkillHub project references outside `skillhubhq/skillhub`, including executable strings and dependency inventories. Third-party dependency links remain unchanged. CI builds the image on macOS; release preparation verifies its version, source revision and checksum before including it alongside ZIP archives.
 
 ## Preparing a release
 
 1. Commit the complete candidate, including generated bindings, and set `desktop/frontend/package.json` and its lockfile to the intended version. CI embeds that version in the macOS App bundle.
 2. Pass the entire `CI` workflow for that exact main-branch push: protocol compatibility/drift, race tests, executable flows, native acceptance, vulnerabilities, source hygiene and license collection.
 3. Run **Prepare release** manually with the version tag and successful CI run ID. It verifies the run owner/workflow/branch/revision and version, downloads only that run's artifacts and creates a new draft. Existing tags/releases are refused; binaries are not rebuilt during packaging.
-4. Review the draft, hashes, provenance, native reports and platform notices. Test the exact candidate on the target server and real identity provider. A packaging success is not deployment acceptance.
+4. Review the draft, hashes, provenance, native reports and platform notices. Software acceptance is based on repository-controlled tests and security/packaging evidence. Target-server, real identity-provider and managed-device integration checks are separate operator follow-up, not release blockers.
 5. Enable GitHub immutable releases before public publishing if available, complete all assets on the draft, then publish it. The workflow does not publish the draft automatically. Never replace an existing release's binaries.
 
 GitHub attestations are produced by the preparation workflow for public repositories; private repository availability depends on the GitHub plan, so private preparation does not claim an attestation. GitHub account/repository settings, signing credentials and visibility are not controlled by local source changes.
@@ -55,4 +55,4 @@ If an organization needs offline distribution later, mirror the unmodified GitHu
 
 ## Security evidence for release preparation
 
-Draft preparation requires successful CI for the exact main-branch revision, complete CodeQL analyses for Go, JavaScript/TypeScript, Python and Actions at that same revision, and no open code-scanning alerts. Analysis errors, warnings, incomplete evidence or API failures stop preparation. A dismissed alert still requires an individual data-flow review; a successful scanner job alone is not a security clearance. The evidence lookup is bounded to the latest 100 analyses, so older candidates may require a fresh scan. These checks do not replace target-environment acceptance or a review of newly disclosed dependency vulnerabilities.
+Draft preparation requires successful CI for the exact main-branch revision, complete CodeQL analyses for Go, JavaScript/TypeScript, Python and Actions at that same revision, and no open code-scanning alerts. Analysis errors, warnings, incomplete evidence or API failures stop preparation. A dismissed alert still requires an individual data-flow review; a successful scanner job alone is not a security clearance. The evidence lookup is bounded to the latest 100 analyses, so older candidates may require a fresh scan. Review newly disclosed dependency vulnerabilities before publication. Environment-integration status remains separate and is not a release gate.

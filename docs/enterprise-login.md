@@ -63,4 +63,4 @@ skillhub-server serve \
 
 代码测试使用独立 TLS OIDC 提供者、真实 RSA 签名及 JWKS：检查首次建号、再次登录稳定性、跨 issuer 隔离、默认待审批、批准/拒绝、禁止待审批提升管理员、禁用后拒绝登录、浏览器/设备会话撤销、备份恢复；拒绝错误签名、issuer、audience、nonce、过期令牌、错误 Cookie、过期 state 和回调重放。没有跳过 TLS 或 JWT 验证。
 
-真正上线前仍需在企业 Entra 应用中验证允许/未分配用户、来宾策略、MFA、回调域名和反向代理。此仓库测试不代表已经连接到真实企业租户。微软注册与授权配置参考 [OIDC 官方说明](https://learn.microsoft.com/en-us/entra/identity-platform/v2-protocols-oidc) 与 [ID token claims](https://learn.microsoft.com/en-us/entra/identity-platform/id-token-claims-reference)。
+部署方接入真实企业 Entra 时，再验证允许/未分配用户、来宾策略、MFA、回调域名和反向代理。这些属于环境接入事项，不阻塞软件版本的代码验收或发布；此仓库测试也不代表已经连接到真实企业租户。微软注册与授权配置参考 [OIDC 官方说明](https://learn.microsoft.com/en-us/entra/identity-platform/v2-protocols-oidc) 与 [ID token claims](https://learn.microsoft.com/en-us/entra/identity-platform/id-token-claims-reference)。
