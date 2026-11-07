@@ -3,7 +3,7 @@ module github.com/skillhubhq/skillhub/desktop
 go 1.27.3
 
 require (
-	connectrpc.com/connect v1.20.0
+	connectrpc.com/connect v1.21.1
 	github.com/google/uuid v1.6.0
 	github.com/skillhubhq/skillhub v0.0.0
 	github.com/wailsapp/wails/v3 v3.0.0
