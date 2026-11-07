@@ -64,7 +64,13 @@ export function AccessState({
           </button>
         )}
         {!signIn && retry && (
-          <button className={denied ? "" : "primary"} onClick={retry}>
+          <button
+            className={denied ? "" : "primary"}
+            onClick={() => {
+              ui.refresh();
+              retry();
+            }}
+          >
             {t("Try again", "重试")}
           </button>
         )}

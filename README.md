@@ -50,6 +50,8 @@ skillhub install work/team/review@1.0.0 --tool codex --dry-run
 skillhub install work/team/review@1.0.0 --tool codex --yes
 ```
 
+Create a skill with `skillhub init ./my-skill --description "When to use this skill"`, refine it in your coding agent, and run `skillhub validate ./my-skill` before publishing. [Authoring guide](docs/authoring.md)
+
 App and CLI share connections, saved credentials and installation records. Each Hub keeps its own accounts and permissions. Use `skillhub --help` to explore commands, or `--json` for scripts. [CLI guide →](docs/usage.md)
 
 ## Self-host

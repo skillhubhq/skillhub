@@ -36,7 +36,7 @@ func TestPresentationMigrationPreservesLegacyReleaseAndBackup(t *testing.T) {
 		t.Fatal(err)
 	}
 	id := s.RegistryID()
-	if _, err = s.db.Exec(`DROP TABLE featured_skills; DROP INDEX releases_review_queue; DROP TABLE review_notifications; DROP TABLE release_scans; DROP TABLE platform_roles; DROP TABLE access_requests; ALTER TABLE releases DROP COLUMN display_name_en; ALTER TABLE releases DROP COLUMN display_name_zh; ALTER TABLE releases DROP COLUMN icon; PRAGMA user_version=5;`); err != nil {
+	if _, err = s.db.Exec(`DROP TABLE evaluation_evidence; DROP TABLE featured_skills; DROP INDEX releases_review_queue; DROP TABLE review_notifications; DROP TABLE release_scans; DROP TABLE platform_roles; DROP TABLE access_requests; ALTER TABLE releases DROP COLUMN display_name_en; ALTER TABLE releases DROP COLUMN display_name_zh; ALTER TABLE releases DROP COLUMN icon; PRAGMA user_version=5;`); err != nil {
 		t.Fatal(err)
 	}
 	if err = s.Close(); err != nil {

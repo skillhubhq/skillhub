@@ -37,6 +37,34 @@ export interface DraftWorkspace {
     "files": string[] | null;
 }
 
+export interface EvaluationEvidence {
+    "id": string;
+    "release_id": string;
+    "digest": string;
+    "suite_name": string;
+    "suite_version": string;
+    "suite_digest": string;
+    "runner": string;
+    "agent": string;
+    "model": string;
+    "executed_at": string;
+    "imported_at": string;
+    "passed": number;
+    "failed": number;
+    "errors": number;
+    "skipped": number;
+    "baseline_passed": number;
+    "baseline_total": number;
+    "retracted": boolean;
+    "document_json": string;
+}
+
+export interface EvaluationPage {
+    "supported": boolean;
+    "evidence": EvaluationEvidence[] | null;
+    "can_manage": boolean;
+}
+
 export interface InstallPlan {
     "action": string;
     "target": string;

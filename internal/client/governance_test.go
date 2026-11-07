@@ -46,6 +46,16 @@ func TestGovernanceMissingCapabilityIsNotCleanScan(t *testing.T) {
 	if e != nil || len(results) != 1 || results[0].Error == "" {
 		t.Fatal("legacy order silently ignored", results, e)
 	}
+	evidence, e := c.Evaluations(ctx, "legacy", "release")
+	if e != nil || evidence.Supported || len(evidence.Evidence) != 0 {
+		t.Fatal("unsupported evidence appeared available", e)
+	}
+	if _, e = c.Evaluation(ctx, "legacy", "report"); e == nil {
+		t.Fatal("unsupported evidence detail accepted")
+	}
+	if e = c.RetractEvaluation(ctx, "legacy", "report", "key"); e == nil {
+		t.Fatal("unsupported evidence mutation accepted")
+	}
 	r, e := c.ScanReport(ctx, "legacy", "release")
 	if e != nil || r.Supported || r.Complete || r.Engine != "" {
 		t.Fatal("unsupported scan appeared valid", r, e)

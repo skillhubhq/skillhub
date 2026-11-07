@@ -23,7 +23,8 @@
   color: var(--ink);
   background: var(--surface);
 }
-:root[data-theme="dark"] {
+:root[data-theme="dark"],
+:root.dark {
   --ink: #e8edf7;
   --muted: #a2b0c6;
   --line: #2c394d;

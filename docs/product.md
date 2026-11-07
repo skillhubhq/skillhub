@@ -19,6 +19,8 @@ A skill archive contains `SKILL.md` and optional supporting files. A release bin
 
 Namespaces organize ownership and publication. Access groups grant audience membership or namespace roles. Categories and tags support discovery and never confer access. Teams are namespace profiles, not a second permission system. See [governance](governance.md).
 
+External evaluation reports bind an exact version and package digest. Maintainers can import sanitized results; readers follow that version's audience. Reports are self-reported evidence, not executed or independently verified by the Hub, and do not grant approval or affect ranking. See [evaluation evidence](evaluations.md).
+
 ## Discovery and community
 
 The catalog selects the latest readable published release for each skill. Users can search stable names, authored display names and descriptions, filter by category/tag, and browse by name, recent publication or administrator curation. Recent means publication event order, not highest semantic version. Curated selection follows a stable namespace/name and never changes visibility. Likes, comments and bookmarks do not influence sorting; popularity ranking and personalized recommendations are not supported.
@@ -27,7 +29,7 @@ Profiles contain a display name, biography and optional uploaded avatar. Public 
 
 Comments, replies, likes and bookmarks belong to an exact published version. Replies have one level; removing a root comment preserves its replies. Likes are public counts and bookmarks are private to the user and Hub. Withdrawal or revoked access removes the release from community reads.
 
-The review inbox separates live work awaiting the user's review from outcomes on their own submissions. It shows pending count and oldest submission date, excludes self-submissions and links to exact versions. It refreshes on focus and periodically while visible. Email, webhook and desktop push delivery are not supported.
+The compact Inbox icon shows a pending-review count. Its dialog separates live work awaiting the user's review from outcomes on their own submissions. It shows pending count and oldest submission date, excludes self-submissions and links to exact versions. It refreshes on focus and periodically while visible. The two views keep work awaiting a decision separate from submission outcomes. Email, webhook and desktop push delivery are not supported.
 
 ## Skill presentation
 

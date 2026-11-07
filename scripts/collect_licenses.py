@@ -10,27 +10,7 @@ import subprocess
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--output", required=True, type=Path)
-    parser.add_argument("--desktop", action="store_true")
-    args = parser.parse_args()
-    output = args.output.resolve()
-    output.mkdir(parents=True, exist_ok=False)
-    module = ROOT / "desktop" if args.desktop else ROOT
-    targets = ["."] if args.desktop else ["./cmd/skillhub", "./cmd/skillhub-server"]
-    subprocess.run(["go", "run", "github.com/google/go-licenses/v2@v2.0.1", "save", *targets,
-                    "--ignore", "github.com/skillhubhq/skillhub", "--save_path", str(output / "go")], cwd=module, check=True)
-    result = subprocess.run(["go", "list", "-m", "-json", "all"], cwd=module, check=True, capture_output=True)
-    remaining = result.stdout.decode().strip()
-    modules = []
-    decoder = json.JSONDecoder()
-    while remaining:
-        module_info, offset = decoder.raw_decode(remaining)
-        modules.append({k: module_info[k] for k in ["Path", "Version", "Sum", "GoVersion", "Main"] if k in module_info})
-        remaining = remaining[offset:].lstrip()
-    (output / "go-modules.json").write_text(json.dumps(modules, indent=2) + "\n")
-    frontend = ROOT / "desktop/frontend"
+def collect_npm(frontend, output, label, *, static_assets=False):
     lock = json.loads((frontend / "package-lock.json").read_text())
     overrides = json.loads((ROOT / "third_party/npm/sources.json").read_text())
     inventory = []
@@ -38,9 +18,15 @@ def main():
         if not relative or entry.get("dev"):
             continue
         package = frontend / relative
+        # npm 不会安装其他平台的可选原生包；它们不在当前构建产物中。
+        if entry.get("optional") and not (package / "package.json").exists():
+            continue
         metadata = json.loads((package / "package.json").read_text())
+        # 静态文档不分发 Next/SWC/图像处理的原生可选二进制。
+        if static_assets and entry.get("optional") and metadata.get("os"):
+            continue
         name, version = metadata["name"], metadata["version"]
-        dest = output / "npm" / relative.removeprefix("node_modules/")
+        dest = output / label / relative.removeprefix("node_modules/")
         dest.mkdir(parents=True, exist_ok=True)
         texts = [p for p in package.iterdir() if p.is_file() and p.name.lower().startswith(("license", "licence", "copying", "notice"))]
         if texts:
@@ -62,7 +48,33 @@ def main():
                 raise ValueError(f"Notice checksum mismatch: {name}")
             shutil.copyfile(source, dest / notice["file"])
         inventory.append({"name": name, "version": version, "license": metadata.get("license"), "integrity": entry.get("integrity")})
-    (output / "npm-packages.json").write_text(json.dumps(inventory, indent=2) + "\n")
+    (output / f"{label}-packages.json").write_text(json.dumps(inventory, indent=2) + "\n")
+    return inventory
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--output", required=True, type=Path)
+    parser.add_argument("--desktop", action="store_true")
+    args = parser.parse_args()
+    output = args.output.resolve()
+    output.mkdir(parents=True, exist_ok=False)
+    module = ROOT / "desktop" if args.desktop else ROOT
+    targets = ["."] if args.desktop else ["./cmd/skillhub", "./cmd/skillhub-server"]
+    subprocess.run(["go", "run", "github.com/google/go-licenses/v2@v2.0.1", "save", *targets,
+                    "--ignore", "github.com/skillhubhq/skillhub", "--save_path", str(output / "go")], cwd=module, check=True)
+    result = subprocess.run(["go", "list", "-m", "-json", "all"], cwd=module, check=True, capture_output=True)
+    remaining = result.stdout.decode().strip()
+    modules = []
+    decoder = json.JSONDecoder()
+    while remaining:
+        module_info, offset = decoder.raw_decode(remaining)
+        modules.append({k: module_info[k] for k in ["Path", "Version", "Sum", "GoVersion", "Main"] if k in module_info})
+        remaining = remaining[offset:].lstrip()
+    (output / "go-modules.json").write_text(json.dumps(modules, indent=2) + "\n")
+    inventory = collect_npm(ROOT / "desktop/frontend", output, "npm")
+    if not args.desktop:
+        inventory += collect_npm(ROOT / "website", output, "npm-docs", static_assets=True)
     shutil.copyfile(ROOT / "sdk/typescript/LICENSE.protovalidate", output / "LICENSE.protovalidate")
     print(f"Collected dependency notices for {len(inventory)} frontend packages and the current Go target")
 

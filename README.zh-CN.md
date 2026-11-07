@@ -11,13 +11,13 @@
 <p align="center">
   <a href="https://github.com/skillhubhq/skillhub/actions/workflows/ci.yml"><img src="https://github.com/skillhubhq/skillhub/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-063beb" alt="Apache-2.0 许可证"></a>
-  <a href="docs/configuration.md"><img src="https://img.shields.io/badge/deployment-self--hosted-59677c" alt="自托管"></a>
+  <a href="docs/zh/configuration.md"><img src="https://img.shields.io/badge/deployment-self--hosted-59677c" alt="自托管"></a>
 </p>
 
 <p align="center">
   <a href="#开始使用">开始使用</a> ·
   <a href="#自行部署">自行部署</a> ·
-  <a href="docs/README.md">文档</a> ·
+  <a href="docs/zh/index.md">文档</a> ·
   <a href="https://github.com/skillhubhq/skillhub/releases">下载</a> ·
   <a href="README.md">English</a>
 </p>
@@ -50,7 +50,9 @@ skillhub install work/team/review@1.0.0 --tool codex --dry-run
 skillhub install work/team/review@1.0.0 --tool codex --yes
 ```
 
-App 与 CLI 共用连接、已保存凭据和安装记录。每个 Hub 独立管理账号与权限。使用 `skillhub --help` 查看命令，脚本调用可加 `--json`。[CLI 使用指南 →](docs/usage.md)
+App 与 CLI 共用连接、已保存凭据和安装记录。每个 Hub 独立管理账号与权限。使用 `skillhub --help` 查看命令，脚本调用可加 `--json`。[CLI 使用指南 →](docs/zh/usage.md)
+
+使用 `skillhub init ./my-skill --description "适用场景"` 创建技能，在你的编程 Agent 中完善指令，再运行 `skillhub validate ./my-skill` 检查内容。[技能编写指南 →](docs/zh/authoring.md)
 
 ## 自行部署
 
@@ -77,7 +79,7 @@ skillhub-server check-config --config /etc/skillhub/hub.yaml
 skillhub-server serve --config /etc/skillhub/hub.yaml
 ```
 
-[配置参考](docs/configuration.md) · [微软 Entra ID](docs/enterprise-login.md) · [SQLite / PostgreSQL](docs/database.md) · [部署清单](docs/deployment-checklist.md)
+[配置参考](docs/zh/configuration.md) · [微软 Entra ID](docs/zh/enterprise-login.md) · [SQLite / PostgreSQL](docs/zh/database.md) · [部署清单](docs/zh/deployment-checklist.md)
 
 ## 各部分如何协作
 
@@ -92,7 +94,7 @@ flowchart LR
   Hub --> Data[SQLite 或 PostgreSQL + 技能包]
 ```
 
-Web 面向一个 Hub，提供社区浏览、发布与审核。App 和 CLI 可以连接多个 Hub，通过同一套 Go 内核管理本机文件。[架构说明 →](docs/architecture.md)
+Web 面向一个 Hub，提供社区浏览、发布与审核。App 和 CLI 可以连接多个 Hub，通过同一套 Go 内核管理本机文件。[架构说明 →](docs/zh/architecture.md)
 
 ## 下载
 
@@ -103,15 +105,15 @@ Web 面向一个 Hub，提供社区浏览、发布与审核。App 和 CLI 可以
 | 桌面 App | macOS Apple 芯片 · Windows x64 |
 | Hub 和 CLI | Linux x64 · macOS Apple 芯片 · Windows x64 |
 
-macOS 需要 13 及以上，Windows App 需要 WebView2。macOS DMG 使用临时签名，尚无 Developer ID 签名和公证；Windows 构建未签名。App 支持检查更新并打开下载页，安装由用户手动完成。暂不提供 Linux App 安装包。[安装与校验 →](docs/distribution.md)
+macOS 需要 13 及以上，Windows App 需要 WebView2。macOS DMG 使用临时签名，尚无 Developer ID 签名和公证；Windows 构建未签名。App 支持检查更新并打开下载页，安装由用户手动完成。暂不提供 Linux App 安装包。[安装与校验 →](docs/zh/distribution.md)
 
 ## 文档
 
-可以从[文档索引](docs/README.md)开始，也可以直接查看：
+可以从[文档索引](docs/zh/index.md)开始，也可以直接查看：
 
-- **使用：** [CLI 工作流](docs/usage.md) · [桌面 App](desktop/README.md) · [App 更新](docs/client-updates.md)
-- **运维：** [身份与权限](docs/identity-and-access.md) · [审核与安全扫描](docs/governance.md) · [备份恢复](docs/operations.md)
-- **开发：** [架构](docs/architecture.md) · [TypeScript SDK](sdk/typescript/README.md) · [测试](docs/testing.md)
+- **使用：** [CLI 工作流](docs/zh/usage.md) · [桌面 App](docs/zh/desktop.md) · [App 更新](docs/zh/client-updates.md)
+- **运维：** [身份与权限](docs/zh/identity-and-access.md) · [审核与安全扫描](docs/zh/governance.md) · [备份恢复](docs/zh/operations.md)
+- **开发：** [架构](docs/zh/architecture.md) · [TypeScript SDK](docs/zh/sdk.md) · [测试](docs/zh/testing.md)
 
 ## 参与贡献
 

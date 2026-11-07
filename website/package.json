@@ -1,0 +1,35 @@
+{
+  "name": "skillhub-docs",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "node scripts/prepare.mjs && next dev --hostname 127.0.0.1 --port 3001",
+    "build": "node scripts/prepare.mjs && next build --webpack && node scripts/verify.mjs",
+    "test": "node --test scripts/*.test.mjs"
+  },
+  "dependencies": {
+    "@bufbuild/protobuf": "2.17.0",
+    "@connectrpc/connect": "2.3.0",
+    "@connectrpc/connect-web": "2.3.0",
+    "fumadocs-core": "16.18.1",
+    "fumadocs-ui": "16.18.1",
+    "next": "16.4.5",
+    "next-themes": "0.4.6",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "4.3.5",
+    "@types/mdx": "2.0.13",
+    "@types/node": "24.10.1",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "fumadocs-mdx": "15.5.0",
+    "tailwindcss": "4.3.5",
+    "typescript": "7.0.2"
+  }
+}

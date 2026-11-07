@@ -1,0 +1,222 @@
+.evaluation-panel {
+  margin-block: 16px;
+  min-width: 0;
+}
+.evaluation-panel > details > summary {
+  padding: 10px 0;
+  cursor: pointer;
+  color: var(--muted);
+}
+.evaluation-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.evaluation-heading h3 {
+  margin: 0 0 4px;
+  font-size: 17px;
+}
+.evaluation-heading p,
+.evaluation-empty {
+  color: var(--muted);
+  font-size: 13px;
+  margin: 0;
+  line-height: 1.6;
+}
+.evaluation-heading button {
+  flex: none;
+}
+.evaluation-list {
+  border-top: 1px solid var(--line);
+}
+.evaluation-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 0;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  text-align: left;
+  background: transparent;
+}
+.evaluation-row:hover {
+  background: var(--surface-soft);
+}
+.evaluation-row > span:first-child {
+  flex: 1;
+  min-width: 0;
+}
+.evaluation-row strong,
+.evaluation-row small {
+  display: block;
+  overflow-wrap: anywhere;
+}
+.evaluation-row small {
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 4px;
+}
+.evaluation-score {
+  text-align: right;
+}
+.evaluation-import,
+.evaluation-report {
+  display: grid;
+  gap: 16px;
+  padding-top: 8px;
+}
+.evaluation-import p,
+.evaluation-report p,
+.evaluation-report h3 {
+  margin: 0;
+}
+.evaluation-consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.evaluation-consent input {
+  flex: none;
+  margin-top: 4px;
+}
+.evaluation-notice {
+  color: var(--muted);
+  font-size: 13px;
+}
+.evaluation-totals {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-block: 12px;
+  border-block: 1px solid var(--line);
+}
+.evaluation-report summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+  padding: 12px 0;
+}
+.evaluation-report dl {
+  margin: 8px 0 16px;
+}
+.evaluation-report dt {
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 12px;
+}
+.evaluation-report dd {
+  margin: 4px 0;
+  overflow-wrap: anywhere;
+  font-size: 13px;
+}
+.evaluation-report pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  background: var(--surface-soft);
+  padding: 12px;
+  border-radius: 6px;
+  font: inherit;
+}
+.evaluation-cases > details {
+  border-top: 1px solid var(--line);
+}
+.evaluation-retract {
+  border-top: 1px solid var(--line);
+  padding-top: 16px;
+}
+.evaluation-retract p {
+  margin-bottom: 12px;
+}
+.evaluation-retract button + button {
+  margin-left: 8px;
+}
+@media (max-width: 600px) {
+  .evaluation-heading {
+    flex-wrap: wrap;
+  }
+  .evaluation-row {
+    flex-wrap: wrap;
+  }
+  .evaluation-score {
+    text-align: left;
+  }
+}
+
+.evaluation-panel.compact {
+  margin: 0;
+  padding: 0 20px;
+  border-bottom: 1px solid var(--line);
+  font-size: 12px;
+}
+.evaluation-panel.compact > details > summary {
+  padding: 0;
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  list-style: none;
+}
+.evaluation-panel.compact summary::-webkit-details-marker {
+  display: none;
+}
+.evaluation-panel.compact > details > summary::after {
+  content: "+";
+  margin-inline-start: auto;
+}
+.evaluation-panel.compact > details[open] > summary::after {
+  content: "−";
+}
+.evaluation-panel.compact > details[open] {
+  padding-bottom: 12px;
+}
+.evaluation-import .file-picker {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  font-size: 13px;
+}
+.evaluation-import input[type="file"] {
+  max-width: 100%;
+  font: inherit;
+}
+.evaluation-import input[type="file"]::file-selector-button {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin-right: 12px;
+  background: var(--surface-soft);
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+}
+
+.review-checks {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  border-bottom: 1px solid var(--line);
+}
+.community-shell .review-checks > .scan-panel,
+.review-checks > .evaluation-panel {
+  border-bottom: 0;
+  min-width: 0;
+}
+.review-checks > .evaluation-panel {
+  border-left: 1px solid var(--line);
+}
+.review-checks > .scan-panel[open],
+.review-checks > .evaluation-panel:has(> details[open]) {
+  grid-column: 1/-1;
+  border-left: 0;
+}

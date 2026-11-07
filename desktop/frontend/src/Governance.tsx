@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { API, Modal, useUI } from "./ui";
 import { useResource, useMutationKey } from "./community-ui";
 import { dateLabel, t } from "./i18n";
@@ -113,126 +113,6 @@ export function ScanPanel({
           : t("Scan package", "扫描技能包")}
       </button>
     </details>
-  );
-}
-export function ReviewInbox({ source }: { source: string }) {
-  const [open, setOpen] = useState(false);
-  const ui = useUI();
-  const tasks = useResource(
-    () => API.ReviewTasks(source, ""),
-    [source, ui.revision],
-  );
-  useEffect(() => {
-    const refresh = () => {
-      if (document.visibilityState === "visible") tasks.reload();
-    };
-    const timer = setInterval(refresh, 60000);
-    window.addEventListener("focus", refresh);
-    return () => {
-      clearInterval(timer);
-      window.removeEventListener("focus", refresh);
-    };
-  }, [source]);
-  return (
-    <>
-      <button
-        onClick={() => setOpen(true)}
-        title={
-          tasks.value?.total
-            ? `${tasks.value.total} ${t("awaiting your review", "条待你审核")}`
-            : t("Review notifications", "审核通知")
-        }
-      >
-        {t("Inbox", "通知")}
-        {tasks.value?.total ? ` · ${tasks.value.total}` : ""}
-      </button>
-      {open && (
-        <InboxDialog
-          source={source}
-          close={() => {
-            setOpen(false);
-            tasks.reload();
-          }}
-        />
-      )}
-    </>
-  );
-}
-function InboxDialog({ source, close }: { source: string; close: () => void }) {
-  const ui = useUI(),
-    [token, setToken] = useState("");
-  const inbox = useResource(
-    () => API.Notifications(source, token),
-    [source, token, ui.revision],
-  );
-  return (
-    <Modal title={t("Review notifications", "审核通知")} onClose={close}>
-      <div className="review-inbox-content">
-        <ReviewTaskList source={source} close={close} />
-        <h3>{t("Review outcomes", "审核结果")}</h3>
-        <p className="muted">
-          {ui.sources.find((s) => s.alias === source)?.display_name || source} ·{" "}
-          {t("Feedback on your submissions", "你的提交审核反馈")}
-        </p>
-        {inbox.loading ? (
-          <p role="status">{t("Loading…")}</p>
-        ) : inbox.error ? (
-          <p role="alert">
-            {inbox.error}{" "}
-            <button onClick={inbox.reload}>{t("Try again")}</button>
-          </p>
-        ) : !inbox.value?.supported ? (
-          <p>
-            {t(
-              "This Hub does not support notifications yet.",
-              "此 Hub 尚不支持通知。",
-            )}
-          </p>
-        ) : !inbox.value.items?.length ? (
-          <p>{t("No review updates yet.", "暂无审核更新。")}</p>
-        ) : (
-          <div className="review-inbox-list review-outcomes">
-            {inbox.value.items.map((n) => (
-              <button
-                key={n.id}
-                className={n.read ? "" : "unread"}
-                disabled={ui.busy}
-                onClick={() =>
-                  void ui.run(async () => {
-                    await API.MarkNotificationRead(source, n.id);
-                    close();
-                    ui.navigate(
-                      `submissions?${new URLSearchParams({ source, release: n.release_id })}`,
-                    );
-                  })
-                }
-              >
-                <strong>{n.coordinate}</strong>
-                <span>
-                  {n.approved
-                    ? t("Approved", "已批准")
-                    : t("Changes requested", "需要修改")}{" "}
-                  · {dateLabel(n.created_at)}
-                  {!n.read && ` · ${t("Unread", "未读")}`}
-                </span>
-                <span>{t("View feedback →", "查看反馈 →")}</span>
-              </button>
-            ))}
-          </div>
-        )}
-        <div className="actions">
-          {token && (
-            <button onClick={() => setToken("")}>{t("Latest", "最新")}</button>
-          )}
-          {inbox.value?.next_page && (
-            <button onClick={() => setToken(inbox.value!.next_page)}>
-              {t("Next page")}
-            </button>
-          )}
-          <button onClick={inbox.reload}>{t("Refresh")}</button>
-        </div>
-      </div>
-    </Modal>
   );
 }
 export function PlatformRoles({
@@ -398,16 +278,10 @@ export function ReviewTaskList({
     <section className="review-tasks">
       <div className="section-heading">
         <h3>
-          {t("Needs your review", "待你审核")} · {tasks.value.total}
+          {tasks.value.total} {t("pending", "条待审核")}
         </h3>
         <button onClick={tasks.reload}>{t("Refresh")}</button>
       </div>
-      {tasks.value.oldest_at && (
-        <p className="muted">
-          {t("Oldest submission", "最早提交")} ·{" "}
-          {dateLabel(tasks.value.oldest_at)}
-        </p>
-      )}
       {!tasks.value.total && (
         <p className="muted">
           {t("You're all caught up.", "当前没有待你审核的提交。")}

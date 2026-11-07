@@ -1,3 +1,5 @@
+import { EvaluationService } from "../gen/api/evaluation/v1/evaluation_service_pb.js";
+export * from "../gen/api/evaluation/v1/evaluation_service_pb.js";
 import { GovernanceService } from "../gen/api/governance/v1/governance_service_pb.js";
 export * from "../gen/api/governance/v1/governance_service_pb.js";
 import { createClient, type Transport } from "@connectrpc/connect";
@@ -20,6 +22,7 @@ export * from "../gen/common/registry/v1/taxonomy_pb.js";
 // SDK 仅提供协议客户端；凭据隔离、安装和项目恢复由共享 Go 内核负责。
 export function createHubClients(transport: Transport) {
   return {
+    evaluation: createClient(EvaluationService, transport),
     governance: createClient(GovernanceService, transport),
     community: createClient(CommunityService, transport),
     registry: createClient(RegistryService, transport),

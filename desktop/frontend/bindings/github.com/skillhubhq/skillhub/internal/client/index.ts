@@ -6,6 +6,8 @@ export type {
     DraftFile,
     DraftSummary,
     DraftWorkspace,
+    EvaluationEvidence,
+    EvaluationPage,
     InstallPlan,
     Installation,
     LockedSkill,

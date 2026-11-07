@@ -56,6 +56,9 @@ func (a *application) command() *cobra.Command {
 	root.PersistentFlags().BoolVar(&a.json, "json", false, "emit machine-readable JSON")
 	root.PersistentFlags().StringVar(&a.requestID, "request-id", "", "idempotency key for a retryable remote mutation")
 	root.PersistentPreRunE = func(cmd *cobra.Command, args []string) error {
+		if cmd.Annotations["local-authoring"] == "true" {
+			return nil
+		}
 		// 补全脚本只描述命令，不应初始化数据库或访问凭据。
 		for c := cmd; c != nil; c = c.Parent() {
 			if c.Name() == "completion" || c.Name() == "__complete" || c.Name() == "__completeNoDesc" {
@@ -79,7 +82,7 @@ func (a *application) command() *cobra.Command {
 		a.core = client.NewClient(a.store, a.options.Client)
 		return nil
 	}
-	root.AddCommand(a.passwordCommand(), a.sourceCommand(), a.loginCommand(), a.searchCommand(), a.publishCommand(), a.reviewCommand(), a.adminCommand(), a.governanceCommand(), a.projectCommand())
+	root.AddCommand(a.evaluationCommand(), a.initCommand(), a.validateCommand(), a.passwordCommand(), a.sourceCommand(), a.loginCommand(), a.searchCommand(), a.publishCommand(), a.reviewCommand(), a.adminCommand(), a.governanceCommand(), a.projectCommand())
 	root.AddCommand(&cobra.Command{Use: "logout SOURCE", Short: "Revoke the current session and remove its saved credential", Args: cobra.ExactArgs(1), RunE: func(cmd *cobra.Command, args []string) error {
 		if err := a.core.Logout(cmd.Context(), args[0]); err != nil {
 			return err

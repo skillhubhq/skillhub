@@ -51,7 +51,11 @@ func (c *Client) CreateDraft(ctx context.Context, directory string, target Previ
 		}
 		bundle, err = inspectPreviewBundle(release, archive)
 	} else {
-		bundle = &packageformat.Bundle{Files: []packageformat.File{{Path: "SKILL.md", Data: []byte("---\nname: my-skill\ndescription: Describe when to use this skill.\n---\n# My skill\n\n## Instructions\n\nWrite the steps here.\n")}}}
+		document, templateErr := packageformat.Template("my-skill", "Describe when to use this skill.")
+		if templateErr != nil {
+			return DraftWorkspace{}, templateErr
+		}
+		bundle = &packageformat.Bundle{Files: []packageformat.File{{Path: "SKILL.md", Data: document}}}
 	}
 	if err != nil {
 		return DraftWorkspace{}, err

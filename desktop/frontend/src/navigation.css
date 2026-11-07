@@ -41,7 +41,7 @@
   align-items: center;
   gap: 6px;
 }
-.primary-navigation button {
+.primary-navigation :is(button, a) {
   min-height: 38px;
   padding: 7px 13px;
   border: 0;
@@ -50,7 +50,7 @@
   font-size: 14px;
   border-radius: 7px;
 }
-.primary-navigation button[aria-current] {
+.primary-navigation :is(button, a)[aria-current] {
   background: var(--accent-light);
   color: var(--link);
 }
@@ -300,7 +300,7 @@
   .global-utilities {
     gap: 8px;
   }
-  .primary-navigation button {
+  .primary-navigation :is(button, a) {
     padding: 7px 10px;
   }
   .shell.community-shell > main {
@@ -332,13 +332,13 @@
     margin-top: 12px;
     gap: 18px;
   }
-  .primary-navigation button {
+  .primary-navigation :is(button, a) {
     padding: 9px 0 12px;
     border-radius: 0;
     border-bottom: 2px solid transparent;
     background: transparent;
   }
-  .primary-navigation button[aria-current] {
+  .primary-navigation :is(button, a)[aria-current] {
     border-bottom-color: var(--accent);
     background: transparent;
   }
@@ -892,4 +892,28 @@
     left: 0;
     right: auto;
   }
+}
+
+.primary-navigation .docs-link {
+  display: flex;
+  align-items: center;
+  min-height: 38px;
+  padding: 7px 13px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 7px;
+  text-decoration: none;
+}
+.primary-navigation .docs-link:hover {
+  color: var(--link);
+  background: var(--accent-light);
+}
+
+.primary-navigation a {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  font-weight: 500;
+  white-space: nowrap;
 }

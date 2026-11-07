@@ -157,6 +157,14 @@ export function DiscardPlan(id: string): $CancellablePromise<void> {
     return $Call.ByID(2974110414, id);
 }
 
+export function Evaluation(source: string, id: string): $CancellablePromise<client$0.EvaluationEvidence> {
+    return $Call.ByID(138951903, source, id);
+}
+
+export function Evaluations(source: string, id: string): $CancellablePromise<client$0.EvaluationPage> {
+    return $Call.ByID(3048702660, source, id);
+}
+
 export function FilterSubmissions(source: string, query: string, status: registryv1$0.ReleaseStatus, mine: boolean, token: string): $CancellablePromise<$models.ReleasePage> {
     return $Call.ByID(3084496456, source, query, status, mine, token);
 }
@@ -171,6 +179,10 @@ export function GetSkill(source: string, $namespace: string, name: string): $Can
 
 export function Identity(alias: string): $CancellablePromise<$models.IdentityView> {
     return $Call.ByID(2556406555, alias);
+}
+
+export function ImportEvaluation(source: string, id: string, document: string, key: string): $CancellablePromise<string> {
+    return $Call.ByID(417628846, source, id, document, key);
 }
 
 export function InspectDirectory(directory: string): $CancellablePromise<$models.DraftInfo> {
@@ -302,6 +314,10 @@ export function RemoveProjectSkill(path: string, tool: string, name: string): $C
 
 export function RemoveSource(alias: string): $CancellablePromise<void> {
     return $Call.ByID(1070275136, alias);
+}
+
+export function RetractEvaluation(source: string, id: string, key: string): $CancellablePromise<void> {
+    return $Call.ByID(3844365116, source, id, key);
 }
 
 export function Review(source: string, id: string, reason: string, requestID: string, approve: boolean): $CancellablePromise<client$0.ReleaseInfo> {

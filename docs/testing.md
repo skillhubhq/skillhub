@@ -24,6 +24,8 @@ make sdk-smoke
 
 For protocol changes, run `make proto` and include generated output. `make proto-check` compares generation with the checked-out revision; run it on a checkout containing the intended generated changes. CI also checks protocol breaking changes. Do not hand-edit generated output.
 
+Evaluation regression covers strict case/result parsing, archive binding, import/retraction, current-role checks, public/group audience isolation, both Connect codecs and paired backup preservation. See [evaluation evidence](evaluations.md) for portable fixtures and offline validation.
+
 ## Web and desktop
 
 ```sh
@@ -103,3 +105,5 @@ CI scans source/history for secrets and checks dependencies with the pinned tool
 GitHub CodeQL default setup analyzes Go, JavaScript/TypeScript, Python and Actions with extended queries and both remote and local input sources. Review findings against the security boundaries in [SECURITY.md](../SECURITY.md); a passing analysis job only confirms that the scanner ran. Fix actionable findings, and record the data-flow and validation evidence when dismissing a false positive. Do not disable queries to hide findings.
 
 The [deployment checklist](deployment-checklist.md) records optional-to-release, environment-specific follow-up against the actual identity provider, reverse proxy, database/storage and installation devices. Local fixtures cannot certify those integrations, and pending integration work does not fail code-level acceptance.
+
+Native overwrite tests use one isolated application and credential-store identity. When comparing a checkout with a different distributor identity, the harness normalizes only those identifiers and records the affected files in `fixture_identity_normalization`. Such a run verifies data-format compatibility; it does not certify automatic migration between application identities. Distributors must keep their application and credential-store identifiers stable across releases.

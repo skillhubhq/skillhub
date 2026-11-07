@@ -20,6 +20,7 @@ import (
 	"github.com/skillhubhq/skillhub/gen/api/auth/v1/authv1connect"
 	"github.com/skillhubhq/skillhub/gen/api/catalog/v1/catalogv1connect"
 	"github.com/skillhubhq/skillhub/gen/api/community/v1/communityv1connect"
+	"github.com/skillhubhq/skillhub/gen/api/evaluation/v1/evaluationv1connect"
 	"github.com/skillhubhq/skillhub/gen/api/governance/v1/governancev1connect"
 	"github.com/skillhubhq/skillhub/gen/api/publishing/v1/publishingv1connect"
 	registryv1 "github.com/skillhubhq/skillhub/gen/api/registry/v1"
@@ -54,7 +55,7 @@ type Credentials interface {
 type SystemCredentials struct{}
 
 func (SystemCredentials) Get(ref string) (string, error) {
-	value, err := keyring.Get("net.silkage.skillhub", ref)
+	value, err := keyring.Get("io.github.skillhubhq.skillhub", ref)
 	if errors.Is(err, keyring.ErrNotFound) {
 		return "", ErrCredentialMissing
 	}
@@ -64,13 +65,13 @@ func (SystemCredentials) Get(ref string) (string, error) {
 	return value, nil
 }
 func (SystemCredentials) Set(ref, token string) error {
-	if err := keyring.Set("net.silkage.skillhub", ref, token); err != nil {
+	if err := keyring.Set("io.github.skillhubhq.skillhub", ref, token); err != nil {
 		return ErrCredentialStore
 	}
 	return nil
 }
 func (SystemCredentials) Delete(ref string) error {
-	if err := keyring.Delete("net.silkage.skillhub", ref); err != nil && !errors.Is(err, keyring.ErrNotFound) {
+	if err := keyring.Delete("io.github.skillhubhq.skillhub", ref); err != nil && !errors.Is(err, keyring.ErrNotFound) {
 		return ErrCredentialStore
 	}
 	return nil
@@ -224,6 +225,7 @@ func (c *Client) removeSource(ctx context.Context, alias string) error {
 }
 
 type Remote struct {
+	Evaluation   evaluationv1connect.EvaluationServiceClient
 	Governance   governancev1connect.GovernanceServiceClient
 	Capabilities []string
 	Community    communityv1connect.CommunityServiceClient
@@ -277,7 +279,7 @@ func (c *Client) connectSource(ctx context.Context, alias string, withCredential
 		}
 	})
 	opts := []connect.ClientOption{connect.WithInterceptors(interceptor), connect.WithReadMaxBytes(32 << 20)}
-	return &Remote{Governance: governancev1connect.NewGovernanceServiceClient(c.http, address, opts...), Capabilities: info.Capabilities, Source: source, Community: communityv1connect.NewCommunityServiceClient(c.http, address, opts...), Auth: authv1connect.NewAuthServiceClient(c.http, address, opts...), Admin: adminv1connect.NewAdminServiceClient(c.http, address, opts...), Catalog: catalogv1connect.NewCatalogServiceClient(c.http, address, opts...), Publishing: publishingv1connect.NewPublishingServiceClient(c.http, address, opts...)}, nil
+	return &Remote{Evaluation: evaluationv1connect.NewEvaluationServiceClient(c.http, address, opts...), Governance: governancev1connect.NewGovernanceServiceClient(c.http, address, opts...), Capabilities: info.Capabilities, Source: source, Community: communityv1connect.NewCommunityServiceClient(c.http, address, opts...), Auth: authv1connect.NewAuthServiceClient(c.http, address, opts...), Admin: adminv1connect.NewAdminServiceClient(c.http, address, opts...), Catalog: catalogv1connect.NewCatalogServiceClient(c.http, address, opts...), Publishing: publishingv1connect.NewPublishingServiceClient(c.http, address, opts...)}, nil
 }
 
 // Remote 先匿名确认实例身份，再按此来源添加凭据。

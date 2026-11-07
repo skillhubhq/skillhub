@@ -65,7 +65,7 @@ The `.skillhub-maintenance` marker blocks service startup while a destination is
 3. Check startup, login, catalog permissions and a download. Migrations run transactionally at open; supported migrations preserve instance identity. Future unknown database versions are rejected.
 4. To roll back a schema change, stop the new process and restore the pre-upgrade backup into a new directory using a compatible binary. Do not run an old binary against a newer schema. Reconcile writes accepted after the backup before selecting the rollback point.
 
-The Hub schema is 9 and the shared client schema is 2. SQLite backup manifest format 1 verifies supported Hub schemas through 9. Restoring retains the snapshot schema; opening the restored directory runs supported migrations. Future format/schema support must be added explicitly rather than silently rewriting old snapshots during verification.
+The Hub schema is 10 and the shared client schema is 2. SQLite backup manifest format 1 verifies supported Hub schemas through 10. Restoring retains the snapshot schema; opening the restored directory runs supported migrations. Future format/schema support must be added explicitly rather than silently rewriting old snapshots during verification.
 
 ## Diagnostics and limits
 

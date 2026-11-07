@@ -58,6 +58,8 @@ React views build for either the browser or Wails. A typed adapter selects gener
 
 Skill files render as bounded text/Markdown without script execution. Browser installation offers instructions and downloads; native clients perform planned filesystem writes. App release discovery contacts only the software distribution service, never a Hub-selected executable source.
 
+The `/docs/` route serves a static Next.js/Fumadocs export generated from the canonical repository guides, with browser-local search. Its per-page CSP permits only the generated inline script hashes. Documentation is public software content, separate from Hub authentication and private data; Node.js is a build dependency only.
+
 ## Maintenance and verification
 
 SQLite backup creates a consistent snapshot and copies exactly its referenced package digests. PostgreSQL maintenance pairs a native database dump with packages while holding exclusive ownership. Restore accepts fresh destinations, preserves registry identity, invalidates sessions/devices and records an audit event. Markers prevent incomplete recovery from serving. Upgrade/rollback is an operator workflow, not an in-place schema downgrade.

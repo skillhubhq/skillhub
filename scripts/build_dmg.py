@@ -19,7 +19,7 @@ def build(app, output):
         raise ValueError('Output already exists; choose a new filename')
     with (app / 'Contents/Info.plist').open('rb') as source:
         info = plistlib.load(source)
-    if info.get('CFBundleIdentifier') != 'net.silkage.skillhub' or app.name != 'SkillHub.app':
+    if info.get('CFBundleIdentifier') != 'io.github.skillhubhq.skillhub' or app.name != 'SkillHub.app':
         raise ValueError('Expected the production SkillHub.app bundle, not a fixture')
     subprocess.run(['codesign', '--verify', '--strict', str(app)], check=True)
     subprocess.run(['test', '-x', str(app / 'Contents/MacOS/SkillHub')], check=True)

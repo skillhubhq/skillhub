@@ -1,3 +1,4 @@
+import { EvaluationPanel } from "./EvaluationPanel";
 import { ScanPanel } from "./Governance";
 import { Select } from "./Select";
 import { SkillSymbol, skillTitle } from "./SkillIdentity";
@@ -437,14 +438,23 @@ export function ReviewWorkspace({
                 </p>
               ) : null}
             </section>
-            <ScanPanel
-              source={source}
-              release={selected.release.id}
-              report={scan.value}
-              loading={scan.loading}
-              error={scan.error}
-              reload={scan.reload}
-            />
+            <div className="review-checks">
+              <ScanPanel
+                source={source}
+                release={selected.release.id}
+                report={scan.value}
+                loading={scan.loading}
+                error={scan.error}
+                reload={scan.reload}
+              />
+              <EvaluationPanel
+                key={selected.release.id}
+                source={source}
+                release={selected.release.id}
+                digest={selected.release.digest}
+                compact
+              />
+            </div>
             <div className="review-content">
               <PreviewBody preview={selected} />
             </div>

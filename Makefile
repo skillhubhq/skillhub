@@ -1,4 +1,4 @@
-.PHONY: web proto-deps proto proto-check test check build desktop sdk-smoke quality
+.PHONY: web docs-web proto-deps proto proto-check test check build desktop sdk-smoke quality
 
 proto-deps:
 	npm --prefix sdk/typescript ci --ignore-scripts
@@ -23,9 +23,15 @@ check: proto-deps
 	go test -race ./...
 	npm --prefix sdk/typescript test
 
-web:
-	npm --prefix desktop/frontend ci --ignore-scripts
+docs-web:
 	npm --prefix sdk/typescript ci --ignore-scripts
+	npm --prefix website ci --ignore-scripts
+	npm --prefix website test
+	npm --prefix website run build
+	python3 scripts/copy_docs.py
+
+web: docs-web
+	npm --prefix desktop/frontend ci --ignore-scripts
 	npm --prefix desktop/frontend run build:web
 
 build: web

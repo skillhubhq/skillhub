@@ -1,4 +1,5 @@
-import { ReviewInbox } from "./Governance";
+import { HeaderFrame } from "./HeaderFrame";
+import { ReviewInbox } from "./ReviewInbox";
 import { Select } from "./Select";
 import { useEffect, useRef } from "react";
 import { useUI } from "./ui";
@@ -12,6 +13,7 @@ const community = ["discover", "teams", "bookmarks", "profile"];
 const studio = ["publish", "submissions", "review", "management"];
 const library = ["installed", "projects"];
 export function Navigation({ page }: { page: string }) {
+  const language = useLanguage();
   const ui = useUI();
   const privateGate =
     isWeb &&
@@ -57,85 +59,101 @@ export function Navigation({ page }: { page: string }) {
     "SkillHub";
   return (
     <header className="navigation-shell">
-      <div className="global-navigation">
-        <button
-          className={`brand home-link ${isWeb ? "site-home" : "app-home"}`}
-          aria-label={
-            isWeb
-              ? `${siteName} · ${t("Home", "首页")}`
-              : t("SkillHub home", "SkillHub 首页")
-          }
-          title={isWeb ? siteName : "SkillHub"}
-          onClick={() => ui.navigate("discover")}
-        >
-          <img
-            className={`${isWeb ? "site-mark" : "brand-logo"} brand-light`}
-            src={`./assets/brand/${isWeb ? "mark" : "logo"}-color.svg`}
-            alt=""
-            width={isWeb ? 30 : 126}
-            height="33"
-          />
-          <img
-            className={`${isWeb ? "site-mark" : "brand-logo"} brand-dark`}
-            src={`./assets/brand/${isWeb ? "mark" : "logo"}-white.svg`}
-            alt=""
-            width={isWeb ? 30 : 126}
-            height="33"
-          />
-          {isWeb && <span className="site-name">{siteName}</span>}
-        </button>
-        <nav
-          className="primary-navigation"
-          aria-label={t("Main navigation", "主导航")}
-        >
+      <HeaderFrame
+        brand={
           <button
-            aria-current={group === "community" ? "page" : undefined}
+            className={`brand home-link ${isWeb ? "site-home" : "app-home"}`}
+            aria-label={
+              isWeb
+                ? `${siteName} · ${t("Home", "首页")}`
+                : t("SkillHub home", "SkillHub 首页")
+            }
+            title={isWeb ? siteName : "SkillHub"}
             onClick={() => ui.navigate("discover")}
           >
-            {t("Community", "社区")}
+            <img
+              className={`${isWeb ? "site-mark" : "brand-logo"} brand-light`}
+              src={`./assets/brand/${isWeb ? "mark" : "logo"}-color.svg`}
+              alt=""
+              width={isWeb ? 30 : 126}
+              height="33"
+            />
+            <img
+              className={`${isWeb ? "site-mark" : "brand-logo"} brand-dark`}
+              src={`./assets/brand/${isWeb ? "mark" : "logo"}-white.svg`}
+              alt=""
+              width={isWeb ? 30 : 126}
+              height="33"
+            />
+            {isWeb && <span className="site-name">{siteName}</span>}
           </button>
-          {!isWeb && (
-            <button
-              aria-current={group === "library" ? "page" : undefined}
-              onClick={() => ui.navigate("installed")}
-            >
-              {t("My library", "本地技能")}
-            </button>
-          )}
-          {!privateGate && (
-            <button
-              aria-current={group === "studio" ? "page" : undefined}
-              onClick={() => ui.navigate("submissions")}
-            >
-              {t("Studio", "创作")}
-            </button>
-          )}
-          {isWeb && (
-            <button
-              aria-current={page === "downloads" ? "page" : undefined}
-              onClick={() => ui.navigate("downloads")}
-            >
-              {t("Downloads", "下载")}
-            </button>
-          )}
-        </nav>
-        <div className="global-utilities">
-          {ui.access === "member" && ui.activeSource && group !== "library" && (
-            <ReviewInbox key={ui.activeSource} source={ui.activeSource} />
-          )}
-          <QuickPreferences />
-          <button
-            className="utility-settings"
-            title={t("Settings", "设置")}
-            aria-label={t("Settings", "设置")}
-            aria-current={group === "settings" ? "page" : undefined}
-            onClick={() => ui.navigate("settings")}
+        }
+        navigation={
+          <nav
+            className="primary-navigation"
+            aria-label={t("Main navigation", "主导航")}
           >
-            <Icon name="management" />
-          </button>
-          <WebAccount />
-        </div>
-      </div>
+            <button
+              aria-current={group === "community" ? "page" : undefined}
+              onClick={() => ui.navigate("discover")}
+            >
+              {t("Community", "社区")}
+            </button>
+            {!isWeb && (
+              <button
+                aria-current={group === "library" ? "page" : undefined}
+                onClick={() => ui.navigate("installed")}
+              >
+                {t("My library", "本地技能")}
+              </button>
+            )}
+            {!privateGate && (
+              <button
+                aria-current={group === "studio" ? "page" : undefined}
+                onClick={() => ui.navigate("submissions")}
+              >
+                {t("Studio", "创作")}
+              </button>
+            )}
+            {isWeb && (
+              <button
+                aria-current={page === "downloads" ? "page" : undefined}
+                onClick={() => ui.navigate("downloads")}
+              >
+                {t("Downloads", "下载")}
+              </button>
+            )}
+            {isWeb && (
+              <a
+                className="docs-link"
+                href={language === "zh" ? "/docs/zh/" : "/docs/"}
+              >
+                {t("Docs", "文档")}
+              </a>
+            )}
+          </nav>
+        }
+        utilities={
+          <>
+            {ui.access === "member" &&
+              ui.activeSource &&
+              group !== "library" && (
+                <ReviewInbox key={ui.activeSource} source={ui.activeSource} />
+              )}
+            <QuickPreferences />
+            <button
+              className="utility-settings"
+              title={t("Settings", "设置")}
+              aria-label={t("Settings", "设置")}
+              aria-current={group === "settings" ? "page" : undefined}
+              onClick={() => ui.navigate("settings")}
+            >
+              <Icon name="management" />
+            </button>
+            <WebAccount />
+          </>
+        }
+      />
       {links.length > 1 && !privateGate && (
         <div className="context-navigation">
           <nav aria-label={t("Section navigation", "区域导航")}>

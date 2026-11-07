@@ -21,6 +21,7 @@ import (
 	"github.com/skillhubhq/skillhub/gen/api/catalog/v1/catalogv1connect"
 	commonv1 "github.com/skillhubhq/skillhub/gen/api/common/v1"
 	"github.com/skillhubhq/skillhub/gen/api/community/v1/communityv1connect"
+	"github.com/skillhubhq/skillhub/gen/api/evaluation/v1/evaluationv1connect"
 	"github.com/skillhubhq/skillhub/gen/api/governance/v1/governancev1connect"
 	"github.com/skillhubhq/skillhub/gen/api/publishing/v1/publishingv1connect"
 	registryv1 "github.com/skillhubhq/skillhub/gen/api/registry/v1"
@@ -107,6 +108,7 @@ func New(store *hub.Store, config Config) (*Server, error) {
 	mux := http.NewServeMux()
 	mux.Handle(authv1connect.NewAuthServiceHandler(s, opts...))
 	mux.Handle(governancev1connect.NewGovernanceServiceHandler(s, opts...))
+	mux.Handle(evaluationv1connect.NewEvaluationServiceHandler(s, connect.WithInterceptors(interceptor), connect.WithReadMaxBytes(400<<10)))
 	mux.Handle(communityv1connect.NewCommunityServiceHandler(s, connect.WithInterceptors(interceptor), connect.WithReadMaxBytes(1<<20)))
 	mux.Handle(registryv1connect.NewRegistryServiceHandler(s, opts...))
 	mux.Handle(adminv1connect.NewAdminServiceHandler(s, connect.WithInterceptors(interceptor), connect.WithReadMaxBytes(64<<10)))
@@ -141,7 +143,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) GetRegistry(ctx context.Context, req *connect.Request[registryv1.GetRegistryRequest]) (*connect.Response[registryv1.GetRegistryResponse], error) {
-	capabilities := []string{"identity.local", "identity.device", "catalog.v1", "publishing.review.v1", "admin.v1", "community.v1", "catalog.presentation.v1", "governance.v1", "catalog.discovery.v1", "governance.tasks.v1"}
+	capabilities := []string{"identity.local", "identity.device", "catalog.v1", "publishing.review.v1", "admin.v1", "community.v1", "catalog.presentation.v1", "governance.v1", "catalog.discovery.v1", "governance.tasks.v1", "evaluation.v1"}
 	if s.oidc != nil {
 		capabilities = append(capabilities, "identity.oidc")
 	}
@@ -233,7 +235,7 @@ func (s *Server) boundary(next http.Handler) http.Handler {
 		if !s.browserSession(w, r) {
 			return
 		}
-		if r.URL.Path == publishingv1connect.PublishingServiceSubmitReleaseProcedure || r.URL.Path == communityv1connect.CommunityServiceUpdateAvatarProcedure || r.URL.Path == governancev1connect.GovernanceServiceScanReleaseProcedure {
+		if r.URL.Path == publishingv1connect.PublishingServiceSubmitReleaseProcedure || r.URL.Path == communityv1connect.CommunityServiceUpdateAvatarProcedure || (r.URL.Path == governancev1connect.GovernanceServiceScanReleaseProcedure || r.URL.Path == evaluationv1connect.EvaluationServiceImportEvidenceProcedure) {
 			if _, err := s.identity(r.Context(), r.Header); err != nil {
 				_ = connect.NewErrorWriter().Write(w, r, publicError(err))
 				return
@@ -252,10 +254,10 @@ func (s *Server) boundary(next http.Handler) http.Handler {
 				http.Error(w, "request could not be completed", http.StatusInternalServerError)
 			}
 		}()
-		if r.URL.Path == governancev1connect.GovernanceServiceScanReleaseProcedure || strings.HasPrefix(r.URL.Path, "/auth/oidc/") || strings.HasPrefix(r.URL.Path, "/api.auth.v1.AuthService/") || r.URL.Path == "/authorize" || r.URL.Path == "/login" || r.URL.Path == "/logout" {
+		if (r.URL.Path == governancev1connect.GovernanceServiceScanReleaseProcedure || r.URL.Path == evaluationv1connect.EvaluationServiceImportEvidenceProcedure) || strings.HasPrefix(r.URL.Path, "/auth/oidc/") || strings.HasPrefix(r.URL.Path, "/api.auth.v1.AuthService/") || r.URL.Path == "/authorize" || r.URL.Path == "/login" || r.URL.Path == "/logout" {
 			ip := s.clientAddress(r)
 			limit := 120
-			if r.URL.Path == governancev1connect.GovernanceServiceScanReleaseProcedure || r.URL.Path == authv1connect.AuthServiceLoginProcedure || r.URL.Path == authv1connect.AuthServiceStartDeviceLoginProcedure || ((r.URL.Path == "/authorize" || r.URL.Path == "/login") && r.Method == http.MethodPost) {
+			if (r.URL.Path == governancev1connect.GovernanceServiceScanReleaseProcedure || r.URL.Path == evaluationv1connect.EvaluationServiceImportEvidenceProcedure) || r.URL.Path == authv1connect.AuthServiceLoginProcedure || r.URL.Path == authv1connect.AuthServiceStartDeviceLoginProcedure || ((r.URL.Path == "/authorize" || r.URL.Path == "/login") && r.Method == http.MethodPost) {
 				limit = 20
 			}
 			if !s.limiter.allow(ip+"|"+r.URL.Path+"|"+r.Method, limit) {

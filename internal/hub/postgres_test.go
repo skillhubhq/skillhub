@@ -50,7 +50,7 @@ func TestPostgresOwnershipBeforeMigrationAndDisconnect(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer first.Close()
-	if _, err = first.db.Exec("DROP TABLE featured_skills; DROP INDEX releases_review_queue; DROP TABLE review_notifications; DROP TABLE release_scans; DROP TABLE platform_roles; DROP TABLE access_requests; ALTER TABLE releases DROP COLUMN display_name_en; ALTER TABLE releases DROP COLUMN display_name_zh; ALTER TABLE releases DROP COLUMN icon; PRAGMA user_version=5;"); err != nil {
+	if _, err = first.db.Exec("DROP TABLE evaluation_evidence; DROP TABLE featured_skills; DROP INDEX releases_review_queue; DROP TABLE review_notifications; DROP TABLE release_scans; DROP TABLE platform_roles; DROP TABLE access_requests; ALTER TABLE releases DROP COLUMN display_name_en; ALTER TABLE releases DROP COLUMN display_name_zh; ALTER TABLE releases DROP COLUMN icon; PRAGMA user_version=5;"); err != nil {
 		t.Fatal(err)
 	}
 	if second, err := OpenDatabase(t.TempDir(), cfg); err == nil {
@@ -129,6 +129,8 @@ func TestPostgresPairedBackupRestoreAndFailureGuards(t *testing.T) {
 	_, err = s.ReviewRelease(ctx, reviewer, "review-before-backup", ReviewRelease{ReleaseID: release.ID, Approve: true})
 	mustGovernance(t, err)
 	mustGovernance(t, s.SetFeaturedSkill(ctx, actor, "feature-before-backup", "team", "recovery-check", true))
+	evaluationID, err := s.ImportEvaluation(ctx, actor, "evaluation-before-backup", release.ID, evaluationFixture(release.Digest).Canonical())
+	mustGovernance(t, err)
 	backup := filepath.Join(t.TempDir(), "backup")
 	if _, err = BackupPostgres(ctx, cfg, root, backup); err == nil {
 		t.Fatal("backup allowed while database serving")
@@ -170,6 +172,11 @@ func TestPostgresPairedBackupRestoreAndFailureGuards(t *testing.T) {
 	mustGovernance(t, err)
 	if report.Digest != release.Digest || report.Engine == "" {
 		t.Fatal("restored scan evidence missing")
+	}
+	evidence, err := copy.GetEvaluation(ctx, reviewer, evaluationID)
+	mustGovernance(t, err)
+	if evidence.DocumentJSON != string(evaluationFixture(release.Digest).Canonical()) || evidence.Passed != 1 {
+		t.Fatal("restored evaluation evidence changed")
 	}
 	access, err := copy.GetPlatformAccess(ctx, reviewer, "")
 	mustGovernance(t, err)
@@ -267,7 +274,7 @@ func TestPostgresUpgradeAndRollbackPreservePreUpgradeSchema(t *testing.T) {
 		t.Fatal(err)
 	}
 	id := s.RegistryID()
-	if _, err = s.db.Exec("DROP TABLE featured_skills; DROP INDEX releases_review_queue; DROP TABLE review_notifications; DROP TABLE release_scans; DROP TABLE platform_roles; DROP TABLE access_requests; PRAGMA user_version=6;"); err != nil {
+	if _, err = s.db.Exec("DROP TABLE evaluation_evidence; DROP TABLE featured_skills; DROP INDEX releases_review_queue; DROP TABLE review_notifications; DROP TABLE release_scans; DROP TABLE platform_roles; DROP TABLE access_requests; PRAGMA user_version=6;"); err != nil {
 		t.Fatal(err)
 	}
 	s.Close()
@@ -378,7 +385,7 @@ func TestPostgresMigrationCancellation(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err = s.db.Exec("DROP TABLE featured_skills; DROP INDEX releases_review_queue; DROP TABLE review_notifications; DROP TABLE release_scans; DROP TABLE platform_roles; DROP TABLE access_requests; PRAGMA user_version=6;"); err != nil {
+	if _, err = s.db.Exec("DROP TABLE evaluation_evidence; DROP TABLE featured_skills; DROP INDEX releases_review_queue; DROP TABLE review_notifications; DROP TABLE release_scans; DROP TABLE platform_roles; DROP TABLE access_requests; PRAGMA user_version=6;"); err != nil {
 		t.Fatal(err)
 	}
 	defer s.Close()
@@ -421,7 +428,7 @@ func TestPostgresGovernanceUpgradeAndRollback(t *testing.T) {
 	actor, e := s.Bootstrap(ctx, "admin", "a-strong-test-password")
 	mustGovernance(t, e)
 	registry := s.RegistryID()
-	_, e = s.db.Exec("DROP TABLE featured_skills; DROP INDEX releases_review_queue; DROP TABLE review_notifications; DROP TABLE release_scans; DROP TABLE platform_roles; PRAGMA user_version=7;")
+	_, e = s.db.Exec("DROP TABLE evaluation_evidence; DROP TABLE featured_skills; DROP INDEX releases_review_queue; DROP TABLE review_notifications; DROP TABLE release_scans; DROP TABLE platform_roles; PRAGMA user_version=7;")
 	mustGovernance(t, e)
 	mustGovernance(t, s.Close())
 	backup := filepath.Join(t.TempDir(), "schema7")
@@ -463,7 +470,7 @@ func TestPostgresDiscoveryUpgradeAndRollback(t *testing.T) {
 	actor, e := s.Bootstrap(ctx, "admin", "a-strong-test-password")
 	mustGovernance(t, e)
 	registry := s.RegistryID()
-	_, e = s.db.Exec("DROP TABLE featured_skills; DROP INDEX releases_review_queue; PRAGMA user_version=8;")
+	_, e = s.db.Exec("DROP TABLE evaluation_evidence; DROP TABLE featured_skills; DROP INDEX releases_review_queue; PRAGMA user_version=8;")
 	mustGovernance(t, e)
 	mustGovernance(t, s.Close())
 	backup := filepath.Join(t.TempDir(), "schema8")

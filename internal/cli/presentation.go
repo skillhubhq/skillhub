@@ -81,6 +81,25 @@ func (a *application) output(cmd *cobra.Command, value any) error {
 	}
 	p := &presentation{color: terminalColor(cmd.OutOrStdout(), a.noColor)}
 	switch v := value.(type) {
+	case client.EvaluationPage:
+		p.heading(fmt.Sprintf("Evaluation evidence · %d", len(v.Evidence)))
+		if !v.Supported {
+			p.hint("This Hub does not support evaluation evidence.")
+		} else if len(v.Evidence) == 0 {
+			p.hint("No external results for this version.")
+		}
+		for _, e := range v.Evidence {
+			p.gap()
+			p.evidence(e)
+		}
+	case client.EvaluationEvidence:
+		p.heading("Evaluation evidence")
+		p.evidence(v)
+		if !v.Retracted {
+			p.hint("Use --json to read the complete case inputs and observed results.")
+		}
+	case authoringResult:
+		p.authoring(v)
 	case []client.Source:
 		p.heading(fmt.Sprintf("Connections · %d", len(v)))
 		if len(v) == 0 {
@@ -393,4 +412,20 @@ func PrintError(w io.Writer, err error) {
 	if hint != "" {
 		fmt.Fprintln(w, "\n"+hint)
 	}
+}
+
+func (p *presentation) evidence(e client.EvaluationEvidence) {
+	p.field("ID", e.ID)
+	if e.Retracted {
+		p.field("Status", "Retracted; report content removed")
+		return
+	}
+	p.field("Suite", e.SuiteName+" · "+e.SuiteVersion)
+	p.field("Agent", e.Agent)
+	p.field("Model", e.Model)
+	p.field("Runner", e.Runner)
+	p.field("Results", fmt.Sprintf("%d/%d passed · %d failed · %d errors · %d skipped", e.Passed, e.Passed+e.Failed+e.Errors+e.Skipped, e.Failed, e.Errors, e.Skipped))
+	p.field("Executed", e.ExecutedAt)
+	p.field("Imported", e.ImportedAt)
+	p.field("Trust", "Externally reported; not independently verified by SkillHub")
 }
