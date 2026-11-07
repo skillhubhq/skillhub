@@ -17,7 +17,7 @@ make sdk-smoke
 
 Go, Buf 1.72.0 and Node 24 are required for the complete generation/check workflow. CI pins Node 24.21.0. `make proto` installs the lockfile-pinned local JavaScript generator with lifecycle scripts disabled, then generates both Go and TypeScript from `proto/` through `buf.gen.yaml`. Hub/CLI compilation by itself still requires only Go.
 
-`gen/` is generated and checked in. `src/index.ts` provides exports and client construction. `dist/` is compiled locally and ignored by Git. The npm lockfile pins Protobuf-ES / its generator to 2.17.0, Connect to 2.3.0, and TypeScript to 5.9.3. Imported Protovalidate descriptors are generated from the pinned Buf dependency; their notice and license are preserved. Regeneration checks both tracked and newly generated output.
+`gen/` is generated and checked in. `src/index.ts` provides exports and client construction. `dist/` is compiled locally and ignored by Git. The npm lockfile pins Protobuf-ES / its generator to 2.17.0, Connect to 2.3.0, and TypeScript to 7.0.2. Imported Protovalidate descriptors are generated from the pinned Buf dependency; their notice and license are preserved. Regeneration checks both tracked and newly generated output.
 
 ## Integration example
 

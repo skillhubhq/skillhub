@@ -631,6 +631,14 @@ export async function runNativeSmoke() {
         );
       }
     }
+    // 列表结果可能先于全局请求状态更新；禁用的按钮不会响应 click。
+    await waitForUI(() =>
+      Array.from(
+        document.querySelectorAll<HTMLButtonElement>(".tabs button"),
+      ).some(
+        (button) => button.textContent === "Role grants" && !button.disabled,
+      ),
+    );
     (
       Array.from(document.querySelectorAll(".tabs button")).find(
         (b) => b.textContent === "Role grants",
