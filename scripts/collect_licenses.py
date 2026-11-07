@@ -11,8 +11,8 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def collect_npm(frontend, output, label, *, static_assets=False):
-    lock = json.loads((frontend / "package-lock.json").read_text())
-    overrides = json.loads((ROOT / "third_party/npm/sources.json").read_text())
+    lock = json.loads((frontend / "package-lock.json").read_text(encoding="utf-8"))
+    overrides = json.loads((ROOT / "third_party/npm/sources.json").read_text(encoding="utf-8"))
     inventory = []
     for relative, entry in lock["packages"].items():
         if not relative or entry.get("dev"):
@@ -21,7 +21,7 @@ def collect_npm(frontend, output, label, *, static_assets=False):
         # npm 不会安装其他平台的可选原生包；它们不在当前构建产物中。
         if entry.get("optional") and not (package / "package.json").exists():
             continue
-        metadata = json.loads((package / "package.json").read_text())
+        metadata = json.loads((package / "package.json").read_text(encoding="utf-8"))
         # 静态文档不分发 Next/SWC/图像处理的原生可选二进制。
         if static_assets and entry.get("optional") and metadata.get("os"):
             continue
@@ -48,7 +48,7 @@ def collect_npm(frontend, output, label, *, static_assets=False):
                 raise ValueError(f"Notice checksum mismatch: {name}")
             shutil.copyfile(source, dest / notice["file"])
         inventory.append({"name": name, "version": version, "license": metadata.get("license"), "integrity": entry.get("integrity")})
-    (output / f"{label}-packages.json").write_text(json.dumps(inventory, indent=2) + "\n")
+    (output / f"{label}-packages.json").write_text(json.dumps(inventory, indent=2) + "\n", encoding="utf-8")
     return inventory
 
 
@@ -71,7 +71,7 @@ def main():
         module_info, offset = decoder.raw_decode(remaining)
         modules.append({k: module_info[k] for k in ["Path", "Version", "Sum", "GoVersion", "Main"] if k in module_info})
         remaining = remaining[offset:].lstrip()
-    (output / "go-modules.json").write_text(json.dumps(modules, indent=2) + "\n")
+    (output / "go-modules.json").write_text(json.dumps(modules, indent=2) + "\n", encoding="utf-8")
     inventory = collect_npm(ROOT / "desktop/frontend", output, "npm")
     if not args.desktop:
         inventory += collect_npm(ROOT / "website", output, "npm-docs", static_assets=True)

@@ -3,10 +3,34 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from unittest import mock
 from collect_licenses import collect_npm
 
 
 class LicenseInventoryTest(unittest.TestCase):
+    def test_utf8_metadata_does_not_depend_on_host_encoding(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            package = root / 'node_modules/example'
+            package.mkdir(parents=True)
+            (package / 'package.json').write_text(json.dumps({
+                'name': 'example', 'version': '1.0.0', 'license': 'MIT',
+                'description': '描述',
+            }, ensure_ascii=False), encoding='utf-8')
+            (package / 'LICENSE').write_text('Fixture license', encoding='utf-8')
+            (root / 'package-lock.json').write_text(json.dumps({'packages': {
+                'node_modules/example': {'version': '1.0.0'},
+            }}), encoding='utf-8')
+            read_text = Path.read_text
+
+            def legacy_locale_read(path, encoding=None, errors=None):
+                return read_text(path, encoding=encoding or 'cp1252', errors=errors)
+
+            with mock.patch.object(Path, 'read_text', new=legacy_locale_read):
+                rows = collect_npm(root, root, 'npm-docs')
+            self.assertEqual([row['name'] for row in rows], ['example'])
+            self.assertEqual(json.loads((root / 'npm-docs-packages.json').read_text(encoding='utf-8')), rows)
+
     def test_static_docs_exclude_optional_native_build_tools(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
