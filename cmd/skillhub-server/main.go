@@ -30,6 +30,11 @@ func main() {
 	}
 }
 
+// 备份中的标识可能包含控制字符；摘要必须保持为单条可安全显示的记录。
+func maintenanceSummary(operation, registry string, schema, packages int) string {
+	return fmt.Sprintf("%s complete: registry %q, schema %d, %d packages\n", operation, registry, schema, packages)
+}
+
 func run(args []string) error {
 	if len(args) == 0 || args[0] == "--help" || args[0] == "-h" || args[0] == "help" {
 		_, err := fmt.Fprint(os.Stdout, serverHelp)
@@ -124,7 +129,7 @@ func run(args []string) error {
 			if e != nil {
 				return e
 			}
-			fmt.Printf("%s complete: registry %s, schema %d, %d packages\n", args[0], pg.RegistryID, pg.Schema, pg.Packages)
+			fmt.Print(maintenanceSummary(args[0], pg.RegistryID, pg.Schema, pg.Packages))
 			return nil
 		}
 		if args[0] == "upgrade" {
@@ -161,7 +166,7 @@ func run(args []string) error {
 		if err != nil {
 			return err
 		}
-		fmt.Printf("%s complete: registry %s, schema %d, %d packages\n", args[0], info.RegistryID, info.Schema, info.Packages)
+		fmt.Print(maintenanceSummary(args[0], info.RegistryID, info.Schema, info.Packages))
 		if args[0] == "restore" {
 			fmt.Println("Previous sessions and pending device authorizations were removed; clients must sign in again.")
 		}

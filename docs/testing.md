@@ -74,4 +74,6 @@ The runner uses fresh fixtures and covers both client/server directions and alte
 
 CI scans source/history for secrets and checks dependencies with the pinned tooling. Static scans are bounded evidence; review archives and dependencies before distribution. Environment addresses, tenant identifiers, credentials and completed operational reports belong outside the source repository.
 
+GitHub CodeQL default setup analyzes Go, JavaScript/TypeScript, Python and Actions with extended queries and both remote and local input sources. Review findings against the security boundaries in [SECURITY.md](../SECURITY.md); a passing analysis job only confirms that the scanner ran. Fix actionable findings, and record the data-flow and validation evidence when dismissing a false positive. Do not disable queries to hide findings.
+
 Complete the [deployment checklist](deployment-checklist.md) against the actual identity provider, reverse proxy, database/storage and installation devices. Local fixtures cannot certify those integrations.

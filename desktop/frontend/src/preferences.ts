@@ -17,9 +17,9 @@ function apply() {
   listeners.forEach((fn) => fn());
 }
 export function setTheme(value: Theme) {
-  theme = value;
+  theme = value === "light" ? "light" : value === "dark" ? "dark" : "system";
   try {
-    localStorage.setItem(key, value);
+    localStorage.setItem(key, theme);
   } catch {}
   apply();
 }

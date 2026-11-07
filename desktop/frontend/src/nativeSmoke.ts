@@ -1,6 +1,7 @@
 import { runSelectSmoke } from "./selectSmoke";
 import { skillTitle } from "./SkillIdentity";
-import { setLanguage } from "./i18n";
+import { setLanguage, type Language } from "./i18n";
+import { setTheme, type Theme } from "./preferences";
 import {
   NamespaceRole as Role,
   PlatformRole as Duty,
@@ -41,6 +42,18 @@ export async function runNativeSmoke() {
       "task navigation and persistent preference shortcuts rendered",
     );
     await runSelectSmoke(check);
+    // 模拟无类型调用方：偏好存储只接受枚举字面量，不持久化任意输入。
+    setLanguage("fixture-untrusted-value" as Language);
+    check(
+      localStorage.getItem("skillhub.language") === "en" &&
+        document.documentElement.lang === "en",
+      "language preference persists only an allowed value",
+    );
+    setTheme("fixture-untrusted-value" as Theme);
+    check(
+      localStorage.getItem("skillhub.theme") === "system",
+      "theme preference persists only an allowed value",
+    );
     for (const mode of ["light", "dark", "system"])
       await API.ApplyAppearance(mode, mode === "dark");
     let invalidAppearanceRejected = false;
