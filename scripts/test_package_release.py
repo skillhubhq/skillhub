@@ -56,6 +56,14 @@ class PackageReleaseTests(unittest.TestCase):
             with self.assertRaises(FileExistsError):
                 package(tag, revision, "123", root, dest)
 
+    def test_rejects_path_and_shell_tokens_in_release_identity(self):
+        for tag in ["../../escape", "v0.1.0/../../escape", "v0.1.0;echo bad", "v0.1.0$(echo bad)"]:
+            with self.subTest(tag=tag), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                with self.assertRaises(ValueError):
+                    package(tag, "a" * 40, "123", root, root / "output")
+                self.assertEqual(list(root.iterdir()), [])
+
     def test_rejects_mismatched_source_or_failed_native_report(self):
         for failure in ["revision", "native", "dmg"]:
             with self.subTest(failure=failure), tempfile.TemporaryDirectory() as tmp:

@@ -419,6 +419,16 @@ func (s *Store) recoverTarget(ctx context.Context, target string) error {
 	} else if statErr != nil && !errors.Is(statErr, os.ErrNotExist) {
 		return statErr
 	}
+	// 已提交只表示新安装已生效，并不授权删除崩溃后被用户修改的备份。
+	if j.Committed {
+		fingerprint, exists, err := fingerprintAt(filepath.Join(j.Directory, "old"))
+		if err != nil {
+			return err
+		}
+		if exists && (j.Plan.Before == nil || fingerprint != j.Plan.Before.Fingerprint) {
+			return errors.New("recovery stopped: original installation was modified")
+		}
+	}
 	if !j.Committed {
 		backup := filepath.Join(j.Directory, "old")
 		_, backupErr := os.Lstat(backup)

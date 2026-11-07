@@ -84,42 +84,46 @@ func TestPhysicalPathAliasesShareOneOwner(t *testing.T) {
 }
 
 func TestRecoveryStopsIfBackupWasModified(t *testing.T) {
-	ctx := context.Background()
-	s := testStore(t)
-	old, digest := testArchive(t, "old")
-	target := filepath.Join(t.TempDir(), "check")
-	p, err := s.PlanInstall(ctx, record(target, digest), old)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err = s.Apply(ctx, *p, old); err != nil {
-		t.Fatal(err)
-	}
-	next, digest := testArchive(t, "new")
-	p, err = s.PlanInstall(ctx, record(target, digest), next)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err = s.apply(ctx, *p, next, func(at string) error {
-		if at == "old-moved" {
-			return errors.New("interrupted")
-		}
-		return nil
-	}); err == nil {
-		t.Fatal("missing injected failure")
-	}
-	paths, err := filepath.Glob(filepath.Join(filepath.Dir(p.Target), ".skillhub-txn-*", "old", "SKILL.md"))
-	if err != nil || len(paths) != 1 {
-		t.Fatal("missing backup")
-	}
-	if err = os.WriteFile(paths[0], []byte("local recovery edit"), 0600); err != nil {
-		t.Fatal(err)
-	}
-	if err = s.Recover(ctx); err == nil {
-		t.Fatal("destroyed modified backup")
-	}
-	if content, err := os.ReadFile(paths[0]); err != nil || string(content) != "local recovery edit" {
-		t.Fatal("backup not preserved")
+	for _, stage := range []string{"old-moved", "committed"} {
+		t.Run(stage, func(t *testing.T) {
+			ctx := context.Background()
+			s := testStore(t)
+			old, digest := testArchive(t, "old")
+			target := filepath.Join(t.TempDir(), "check")
+			p, err := s.PlanInstall(ctx, record(target, digest), old)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if err = s.Apply(ctx, *p, old); err != nil {
+				t.Fatal(err)
+			}
+			next, digest := testArchive(t, "new")
+			p, err = s.PlanInstall(ctx, record(target, digest), next)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if err = s.apply(ctx, *p, next, func(at string) error {
+				if at == stage {
+					return errors.New("interrupted")
+				}
+				return nil
+			}); err == nil {
+				t.Fatal("missing injected failure")
+			}
+			paths, err := filepath.Glob(filepath.Join(filepath.Dir(p.Target), ".skillhub-txn-*", "old", "SKILL.md"))
+			if err != nil || len(paths) != 1 {
+				t.Fatal("missing backup")
+			}
+			if err = os.WriteFile(paths[0], []byte("local recovery edit"), 0600); err != nil {
+				t.Fatal(err)
+			}
+			if err = s.Recover(ctx); err == nil {
+				t.Fatal("destroyed modified backup")
+			}
+			if content, err := os.ReadFile(paths[0]); err != nil || string(content) != "local recovery edit" {
+				t.Fatal("backup not preserved")
+			}
+		})
 	}
 }
 

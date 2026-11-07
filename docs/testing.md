@@ -68,7 +68,9 @@ python3 scripts/compatibility.py \
   --baseline-cli /path/to/comparison-cli
 ```
 
-The runner uses fresh fixtures and covers both client/server directions and alternating CLI use of shared state. Record exact revisions with the resulting artifact. Passing one pair does not establish a universal version-support guarantee.
+The runner uses fresh fixtures and covers both client/server directions, alternating CLI use of shared state, and a baseline Hub snapshot followed by replacement with the candidate binary and rollback into a new directory using the baseline binary. It verifies source identity, review permissions, package downloads, installed files and token invalidation after recovery. CI runs this matrix on Linux against the pull-request base or previous main revision and retains both revisions in the compatibility artifact. PostgreSQL maintenance is exercised separately across the database matrix.
+
+Before a release, also run against the last supported **released** binaries; the immediately preceding commit is not a substitute for that acceptance. No historical release baseline exists before the first release. Record exact revisions with the resulting artifact. Passing one pair does not establish a universal version-support guarantee.
 
 ## Security and deployment
 

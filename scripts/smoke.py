@@ -24,6 +24,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--server", required=True)
     parser.add_argument("--cli", required=True)
+    parser.add_argument("--upgrade-server", help="replace the running baseline Hub, then restore its snapshot with the baseline executable")
     parser.add_argument("--alternate-cli", help="alternate two CLI versions against the same local state")
     args = parser.parse_args()
     server_binary = str(Path(args.server).resolve())
@@ -63,9 +64,9 @@ def main():
             with urlopen(request, timeout=10) as response:
                 return json.load(response)["accessToken"]
 
-        def start_hub(data, origin, private):
+        def start_hub(data, origin, private, executable=None):
             process = subprocess.Popen(
-                [server_binary, "serve", "--data", str(data), "--listen", origin.removeprefix("http://"),
+                [executable or server_binary, "serve", "--data", str(data), "--listen", origin.removeprefix("http://"),
                  "--public-url", origin, f"--private={'true' if private else 'false'}"],
                 stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
             )
@@ -149,6 +150,40 @@ def main():
                 assert (restored / directory / "skills" / "smoke-check" / "SKILL.md").read_text(encoding="utf-8") == content
             installed = cli("list")
             assert len(installed) == 4
+            if args.upgrade_server:
+                # Keep all artifacts isolated; the original binary creates its own pre-upgrade snapshot.
+                before_upgrade = root / "before-upgrade"
+                processes[1].terminate()
+                processes[1].wait(timeout=10)
+                maintenance("backup", "--data", str(root / "company"), "--output", str(before_upgrade))
+                maintenance("verify-backup", "--input", str(before_upgrade))
+                upgraded = start_hub(root / "company", origins["company"], True, str(Path(args.upgrade_server).resolve()))
+                results = cli("search", "smoke-check")
+                assert all(len(result["skills"]) == 1 for result in results)
+                assert len(cli("list")) == 4
+                upgrade_project = root / "upgrade-project"
+                upgrade_project.mkdir()
+                cli("install", "company/team/smoke-check@1.0.0", "--tool", "codex", "--project", str(upgrade_project), "--yes")
+                upgrade_target = upgrade_project / ".agents" / "skills" / "smoke-check"
+                assert (upgrade_target / "SKILL.md").read_text(encoding="utf-8") == content
+                cli("remove", str(upgrade_target), "--yes")
+                upgraded.terminate()
+                upgraded.wait(timeout=10)
+                rollback = root / "rolled-back"
+                maintenance("rollback", "--input", str(before_upgrade), "--data", str(rollback))
+                rolled_back = start_hub(rollback, origins["company"], True)
+                # Snapshot recovery must revoke tokens without changing registry/source identity.
+                assert cli("search", "smoke-check", expected=1)[0]["error"]
+                environment["SKILLHUB_TOKEN_COMPANY"] = login(origins["company"], "reviewer", reviewer_password)
+                assert all(len(result["skills"]) == 1 for result in cli("search", "smoke-check"))
+                assert len(cli("list")) == 4
+                rolled_back.terminate()
+                rolled_back.wait(timeout=10)
+                processes[1] = start_hub(root / "company", origins["company"], True, str(Path(args.upgrade_server).resolve()))
+                environment["SKILLHUB_TOKEN_COMPANY"] = login(origins["company"], "reviewer", reviewer_password)
+                # Subsequent backup/restore must use the new binary for the upgraded database.
+                server_binary = str(Path(args.upgrade_server).resolve())
+                print("PASS: baseline snapshot, in-place Hub upgrade, preserved source/role/content/installations, isolated rollback with baseline binary and revoked sessions", flush=True)
             backup = root / "company-backup"
             recovered = root / "company-recovered"
             maintenance("backup", "--data", str(root / "company"), "--output", str(backup))

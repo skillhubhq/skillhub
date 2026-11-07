@@ -5,6 +5,8 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -185,5 +187,59 @@ func TestMissingSavedCredentialDoesNotFallBackToAnonymous(t *testing.T) {
 	}
 	if _, err = core.Remote(context.Background(), "public"); !errors.Is(err, client.ErrCredentialMissing) {
 		t.Fatalf("missing saved identity silently became anonymous: %v", err)
+	}
+}
+
+func TestProjectInstallationRejectsExternalToolDirectories(t *testing.T) {
+	for _, tool := range []struct{ name, directory string }{{"codex", ".agents"}, {"claude-code", ".claude"}} {
+		t.Run(tool.name, func(t *testing.T) {
+			root, outside := t.TempDir(), t.TempDir()
+			if err := os.Symlink(outside, filepath.Join(root, tool.directory)); err != nil {
+				t.Skip(err)
+			}
+			if target, _, err := client.ResolveTarget(tool.name, "project", root, "", "safe-skill"); err == nil {
+				t.Fatalf("accepted target outside selected project: %s", target)
+			}
+			if entries, err := os.ReadDir(outside); err != nil || len(entries) != 0 {
+				t.Fatal("modified external directory")
+			}
+		})
+	}
+}
+
+func TestProjectInstallationAcceptsInternalAndRootAliases(t *testing.T) {
+	root := t.TempDir()
+	inside := filepath.Join(root, "shared")
+	if err := os.Mkdir(inside, 0700); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink(inside, filepath.Join(root, ".agents")); err != nil {
+		t.Skip(err)
+	}
+	alias := filepath.Join(t.TempDir(), "project")
+	if err := os.Symlink(root, alias); err != nil {
+		t.Fatal(err)
+	}
+	target, project, err := client.ResolveTarget("codex", "project", alias, "", "safe-skill")
+	canonical, e := filepath.EvalSymlinks(root)
+	if err != nil || e != nil || project != canonical || target != filepath.Join(canonical, "shared", "skills", "safe-skill") {
+		t.Fatalf("valid alias rejected: %s %s %v", target, project, err)
+	}
+}
+
+func TestProjectInstallationAcceptsCaseAliasOfRoot(t *testing.T) {
+	parent := t.TempDir()
+	root := filepath.Join(parent, "MixedProject")
+	if err := os.Mkdir(root, 0700); err != nil {
+		t.Fatal(err)
+	}
+	alias := filepath.Join(parent, "mixedproject")
+	if _, err := os.Stat(alias); err != nil {
+		t.Skip("host filesystem is case-sensitive")
+	}
+	target, project, err := client.ResolveTarget("codex", "project", alias, "", "safe-skill")
+	canonical, e := filepath.EvalSymlinks(root)
+	if err != nil || e != nil || project != canonical || target != filepath.Join(canonical, ".agents", "skills", "safe-skill") {
+		t.Fatalf("case alias rejected: %s %s %v", target, project, err)
 	}
 }

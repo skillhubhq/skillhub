@@ -222,57 +222,39 @@ func Fingerprint(files []File) string {
 
 // ReadDirectory 拒绝任何符号链接，避免把包目录之外的内容打包上传。
 func ReadDirectory(root string) ([]File, error) {
-	info, err := os.Lstat(root)
+	directory, err := openDirectory(root)
 	if err != nil {
 		return nil, err
 	}
-	if !info.IsDir() || info.Mode()&os.ModeSymlink != 0 {
-		return nil, errors.New("package root must be a directory")
-	}
+	defer directory.Close()
 	var files []File
 	total := int64(0)
-	err = filepath.WalkDir(root, func(full string, entry fs.DirEntry, walkErr error) error {
+	err = fs.WalkDir(directory.FS(), ".", func(rel string, entry fs.DirEntry, walkErr error) error {
 		if walkErr != nil {
 			return walkErr
 		}
-		if full == root {
+		if rel == "." {
 			return nil
 		}
 		if entry.Type()&os.ModeSymlink != 0 {
 			return errors.New("package cannot contain symlinks")
 		}
-		rel, err := filepath.Rel(root, full)
-		if err != nil {
-			return err
-		}
-		rel = filepath.ToSlash(rel)
 		if err := validatePath(rel); err != nil {
 			return err
 		}
 		if entry.IsDir() {
 			return nil
 		}
-		info, err := entry.Info()
+		info, err := directory.Lstat(rel)
 		if err != nil {
 			return err
 		}
 		if !info.Mode().IsRegular() || info.Size() > MaxFileBytes {
 			return errors.New("unsupported package file")
 		}
-		r, err := os.Open(full)
+		data, err := readRegularFile(directory, rel, info)
 		if err != nil {
 			return err
-		}
-		data, err := io.ReadAll(io.LimitReader(r, MaxFileBytes+1))
-		closeErr := r.Close()
-		if err != nil {
-			return err
-		}
-		if closeErr != nil {
-			return closeErr
-		}
-		if len(data) > MaxFileBytes {
-			return errors.New("file size exceeds limits")
 		}
 		total += int64(len(data))
 		if total > MaxExpandedBytes || len(files) >= MaxFiles {
@@ -322,14 +304,12 @@ func Pack(root string) ([]byte, *Bundle, error) {
 
 // Extract 只写入新建的空暂存目录，调用者在校验后负责目录切换。
 func (b *Bundle) Extract(root string) error {
-	info, err := os.Lstat(root)
+	directory, err := openDirectory(root)
 	if err != nil {
 		return err
 	}
-	if !info.IsDir() || info.Mode()&os.ModeSymlink != 0 {
-		return errors.New("extraction root must be a directory")
-	}
-	entries, err := os.ReadDir(root)
+	defer directory.Close()
+	entries, err := fs.ReadDir(directory.FS(), ".")
 	if err != nil {
 		return err
 	}
@@ -340,15 +320,15 @@ func (b *Bundle) Extract(root string) error {
 		if err := validatePath(file.Path); err != nil {
 			return err
 		}
-		full := filepath.Join(root, filepath.FromSlash(file.Path))
-		if err := os.MkdirAll(filepath.Dir(full), 0700); err != nil {
+		full := filepath.FromSlash(file.Path)
+		if err := directory.MkdirAll(filepath.Dir(full), 0700); err != nil {
 			return err
 		}
 		mode := fs.FileMode(0644)
 		if file.Executable {
 			mode = 0755
 		}
-		f, err := os.OpenFile(full, os.O_WRONLY|os.O_CREATE|os.O_EXCL, mode)
+		f, err := directory.OpenFile(full, os.O_WRONLY|os.O_CREATE|os.O_EXCL, mode)
 		if err != nil {
 			return err
 		}
@@ -360,4 +340,65 @@ func (b *Bundle) Extract(root string) error {
 		}
 	}
 	return nil
+}
+
+// 用目录句柄约束遍历与打开，避免检查符号链接后再按绝对路径访问的竞态。
+func openDirectory(path string) (*os.Root, error) {
+	if path == "" {
+		return nil, errors.New("package root is required")
+	}
+	absolute, err := filepath.Abs(path)
+	if err != nil {
+		return nil, err
+	}
+	parentPath, name := filepath.Dir(absolute), filepath.Base(absolute)
+	if parentPath == absolute {
+		name = "."
+	}
+	parent, err := os.OpenRoot(parentPath)
+	if err != nil {
+		return nil, err
+	}
+	defer parent.Close()
+	// Root.Lstat 从句柄立即读取身份；Windows 的 os.Lstat 可能延迟按旧路径读取文件 ID。
+	expected, err := parent.Lstat(name)
+	if err != nil {
+		return nil, err
+	}
+	if !expected.IsDir() || expected.Mode()&os.ModeSymlink != 0 {
+		return nil, errors.New("package root must be a directory")
+	}
+	root, err := parent.OpenRoot(name)
+	if err != nil {
+		return nil, err
+	}
+	actual, err := root.Stat(".")
+	if err != nil || !os.SameFile(expected, actual) {
+		root.Close()
+		return nil, errors.New("package root changed during access")
+	}
+	return root, nil
+}
+
+func readRegularFile(root *os.Root, name string, expected os.FileInfo) ([]byte, error) {
+	file, err := root.Open(name)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+	actual, err := file.Stat()
+	if err != nil {
+		return nil, err
+	}
+	if !actual.Mode().IsRegular() || !os.SameFile(expected, actual) {
+		return nil, errors.New("package file changed during access")
+	}
+	data, err := io.ReadAll(io.LimitReader(file, MaxFileBytes+1))
+	if err != nil {
+		return nil, err
+	}
+	if len(data) > MaxFileBytes {
+		return nil, errors.New("file size exceeds limits")
+	}
+	return data, nil
 }
