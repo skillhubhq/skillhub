@@ -19,3 +19,10 @@ test("empty external scripts add no hashes and repeated content is deduplicated"
   assert.equal(inlineScriptHashes('<script>run()</script><SCRIPT>run()</SCRIPT>').length, 1);
   assert.deepEqual(inlineScriptHashes('<scripture>text</scripture>'), []);
 });
+
+test("HTML parser handles quoted delimiters, end-tag attributes and line ending normalization", () => {
+  const expected = inlineScriptHashes('<script>run()\n</script>');
+  assert.deepEqual(inlineScriptHashes('<SCRIPT data-example=">">run()\r\n</script\t\n bar>'), expected);
+  assert.deepEqual(inlineScriptHashes('<!-- <script>run()</script> -->'), []);
+  assert.deepEqual(inlineScriptHashes('<script src="/bundle.js">unused()</script>'), []);
+});
