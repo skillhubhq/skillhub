@@ -11,10 +11,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	taxonomy "github.com/skillhubhq/skillhub/gen/common/registry/v1"
 	"github.com/skillhubhq/skillhub/internal/hubdb"
 	"github.com/skillhubhq/skillhub/internal/packageformat"
-	"github.com/google/uuid"
 )
 
 func postgresFixture(t *testing.T) (hubdb.Config, *sql.DB) {

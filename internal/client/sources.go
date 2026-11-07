@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"connectrpc.com/connect"
+	"github.com/google/uuid"
 	"github.com/skillhubhq/skillhub/gen/api/admin/v1/adminv1connect"
 	authv1 "github.com/skillhubhq/skillhub/gen/api/auth/v1"
 	"github.com/skillhubhq/skillhub/gen/api/auth/v1/authv1connect"
@@ -24,7 +25,6 @@ import (
 	registryv1 "github.com/skillhubhq/skillhub/gen/api/registry/v1"
 	"github.com/skillhubhq/skillhub/gen/api/registry/v1/registryv1connect"
 	"github.com/skillhubhq/skillhub/internal/packageformat"
-	"github.com/google/uuid"
 	"github.com/zalando/go-keyring"
 )
 

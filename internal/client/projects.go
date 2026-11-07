@@ -15,9 +15,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gofrs/flock"
 	catalogv1 "github.com/skillhubhq/skillhub/gen/api/catalog/v1"
 	"github.com/skillhubhq/skillhub/internal/packageformat"
-	"github.com/gofrs/flock"
 	"golang.org/x/mod/semver"
 )
 

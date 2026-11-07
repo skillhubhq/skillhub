@@ -40,7 +40,14 @@ jobs:
           buf breaking --against ".git#ref=$BASE_SHA"
         shell: bash
       - run: go mod tidy && git diff --exit-code -- go.mod go.sum
-      - run: test -z "$(gofmt -l cmd internal)"
+      - name: Check Go formatting
+        shell: bash
+        run: |
+          unformatted="$(gofmt -l cmd internal)"
+          if [[ -n "$unformatted" ]]; then
+            printf '%s\n' "$unformatted"
+            exit 1
+          fi
   go:
     strategy:
       fail-fast: false

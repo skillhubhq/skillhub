@@ -10,10 +10,10 @@ import (
 	"time"
 	"unicode/utf8"
 
+	"github.com/google/uuid"
 	taxonomy "github.com/skillhubhq/skillhub/gen/common/registry/v1"
 	"github.com/skillhubhq/skillhub/internal/hubdb"
 	"github.com/skillhubhq/skillhub/internal/packageformat"
-	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 

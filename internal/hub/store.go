@@ -13,8 +13,8 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/skillhubhq/skillhub/internal/hubdb"
 	"github.com/google/uuid"
+	"github.com/skillhubhq/skillhub/internal/hubdb"
 	"golang.org/x/crypto/bcrypt"
 )
 

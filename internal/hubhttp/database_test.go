@@ -8,9 +8,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/skillhubhq/skillhub/internal/hub"
 	"github.com/skillhubhq/skillhub/internal/hubdb"
-	"github.com/google/uuid"
 )
 
 // 设置测试专用 DSN 后，原有 RPC 行为测试逐个使用隔离 schema 在真实 PostgreSQL 上重跑。

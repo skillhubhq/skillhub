@@ -12,6 +12,7 @@ import (
 	"testing"
 
 	"connectrpc.com/connect"
+	"github.com/google/uuid"
 	adminv1 "github.com/skillhubhq/skillhub/gen/api/admin/v1"
 	authv1 "github.com/skillhubhq/skillhub/gen/api/auth/v1"
 	commonv1 "github.com/skillhubhq/skillhub/gen/api/common/v1"
@@ -19,7 +20,6 @@ import (
 	taxonomy "github.com/skillhubhq/skillhub/gen/common/registry/v1"
 	"github.com/skillhubhq/skillhub/internal/client"
 	"github.com/skillhubhq/skillhub/internal/packageformat"
-	"github.com/google/uuid"
 )
 
 func newProjectClient(t *testing.T) (*client.Client, *client.Store) {

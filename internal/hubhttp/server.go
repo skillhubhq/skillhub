@@ -15,6 +15,7 @@ import (
 
 	"buf.build/go/protovalidate"
 	"connectrpc.com/connect"
+	"github.com/google/uuid"
 	"github.com/skillhubhq/skillhub/gen/api/admin/v1/adminv1connect"
 	"github.com/skillhubhq/skillhub/gen/api/auth/v1/authv1connect"
 	"github.com/skillhubhq/skillhub/gen/api/catalog/v1/catalogv1connect"
@@ -27,7 +28,6 @@ import (
 	"github.com/skillhubhq/skillhub/internal/hub"
 	"github.com/skillhubhq/skillhub/internal/packageformat"
 	"github.com/skillhubhq/skillhub/internal/webui"
-	"github.com/google/uuid"
 	"google.golang.org/protobuf/proto"
 )
 
