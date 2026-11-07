@@ -16,12 +16,21 @@ export async function runUpgradeSmoke(): Promise<boolean> {
     if (!condition) throw new Error(label);
     checks.push(label);
   };
-  const wait = async (condition: () => boolean) => {
+  const wait = async (condition: () => boolean, label = "native shell") => {
     const until = Date.now() + 15000;
     while (!condition()) {
-      if (Date.now() > until) throw new Error("upgrade UI timed out");
+      if (Date.now() > until) throw new Error(`upgrade UI timed out: ${label}`);
       await new Promise((r) => setTimeout(r, 50));
     }
+  };
+  // 弹窗可先于 ui.run 的 finally 渲染；只在按钮解除禁用后触发操作。
+  const click = async (selector: string, label: string) => {
+    const find = () =>
+      Array.from(document.querySelectorAll<HTMLButtonElement>(selector)).find(
+        (button) => button.textContent?.includes(label) && !button.disabled,
+      );
+    await wait(() => !!find(), `enabled button: ${label}`);
+    find()!.click();
   };
   try {
     await wait(() => !!document.querySelector("nav button[aria-current=page]"));
@@ -82,48 +91,39 @@ export async function runUpgradeSmoke(): Promise<boolean> {
           "saved and incomplete drafts are discoverable after upgrade",
         );
         location.hash = "publish?source=company";
-        await wait(() =>
-          Array.from(
-            document.querySelectorAll<HTMLButtonElement>("button"),
-          ).some(
-            (b) => b.textContent?.includes("打开已保存草稿") && !b.disabled,
-          ),
+        await click("button", "打开已保存草稿");
+        await wait(
+          () => !!document.querySelector(".saved-draft-list"),
+          "saved draft picker",
         );
-        Array.from(document.querySelectorAll<HTMLButtonElement>("button"))
-          .find((b) => b.textContent?.includes("打开已保存草稿"))!
-          .click();
-        await wait(() => !!document.querySelector(".saved-draft-list"));
         for (const [label, expected] of [
           ["upgrade-draft", "Saved before application replacement."],
           ["未命名技能", "name: [unfinished"],
         ]) {
           if (!document.querySelector(".saved-draft-list")) {
-            Array.from(document.querySelectorAll<HTMLButtonElement>("button"))
-              .find((b) => b.textContent?.includes("打开已保存草稿"))!
-              .click();
-            await wait(() => !!document.querySelector(".saved-draft-list"));
+            await click("button", "打开已保存草稿");
+            await wait(
+              () => !!document.querySelector(".saved-draft-list"),
+              "saved draft picker",
+            );
           }
-          Array.from(
-            document.querySelectorAll<HTMLButtonElement>(
-              ".saved-draft-list button",
-            ),
-          )
-            .find((b) => b.textContent?.includes(label))!
-            .click();
+          await click(".saved-draft-list button", label);
           await wait(
             () =>
               document
                 .querySelector<HTMLTextAreaElement>(".skill-text-editor")
                 ?.value.includes(expected) === true,
+            `editor content: ${label}`,
           );
           check(
             true,
             `saved draft ${label} reopened with its original content in the real editor`,
           );
-          document
-            .querySelector<HTMLDialogElement>("dialog[open]")!
-            .dispatchEvent(new Event("cancel", { cancelable: true }));
-          await wait(() => !document.querySelector(".skill-editor-layout"));
+          await click("dialog[open] .modal-head button", "×");
+          await wait(
+            () => !document.querySelector(".skill-editor-layout"),
+            "closed draft editor",
+          );
         }
         // 恢复原选择，下一次启动仍须验证同一个偏好。
         location.hash = "discover?source=partner";
