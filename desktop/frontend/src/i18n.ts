@@ -8,12 +8,12 @@ try {
 } catch {}
 const listeners = new Set<() => void>();
 export function setLanguage(value: Language) {
-  language = value;
+  language = value === "zh" ? "zh" : "en";
   try {
-    localStorage.setItem(key, value);
-    document.cookie = `skillhub-language=${value}; Path=/; SameSite=Strict`;
+    localStorage.setItem(key, language);
+    document.cookie = `skillhub-language=${language}; Path=/; SameSite=Strict`;
   } catch {}
-  document.documentElement.lang = value === "zh" ? "zh-CN" : "en";
+  document.documentElement.lang = language === "zh" ? "zh-CN" : "en";
   listeners.forEach((listener) => listener());
 }
 export function useLanguage() {
