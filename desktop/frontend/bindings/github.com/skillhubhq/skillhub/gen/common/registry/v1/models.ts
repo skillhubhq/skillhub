@@ -147,6 +147,31 @@ export enum ReleaseStatus {
 };
 
 /**
+ * ReportResolution 表示管理员对社区举报的处理动作。
+ */
+export enum ReportResolution {
+    /**
+     * The Go zero value for the underlying type of the enum.
+     */
+    $zero = 0,
+
+    /**
+     * 未选择，拒绝处理。
+     */
+    ReportResolution_REPORT_RESOLUTION_UNSPECIFIED = 0,
+
+    /**
+     * 无需移除，保留处理说明。
+     */
+    ReportResolution_REPORT_RESOLUTION_DISMISS = 1,
+
+    /**
+     * 移除评论或撤下对应技能版本。
+     */
+    ReportResolution_REPORT_RESOLUTION_REMOVE_CONTENT = 2,
+};
+
+/**
  * SkillIcon 是客户端内置图标标识，不接受路径或外部 URL。
  */
 export enum SkillIcon {

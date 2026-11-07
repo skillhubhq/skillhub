@@ -6,7 +6,7 @@ SkillHub prioritizes internal skill sharing. Hubs are private by default, with n
 
 | Layer | Boundary |
 | --- | --- |
-| Sign-in identity | Local password or one OIDC provider. Enterprise identities bind to verified issuer/subject values, never an email match. |
+| Sign-in identity | Local password or configured OIDC/GitHub adapters. External identities bind to verified authority/subject values, never an email match. |
 | Hub membership | Each Hub owns user IDs, account status and sessions. Matching names across Hubs do not identify the same authorization principal. |
 | Community profile | Display name, bio and avatar are visible through readable contributions or shared teams. Login usernames are returned only to their owner and Hub administrators. |
 | Access groups | Grant content audience membership and namespace roles. Groups are not public teams and are not synchronized from an enterprise directory. |
@@ -48,3 +48,5 @@ Local accounts do not automatically become enterprise accounts. Invitation claim
 ## Verify authorization
 
 Use non-administrator accounts to verify role combinations, group revocation, independent review and inaccessible-resource isolation. An administrator demonstration is not a permission test. See [testing](testing.md) and the [deployment checklist](deployment-checklist.md).
+
+Community mode changes first-admission and publication defaults without adding a second user or role system. See [community hosting](community-hosting.md).

@@ -113,30 +113,3 @@ func TestEvaluationVersionPermissionsRetractionAndBackup(t *testing.T) {
 		t.Fatal("withdrawn evidence leaked", e)
 	}
 }
-
-func TestEvaluationSchema9UpgradePreservesIdentity(t *testing.T) {
-	s := testStore(t)
-	root := s.root
-	id := s.RegistryID()
-	if _, err := s.db.Exec("DROP TABLE evaluation_evidence; PRAGMA user_version=9"); err != nil {
-		t.Fatal(err)
-	}
-	if err := s.Close(); err != nil {
-		t.Fatal(err)
-	}
-	restored, err := Open(root)
-	mustGovernance(t, err)
-	defer restored.Close()
-	if restored.RegistryID() != id {
-		t.Fatal("migration changed identity")
-	}
-	session, err := restored.Login(context.Background(), "admin", "a-strong-test-password")
-	mustGovernance(t, err)
-	if !session.Identity.Administrator {
-		t.Fatal("migration lost administrator")
-	}
-	var count int
-	if err = restored.db.QueryRow("SELECT count(*) FROM evaluation_evidence").Scan(&count); err != nil || count != 0 {
-		t.Fatal("migration backfilled unverified evidence", err)
-	}
-}

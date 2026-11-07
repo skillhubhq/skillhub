@@ -153,6 +153,10 @@ dialog.modal-stable {
   height: min(620px, calc(100vh - 40px));
   height: min(620px, calc(100dvh - 40px));
 }
+dialog.modal-stable.modal-compact {
+  height: min(440px, calc(100vh - 40px));
+  height: min(440px, calc(100dvh - 40px));
+}
 dialog::backdrop {
   background: var(--overlay);
   backdrop-filter: blur(4px);

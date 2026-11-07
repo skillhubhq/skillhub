@@ -54,3 +54,7 @@ App 支持本地草稿编辑和预览，保存的有效/不完整文件均可重
 一个 Go Hub 内嵌 Web/静态文档，支持 SQLite/PostgreSQL 和本地不可变包，无额外守护进程、Redis、队列或搜索集群。不支持多节点、S3、SCIM、多阶段审核、外部扫描器或 Agent 执行。
 
 GitHub 分发软件，App 显式检查并手动安装；不会顺便更新技能或 Hub。软件 Apache-2.0 与托管技能的独立许可/权限分开。见[分发](distribution.md)、[运维](operations.md)和[部署检查](deployment-checklist.md)。
+
+## 社区部署模式 [#community-mode]
+
+[社区模式](community-hosting.md)使用同一账号与权限体系，启用第三方身份自动准入、个人投稿空间、强制独立审核与配额。登录适配器独立于模式配置；GitHub 与 OIDC 均可用于企业或社区模式。默认仍为企业准入审批。

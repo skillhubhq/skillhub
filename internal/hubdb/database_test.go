@@ -26,8 +26,8 @@ func TestPostgresBinding(t *testing.T) {
 	}
 }
 func TestPostgresSchemaAndQueries(t *testing.T) {
-	q := postgresSQL("CREATE TABLE sample(sequence INTEGER PRIMARY KEY AUTOINCREMENT,body BLOB); PRAGMA user_version=6;")
-	if !strings.Contains(q, "BIGSERIAL PRIMARY KEY") || !strings.Contains(q, "BYTEA") || !strings.Contains(q, "version=6") {
+	q := postgresSQL("CREATE TABLE sample(sequence INTEGER PRIMARY KEY AUTOINCREMENT,body BLOB); PRAGMA user_version=1;")
+	if !strings.Contains(q, "BIGSERIAL PRIMARY KEY") || !strings.Contains(q, "BYTEA") || !strings.Contains(q, "version=1") {
 		t.Fatal(q)
 	}
 	q = postgresSQL("INSERT OR IGNORE INTO reactions VALUES(?,?,?)")

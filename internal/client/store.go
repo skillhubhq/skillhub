@@ -55,7 +55,7 @@ func OpenStore(root string) (*Store, error) {
 		_ = db.Close()
 		return nil, err
 	}
-	if err = migrateClient(db); err != nil {
+	if err = initializeClient(db); err != nil {
 		_ = db.Close()
 		return nil, err
 	}

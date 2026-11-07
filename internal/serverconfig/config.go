@@ -4,7 +4,10 @@ package serverconfig
 import (
 	"bytes"
 	"errors"
+	"github.com/skillhubhq/skillhub/internal/community"
 	"github.com/skillhubhq/skillhub/internal/hubdb"
+	"github.com/skillhubhq/skillhub/internal/hubpolicy"
+	"github.com/skillhubhq/skillhub/internal/identityprovider"
 	"io"
 	"net"
 	"net/netip"
@@ -22,26 +25,27 @@ type Database struct {
 }
 
 type Config struct {
-	Database       Database `yaml:"database"`
-	Data           string   `yaml:"data"`
-	Listen         string   `yaml:"listen"`
-	PublicURL      string   `yaml:"public_url"`
-	Name           string   `yaml:"name"`
-	Private        bool     `yaml:"private"`
-	TrustedProxies []string `yaml:"trusted_proxies"`
-	OIDC           OIDC     `yaml:"oidc"`
+	Mode           string           `yaml:"mode"`
+	Limits         hubpolicy.Limits `yaml:"limits"`
+	Auth           Auth             `yaml:"auth"`
+	Site           Site             `yaml:"site"`
+	Database       Database         `yaml:"database"`
+	Data           string           `yaml:"data"`
+	Listen         string           `yaml:"listen"`
+	PublicURL      string           `yaml:"public_url"`
+	Name           string           `yaml:"name"`
+	Private        bool             `yaml:"private"`
+	TrustedProxies []string         `yaml:"trusted_proxies"`
 }
 
-type OIDC struct {
-	Issuer           string `yaml:"issuer"`
-	ClientID         string `yaml:"client_id"`
-	Name             string `yaml:"name"`
-	AllowSignup      bool   `yaml:"allow_signup"`
-	ClientSecretFile string `yaml:"client_secret_file"`
+type Auth struct {
+	Providers []identityprovider.Config `yaml:"providers"`
 }
+
+type Site = community.Site
 
 func Defaults() Config {
-	return Config{Database: Database{Driver: "sqlite"}, Data: ".local/hub", Listen: "127.0.0.1:8080", PublicURL: "http://127.0.0.1:8080", Name: "SkillHub", Private: true, OIDC: OIDC{Name: "Microsoft"}}
+	return Config{Mode: hubpolicy.Enterprise, Limits: hubpolicy.Defaults(), Database: Database{Driver: "sqlite"}, Data: ".local/hub", Listen: "127.0.0.1:8080", PublicURL: "http://127.0.0.1:8080", Name: "SkillHub", Private: true}
 }
 
 func Load(path string) (Config, error) {
@@ -77,6 +81,34 @@ func Load(path string) (Config, error) {
 
 // Validate 不连接身份提供者、不打开数据库，也不输出配置内容。
 func (c Config) Validate() error {
+	if err := c.Policy().Validate(); err != nil {
+		return err
+	}
+	if len(c.Auth.Providers) > 8 {
+		return errors.New("at most eight auth providers are supported")
+	}
+	seen := map[string]bool{}
+	for _, p := range c.Auth.Providers {
+		if e := identityprovider.Validate(p); e != nil {
+			return e
+		}
+		if seen[p.ID] {
+			return errors.New("duplicate auth provider id")
+		}
+		seen[p.ID] = true
+	}
+	for _, raw := range []string{c.Site.PrivacyURL, c.Site.TermsURL, c.Site.ContactURL, c.Site.FilingURL} {
+		if raw == "" {
+			continue
+		}
+		u, e := url.Parse(raw)
+		if e != nil || u.Scheme != "https" || u.Host == "" || u.User != nil {
+			return errors.New("site links must be HTTPS URLs")
+		}
+	}
+	if len(c.Site.FilingText) > 200 {
+		return errors.New("site.filing_text exceeds 200 bytes")
+	}
 	if c.Database.Driver != "sqlite" && c.Database.Driver != "postgres" {
 		return errors.New("database.driver must be sqlite or postgres")
 	}
@@ -108,42 +140,10 @@ func (c Config) Validate() error {
 			return errors.New("trusted_proxies must contain explicit IP CIDRs")
 		}
 	}
-	if c.OIDC.Issuer != "" || c.OIDC.ClientID != "" || c.OIDC.ClientSecretFile != "" || c.OIDC.AllowSignup {
-		u, err := url.Parse(c.OIDC.Issuer)
-		if err != nil || u.Scheme != "https" || u.Host == "" || u.User != nil || u.RawQuery != "" || u.Fragment != "" || c.OIDC.ClientID == "" {
-			return errors.New("OIDC requires an HTTPS issuer and client_id")
-		}
-	}
+
 	return nil
 }
 
-func (c Config) Secret() (string, error) {
-	if c.OIDC.Issuer == "" {
-		return "", nil
-	}
-	env := os.Getenv("SKILLHUB_OIDC_CLIENT_SECRET")
-	if c.OIDC.ClientSecretFile != "" {
-		if env != "" {
-			return "", errors.New("choose either OIDC client_secret_file or SKILLHUB_OIDC_CLIENT_SECRET, not both")
-		}
-		f, err := os.Open(c.OIDC.ClientSecretFile)
-		if err != nil {
-			return "", errors.New("cannot open OIDC secret file")
-		}
-		defer f.Close()
-		raw, err := io.ReadAll(io.LimitReader(f, 8193))
-		if err != nil || len(raw) > 8192 {
-			return "", errors.New("cannot read OIDC secret file or it exceeds 8 KiB")
-		}
-		env = strings.TrimSuffix(strings.TrimSuffix(string(raw), "\n"), "\r")
-	}
-	if strings.TrimSpace(env) == "" || len(env) > 8192 {
-		return "", errors.New("OIDC requires a non-empty client secret of at most 8 KiB")
-	}
-	return env, nil
-}
-
-// DatabaseConfig 从显式环境或密钥文件读取 DSN，不将连接串写入日志或示例配置。
 func (c Config) DatabaseConfig() (hubdb.Config, error) {
 	result := hubdb.Config{Driver: c.Database.Driver}
 	dsn := os.Getenv("SKILLHUB_DATABASE_DSN")
@@ -173,4 +173,39 @@ func (c Config) DatabaseConfig() (hubdb.Config, error) {
 	}
 	result.DSN = dsn
 	return result, nil
+}
+
+func (c Config) Policy() hubpolicy.Policy { return hubpolicy.Policy{Mode: c.Mode, Limits: c.Limits} }
+
+// Providers 在启动时解析密钥，不把密钥值写入配置或错误信息。
+func (c Config) Providers() ([]identityprovider.Config, error) {
+	if err := c.Validate(); err != nil {
+		return nil, err
+	}
+
+	providers := append([]identityprovider.Config(nil), c.Auth.Providers...)
+	for i := range providers {
+		p := &providers[i]
+		value := ""
+		if p.ClientSecretEnv != "" {
+			value = os.Getenv(p.ClientSecretEnv)
+		}
+		if p.ClientSecretFile != "" {
+			f, e := os.Open(p.ClientSecretFile)
+			if e != nil {
+				return nil, errors.New("cannot open auth provider secret file")
+			}
+			raw, e := io.ReadAll(io.LimitReader(f, 8193))
+			f.Close()
+			if e != nil || len(raw) > 8192 {
+				return nil, errors.New("cannot read auth provider secret file or it exceeds 8 KiB")
+			}
+			value = strings.TrimSuffix(strings.TrimSuffix(string(raw), "\n"), "\r")
+		}
+		if strings.TrimSpace(value) == "" || len(value) > 8192 {
+			return nil, errors.New("auth provider requires a non-empty secret of at most 8 KiB")
+		}
+		p.Secret = value
+	}
+	return providers, nil
 }

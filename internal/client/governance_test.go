@@ -13,16 +13,16 @@ import (
 	"testing"
 )
 
-type legacyRegistry struct {
+type limitedRegistry struct {
 	registryv1connect.UnimplementedRegistryServiceHandler
 }
 
-func (legacyRegistry) GetRegistry(context.Context, *connect.Request[registryv1.GetRegistryRequest]) (*connect.Response[registryv1.GetRegistryResponse], error) {
-	return connect.NewResponse(&registryv1.GetRegistryResponse{RegistryId: "legacy-fixture", DisplayName: "Legacy", ProtocolMajor: 1, Capabilities: []string{"catalog.v1"}}), nil
+func (limitedRegistry) GetRegistry(context.Context, *connect.Request[registryv1.GetRegistryRequest]) (*connect.Response[registryv1.GetRegistryResponse], error) {
+	return connect.NewResponse(&registryv1.GetRegistryResponse{RegistryId: "limited-fixture", DisplayName: "Limited", ProtocolMajor: 1, Capabilities: []string{"catalog.v1"}}), nil
 }
 func TestGovernanceMissingCapabilityIsNotCleanScan(t *testing.T) {
 	mux := http.NewServeMux()
-	mux.Handle(registryv1connect.NewRegistryServiceHandler(legacyRegistry{}))
+	mux.Handle(registryv1connect.NewRegistryServiceHandler(limitedRegistry{}))
 	server := httptest.NewServer(mux)
 	defer server.Close()
 	store, e := client.OpenStore(t.TempDir())
@@ -32,43 +32,43 @@ func TestGovernanceMissingCapabilityIsNotCleanScan(t *testing.T) {
 	defer store.Close()
 	c := client.NewClient(store, client.ClientOptions{Credentials: &credentialStore{unavailable: true}})
 	ctx := context.Background()
-	if _, e = c.AddSource(ctx, "legacy", server.URL); e != nil {
+	if _, e = c.AddSource(ctx, "limited", server.URL); e != nil {
 		t.Fatal(e)
 	}
-	tasks, e := c.ReviewTasks(ctx, "legacy", "")
+	tasks, e := c.ReviewTasks(ctx, "limited", "")
 	if e != nil || tasks.Supported || len(tasks.Tasks) > 0 {
-		t.Fatal("legacy tasks", tasks, e)
+		t.Fatal("limited tasks", tasks, e)
 	}
-	if e = c.SetFeaturedSkill(ctx, "legacy", "team", "skill", true, "test-key"); e == nil {
-		t.Fatal("legacy curation accepted")
+	if e = c.SetFeaturedSkill(ctx, "limited", "team", "skill", true, "test-key"); e == nil {
+		t.Fatal("limited curation accepted")
 	}
-	results, e := c.Search(ctx, []string{"legacy"}, &catalogv1.SearchSkillsRequest{Order: taxonomy.CatalogOrder_CATALOG_ORDER_RECENT})
+	results, e := c.Search(ctx, []string{"limited"}, &catalogv1.SearchSkillsRequest{Order: taxonomy.CatalogOrder_CATALOG_ORDER_RECENT})
 	if e != nil || len(results) != 1 || results[0].Error == "" {
-		t.Fatal("legacy order silently ignored", results, e)
+		t.Fatal("limited order silently ignored", results, e)
 	}
-	evidence, e := c.Evaluations(ctx, "legacy", "release")
+	evidence, e := c.Evaluations(ctx, "limited", "release")
 	if e != nil || evidence.Supported || len(evidence.Evidence) != 0 {
 		t.Fatal("unsupported evidence appeared available", e)
 	}
-	if _, e = c.Evaluation(ctx, "legacy", "report"); e == nil {
+	if _, e = c.Evaluation(ctx, "limited", "report"); e == nil {
 		t.Fatal("unsupported evidence detail accepted")
 	}
-	if e = c.RetractEvaluation(ctx, "legacy", "report", "key"); e == nil {
+	if e = c.RetractEvaluation(ctx, "limited", "report", "key"); e == nil {
 		t.Fatal("unsupported evidence mutation accepted")
 	}
-	r, e := c.ScanReport(ctx, "legacy", "release")
+	r, e := c.ScanReport(ctx, "limited", "release")
 	if e != nil || r.Supported || r.Complete || r.Engine != "" {
 		t.Fatal("unsupported scan appeared valid", r, e)
 	}
-	n, e := c.Notifications(ctx, "legacy", "")
+	n, e := c.Notifications(ctx, "limited", "")
 	if e != nil || n.Supported {
 		t.Fatal(e)
 	}
-	a, e := c.PlatformAccess(ctx, "legacy", "")
+	a, e := c.PlatformAccess(ctx, "limited", "")
 	if e != nil || a.Supported || a.CanManageUsers || a.CanReadAudit {
 		t.Fatal(e)
 	}
-	if _, e = c.ScanRelease(ctx, "legacy", "release", "scan-key"); e == nil {
+	if _, e = c.ScanRelease(ctx, "limited", "release", "scan-key"); e == nil {
 		t.Fatal("unsupported scan accepted")
 	}
 }

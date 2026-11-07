@@ -1,3 +1,4 @@
+import { ContentReports } from "./Moderation";
 import { PlatformRoles } from "./Governance";
 import { Select } from "./Select";
 import { signInURL } from "./auth";
@@ -53,6 +54,7 @@ const tabs = [
   ["categories", "Category"],
   ["grants", "Role grants"],
   ["audit", "Audit log"],
+  ["reports", "Content reports"],
 ];
 function useMutationID() {
   const value = useRef<{ key: string; id: string } | null>(null);
@@ -94,6 +96,13 @@ export function Management({ mode = "management" }: { mode?: string }) {
       active = false;
     };
   }, [source, ui.revision]);
+  const participation = useResource(
+    () =>
+      source && identity
+        ? API.CommunityParticipation(source)
+        : Promise.resolve(null),
+    [source, identity?.id, ui.revision],
+  );
   const duties = useResource(
     () =>
       source && identity
@@ -166,6 +175,9 @@ export function Management({ mode = "management" }: { mode?: string }) {
             .filter(
               ([id]) =>
                 !["publish", "submissions"].includes(id) &&
+                (id !== "reports" ||
+                  (identity?.administrator &&
+                    participation.value?.supported)) &&
                 (id !== "users" ||
                   identity?.administrator ||
                   duties.value?.can_manage_users) &&
@@ -180,7 +192,7 @@ export function Management({ mode = "management" }: { mode?: string }) {
                 disabled={ui.busy}
                 onClick={() => setKind(id)}
               >
-                {t(label)}
+                {id === "reports" ? t("Content reports", "内容举报") : t(label)}
               </button>
             ))}
         </div>
@@ -212,6 +224,8 @@ export function Management({ mode = "management" }: { mode?: string }) {
           identity={identity}
           mine={mode === "submissions"}
         />
+      ) : kind === "reports" ? (
+        <ContentReports key={source} source={source} />
       ) : (
         <Records
           key={`${source}/${kind}/${duties.value?.can_manage_users}/${duties.value?.can_read_audit}`}
@@ -545,7 +559,7 @@ function Records({
                           ) && <span>{t("Auditor", "审计员")}</span>}
                           <span>
                             {row.detail === "true"
-                              ? t("Enterprise SSO", "企业单点登录")
+                              ? t("External account", "第三方账号")
                               : t("Local account", "本地账号")}
                           </span>
                         </>

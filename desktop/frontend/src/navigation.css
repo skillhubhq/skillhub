@@ -20,6 +20,8 @@
   padding: 0 32px;
 }
 .global-navigation {
+  position: relative;
+  z-index: 2;
   min-height: 72px;
 }
 .navigation-shell .home-link {
@@ -115,61 +117,31 @@
   background-position: right 1px center;
 }
 .quick-theme {
-  position: relative;
+  flex: none;
 }
-.quick-theme > summary {
-  display: grid;
-  place-items: center;
-  list-style: none;
-  width: 44px;
-  height: 44px;
-  padding: 0;
-  margin: 0;
-  border-radius: 6px;
-  color: var(--muted);
-  cursor: pointer;
-}
-.quick-theme > summary::-webkit-details-marker {
-  display: none;
-}
-.quick-theme > summary:hover {
-  background: var(--surface-soft);
-}
-.theme-popover {
-  position: absolute;
-  top: calc(100% + 10px);
-  right: 0;
-  width: 192px;
+.quick-theme .ui-select {
+  width: 62px;
+  min-height: 44px;
   padding: 8px;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: var(--surface);
-  box-shadow: 0 12px 36px var(--shadow-color);
-}
-.theme-popover p {
-  margin: 5px 10px 9px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
   color: var(--muted);
-  font-size: 12px;
+  gap: 6px;
 }
-.theme-popover button {
+.quick-theme .ui-select-value {
   display: flex;
   align-items: center;
-  width: 100%;
-  gap: 10px;
-  padding: 8px 10px;
-  border: 0;
-  background: transparent;
-  font-size: 13px;
 }
-.theme-popover button span {
-  flex: 1;
-  text-align: left;
+.quick-theme .ui-select:hover {
+  background: var(--surface-soft);
 }
-.theme-popover button[aria-pressed="true"] {
-  background: var(--accent-light);
-  color: var(--link);
+.global-utilities > .utility-inbox {
+  flex: 0 0 44px;
 }
 .context-navigation {
+  position: relative;
+  z-index: 1;
   min-height: 52px;
   border-top: 1px solid var(--line);
   gap: 16px;
@@ -399,7 +371,7 @@
     margin-left: auto;
     padding: 0;
   }
-  .global-utilities .quick-theme > summary,
+  .global-utilities .quick-theme .ui-select,
   .global-utilities .utility-settings,
   .global-utilities .account-menu summary {
     min-width: 44px;

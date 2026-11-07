@@ -23,7 +23,7 @@ App settings provides manual update checking against the official GitHub Release
 
 ## Manual macOS installation
 
-A macOS DMG contains SkillHub.app, an Applications shortcut, license notices and bilingual installation instructions. Quit an existing App, drag the new copy to Applications, choose Replace, eject the image and reopen the installed App. Connections, credentials, drafts, preferences and installed skills live outside the bundle; keep those directories when replacing the application. Follow version-specific migration instructions before downgrading.
+A macOS DMG contains SkillHub.app, an Applications shortcut, license notices and bilingual installation instructions. Quit an existing App, drag the new copy to Applications, choose Replace, eject the image and reopen the installed App. Connections, credentials, drafts, preferences and installed skills live outside the bundle; keep those directories when replacing the application. Check database compatibility before downgrading.
 
 These previews use ad-hoc signing only, not Developer ID or Apple notarization. A DMG does not suppress Gatekeeper or managed-device policies. Verify the source and checksum and follow macOS guidance for trusted downloads; do not disable system-wide security controls. A local successful launch does not prove a browser-downloaded package will be accepted on another Mac.
 
@@ -47,7 +47,7 @@ The output includes `.dmg.sha256` and `.dmg.json` with revision, build kind and 
 
 GitHub attestations are produced by the preparation workflow for public repositories; private repository availability depends on the GitHub plan, so private preparation does not claim an attestation. GitHub account/repository settings, signing credentials and visibility are not controlled by local source changes.
 
-## Operation and migration
+## Maintenance
 
 The Web's download page is independent of community login. An installed App can manage multiple Hubs; updating the App is different from updating a skill. Existing installations continue to retain their origin. Back up the Hub before server upgrades and keep the exact previous binary and configuration; schema rollback uses a compatible backup.
 

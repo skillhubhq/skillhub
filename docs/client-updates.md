@@ -30,7 +30,7 @@ For rollback, first quit all clients. Use the prior binary directly only if it s
 
 | Component | Owner | Effect |
 | --- | --- | --- |
-| Hub and embedded Web | Deployment operator | Server binary, metadata migrations and package storage |
+| Hub and embedded Web | Deployment operator | Server binary, metadata schema validation and package storage |
 | Desktop App | Device user or IT | Application bundle and shared client state |
 | CLI | Device user or package manager | CLI executable and shared client state |
 | Installed skills | User through an install plan | Selected managed files from their originating Hub |

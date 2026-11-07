@@ -67,3 +67,6 @@ func (r *NativeSmokeReporter) Finish(report NativeSmokeReport) error {
 	go application.Get().Quit()
 	return nil
 }
+
+// 仅测试构建可注入操作系统链接事件，经过与生产相同的解析与队列。
+func (r *NativeSmokeReporter) OpenLink(raw string) { queueOpenLink(raw) }

@@ -79,7 +79,7 @@ func run(args []string) error {
 	}
 
 	switch args[0] {
-	case "backup", "verify-backup", "restore", "upgrade", "rollback":
+	case "backup", "verify-backup", "restore":
 		input := flags.String("input", "", "backup directory to verify or restore")
 		output := flags.String("output", "", "new backup directory")
 		timeout := flags.Duration("timeout", 10*time.Minute, "maximum maintenance duration")
@@ -105,11 +105,6 @@ func run(args []string) error {
 			}
 			var pg hub.PostgresBackupInfo
 			switch args[0] {
-			case "upgrade":
-				if *output == "" || *input != "" {
-					return errors.New("upgrade requires --output for a new pre-upgrade snapshot")
-				}
-				pg, e = hub.UpgradePostgres(ctx, dbConfig, *data, *output)
 			case "backup":
 				if *output == "" || *input != "" {
 					return errors.New("backup requires --output")
@@ -120,7 +115,7 @@ func run(args []string) error {
 					return errors.New("verify-backup requires --input")
 				}
 				pg, e = hub.VerifyPostgresBackup(ctx, *input)
-			case "restore", "rollback":
+			case "restore":
 				if *input == "" || *output != "" {
 					return errors.New("restore requires --input and new data/database destinations")
 				}
@@ -131,9 +126,6 @@ func run(args []string) error {
 			}
 			fmt.Print(maintenanceSummary(args[0], pg.RegistryID, pg.Schema, pg.Packages))
 			return nil
-		}
-		if args[0] == "upgrade" {
-			return errors.New("upgrade tool currently requires PostgreSQL; use the documented SQLite backup workflow")
 		}
 		var info hub.BackupInfo
 		var err error
@@ -157,7 +149,7 @@ func run(args []string) error {
 				return errors.New("verify-backup requires --input and does not accept --output")
 			}
 			info, err = hub.VerifyBackup(ctx, *input)
-		case "restore", "rollback":
+		case "restore":
 			if *input == "" || *output != "" {
 				return errors.New("restore requires --input and a new --data directory")
 			}
@@ -246,10 +238,6 @@ func run(args []string) error {
 		listen := flags.String("listen", "127.0.0.1:8080", "HTTP bind address")
 		publicURL := flags.String("public-url", "http://127.0.0.1:8080", "external HTTPS origin (HTTP permitted on loopback)")
 		name := flags.String("name", "SkillHub", "instance display name")
-		oidcIssuer := flags.String("oidc-issuer", "", "tenant-specific OIDC issuer URL")
-		oidcClient := flags.String("oidc-client-id", "", "OIDC application client ID")
-		oidcName := flags.String("oidc-name", "Microsoft", "sign-in provider label")
-		oidcSignup := flags.Bool("oidc-allow-signup", false, "admit first verified SSO login without administrator approval (default: pending approval)")
 		trustedProxies := flags.String("trusted-proxies", "", "comma-separated trusted reverse proxy CIDRs; proxy must overwrite X-Forwarded-For")
 		private := flags.Bool("private", true, "require login for catalog reads")
 		if err := flags.Parse(args[1:]); err != nil {
@@ -277,20 +265,12 @@ func run(args []string) error {
 				cfg.Private = *private
 			case "trusted-proxies":
 				cfg.TrustedProxies = strings.Split(*trustedProxies, ",")
-			case "oidc-issuer":
-				cfg.OIDC.Issuer = *oidcIssuer
-			case "oidc-client-id":
-				cfg.OIDC.ClientID = *oidcClient
-			case "oidc-name":
-				cfg.OIDC.Name = *oidcName
-			case "oidc-allow-signup":
-				cfg.OIDC.AllowSignup = *oidcSignup
 			}
 		})
 		if err := cfg.Validate(); err != nil {
 			return err
 		}
-		secret, err := cfg.Secret()
+		providers, err := cfg.Providers()
 		if err != nil {
 			return err
 		}
@@ -298,6 +278,7 @@ func run(args []string) error {
 		if err != nil {
 			return err
 		}
+
 		if args[0] == "check-config" {
 			fmt.Println("Configuration valid. Network, identity-provider credentials and data-directory access have not been tested.")
 			return nil
@@ -314,11 +295,7 @@ func run(args []string) error {
 		}
 		defer store.Close()
 		logger := slog.New(slog.NewJSONHandler(os.Stderr, nil))
-		var federation *hubhttp.OIDCConfig
-		if cfg.OIDC.Issuer != "" {
-			federation = &hubhttp.OIDCConfig{Issuer: cfg.OIDC.Issuer, ClientID: cfg.OIDC.ClientID, ClientSecret: secret, DisplayName: cfg.OIDC.Name, AllowSignup: cfg.OIDC.AllowSignup}
-		}
-		handler, err := hubhttp.New(store, hubhttp.Config{PublicURL: cfg.PublicURL, DisplayName: cfg.Name, Private: cfg.Private, Logger: logger, OIDC: federation, TrustedProxies: cfg.TrustedProxies})
+		handler, err := hubhttp.New(store, hubhttp.Config{Site: cfg.Site, Providers: providers, Policy: cfg.Policy(), PublicURL: cfg.PublicURL, DisplayName: cfg.Name, Private: cfg.Private, Logger: logger, TrustedProxies: cfg.TrustedProxies})
 		if err != nil {
 			return err
 		}
@@ -364,8 +341,6 @@ Maintain data:
   backup          Create a paired database and package backup
   verify-backup   Verify a backup before recovery
   restore         Restore into a new destination
-  upgrade         Back up and migrate a PostgreSQL Hub
-  rollback        Restore a snapshot into a new destination
   recover-admin   Recover local administrator access
 
 Examples:

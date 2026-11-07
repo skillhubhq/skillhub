@@ -1,3 +1,4 @@
+import { ReportButton } from "./Moderation";
 import { signInURL } from "./auth";
 import { useState } from "react";
 import { API, useUI } from "./ui";
@@ -229,6 +230,13 @@ function CommentThread({
           >
             {t("Reply", "回复")}
           </button>
+        )}
+        {canInteract && !value.deleted && (
+          <ReportButton
+            source={source}
+            release={value.release_id}
+            comment={value.comment_id}
+          />
         )}
         {value.can_delete && (
           <button onClick={() => remove(value)}>{t("Remove")}</button>

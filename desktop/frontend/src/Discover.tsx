@@ -1,3 +1,5 @@
+import { skillWebURL } from "./official";
+import { ProjectLink } from "./Downloads";
 import { EvaluationPanel } from "./EvaluationPanel";
 import { CatalogOrder as Order } from "../bindings/github.com/skillhubhq/skillhub/gen/common/registry/v1/models";
 import { FeaturedControl } from "./Governance";
@@ -597,6 +599,21 @@ export function Discover() {
             }
           />
           <div className="detail-action-bar">
+            {!isWeb && (
+              <ProjectLink
+                className="source-web-link"
+                href={skillWebURL(
+                  ui.sources.find(
+                    (s) => s.alias === selected.coordinate.split("/")[0],
+                  )?.url ?? "",
+                  selected.skill.namespace,
+                  selected.skill.name,
+                  version,
+                )}
+              >
+                {t("View on source Hub", "在来源网站查看")} ↗
+              </ProjectLink>
+            )}
             <button
               className="primary install-primary"
               disabled={!preview || ui.busy}

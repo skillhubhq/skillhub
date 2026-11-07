@@ -1,6 +1,7 @@
 package serverconfig
 
 import (
+	"github.com/skillhubhq/skillhub/internal/identityprovider"
 	"os"
 	"path/filepath"
 	"strings"
@@ -18,7 +19,7 @@ func TestConfigStrictAndPreservesFalse(t *testing.T) {
 		{"multiple", "name: First\n---\nname: Second", false},
 		{"null", "null", false},
 		{"empty", "", false},
-		{"secret", "oidc:\n  client_secret: do-not-print-this", false},
+		{"secret", "auth:\n  providers:\n    - id: example\n      client_secret: do-not-print-this", false},
 		{"oversize", strings.Repeat(" ", 65537), false},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -42,32 +43,31 @@ func TestConfigStrictAndPreservesFalse(t *testing.T) {
 
 func TestSecretsAndValidation(t *testing.T) {
 	c := Defaults()
-	c.OIDC.Issuer = "https://identity.example.com/tenant"
-	c.OIDC.ClientID = "app-id"
-	t.Setenv("SKILLHUB_OIDC_CLIENT_SECRET", "")
-	if _, err := c.Secret(); err == nil {
+	c.Auth.Providers = []identityprovider.Config{{ID: "work", Type: "oidc", Name: "Work account", Issuer: "https://identity.example.com/tenant", ClientID: "app-id", ClientSecretEnv: "TEST_AUTH_SECRET"}}
+	t.Setenv("TEST_AUTH_SECRET", "")
+	if _, err := c.Providers(); err == nil {
 		t.Fatal("missing secret accepted")
 	}
 	path := filepath.Join(t.TempDir(), "secret")
 	if err := os.WriteFile(path, []byte("secret-value\n"), 0600); err != nil {
 		t.Fatal(err)
 	}
-	c.OIDC.ClientSecretFile = path
-	if s, err := c.Secret(); err != nil || s != "secret-value" {
-		t.Fatal("file secret not resolved")
-	}
-	t.Setenv("SKILLHUB_OIDC_CLIENT_SECRET", "environment-value")
-	if _, err := c.Secret(); err == nil {
-		t.Fatal("ambiguous secret accepted")
+	c.Auth.Providers[0].ClientSecretEnv = ""
+	c.Auth.Providers[0].ClientSecretFile = path
+	if p, err := c.Providers(); err != nil || p[0].Secret != "secret-value" {
+		t.Fatal("file secret not resolved", err)
 	}
 	for _, change := range []func(*Config){
 		func(c *Config) { c.Listen = "localhost:0" },
 		func(c *Config) { c.PublicURL = "http://example.com" },
 		func(c *Config) { c.PublicURL = "https://example.com/subpath" },
 		func(c *Config) { c.TrustedProxies = []string{"127.0.0.1"} },
-		func(c *Config) { c.OIDC.ClientID = "" },
+		func(c *Config) { c.Auth.Providers[0].ClientID = "" },
+		func(c *Config) { c.Auth.Providers[0].Name = "" },
+		func(c *Config) { c.Auth.Providers[0].ClientSecretEnv = "TEST_AUTH_SECRET" },
 	} {
 		invalid := c
+		invalid.Auth.Providers = append([]identityprovider.Config(nil), c.Auth.Providers...)
 		change(&invalid)
 		if invalid.Validate() == nil {
 			t.Fatal("invalid configuration accepted")
@@ -113,5 +113,53 @@ func TestDatabaseConfiguration(t *testing.T) {
 	c.Database.Driver = "sqlite"
 	if c.Validate() == nil {
 		t.Fatal("SQLite accepted DSN file")
+	}
+}
+
+func TestAuthProviderConfiguration(t *testing.T) {
+	c := Defaults()
+	c.Mode = "community"
+	c.Auth.Providers = []identityprovider.Config{{ID: "social", Type: "github", Name: "Community account", ClientID: "public-client", ClientSecretEnv: "TEST_PROVIDER_SECRET"}, {ID: "company", Type: "oidc", Name: "Company account", Issuer: "https://identity.example/tenant", ClientID: "company-client", ClientSecretEnv: "TEST_PROVIDER_SECRET"}}
+	t.Setenv("TEST_PROVIDER_SECRET", "fixture-only-secret")
+	providers, e := c.Providers()
+	if e != nil || len(providers) != 2 || providers[0].Secret != "fixture-only-secret" {
+		t.Fatal("provider normalization", e)
+	}
+	if c.Auth.Providers[0].Secret != "" {
+		t.Fatal("secret mutated config")
+	}
+	c.Auth.Providers[1].ID = "social"
+	if c.Validate() == nil {
+		t.Fatal("duplicate provider")
+	}
+	c.Auth.Providers[1].ID = "company"
+	t.Setenv("TEST_PROVIDER_SECRET", "")
+	if _, e = c.Providers(); e == nil {
+		t.Fatal("missing secret")
+	}
+	c.Auth.Providers = nil
+	c.Mode = "unknown"
+	if c.Validate() == nil {
+		t.Fatal("unknown mode")
+	}
+	c = Defaults()
+	c.Mode = "community"
+	c.Limits.PackageBytes = 0
+	if c.Validate() == nil {
+		t.Fatal("unbounded community storage")
+	}
+}
+
+func TestDocumentedDeploymentConfigs(t *testing.T) {
+	for _, name := range []string{"hub.example.yaml", "community.example.yaml"} {
+		t.Run(name, func(t *testing.T) {
+			c, e := Load("../../deploy/" + name)
+			if e != nil {
+				t.Fatal(e)
+			}
+			if e = c.Validate(); e != nil {
+				t.Fatal(e)
+			}
+		})
 	}
 }

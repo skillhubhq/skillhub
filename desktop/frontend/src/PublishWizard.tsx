@@ -32,6 +32,10 @@ import type {
 import type { ReleaseInfo } from "../bindings/github.com/skillhubhq/skillhub/internal/client/models";
 export function PublishWizard({ source }: { source: string }) {
   const ui = useUI();
+  const participation = useResource(
+    () => API.CommunityParticipation(source),
+    [source],
+  );
   const previousID =
     new URLSearchParams(location.hash.split("?")[1] ?? "").get("from") || "";
   const previous = useResource(
@@ -387,6 +391,17 @@ export function PublishWizard({ source }: { source: string }) {
       )}
       <div className="publish-layout">
         <div className="panel publish-main">
+          {participation.value?.community_mode && (
+            <p className="notice" role="status">
+              {t(
+                "Every submission is reviewed before publication.",
+                "每次提交都需审核后发布。",
+              )}{" "}
+              {t("Submitted in the last 24 hours", "过去 24 小时已提交")}:{" "}
+              {participation.value.submissions_today} /{" "}
+              {participation.value.submission_limit}
+            </p>
+          )}
           <ol className="steps">
             {[t("Preview"), t("Details"), t("Confirm")].map((label, i) => (
               <li
@@ -589,7 +604,9 @@ export function PublishWizard({ source }: { source: string }) {
                   <option value="">{t("Choose a space")}</option>
                   {options?.namespaces.map((n) => (
                     <option key={n.name} value={n.name}>
-                      {n.name}
+                      {n.name === participation.value?.personal_namespace
+                        ? t("My skills", "我的技能")
+                        : n.name}
                     </option>
                   ))}
                 </Select>
@@ -722,8 +739,8 @@ export function PublishWizard({ source }: { source: string }) {
                 <dd>{draft?.files?.length}</dd>
                 <dt>{t("Review policy")}</dt>
                 <dd>
-                  {options?.namespaces.find((n) => n.name === namespace)
-                    ?.enabled
+                  {participation.value?.community_mode ||
+                  options?.namespaces.find((n) => n.name === namespace)?.enabled
                     ? t("Independent review required")
                     : t("Maintainers can publish directly")}
                 </dd>
@@ -744,8 +761,8 @@ export function PublishWizard({ source }: { source: string }) {
                   disabled={!valid || ui.busy}
                   onClick={() => void ui.run(submit)}
                 >
-                  {options?.namespaces.find((n) => n.name === namespace)
-                    ?.enabled
+                  {participation.value?.community_mode ||
+                  options?.namespaces.find((n) => n.name === namespace)?.enabled
                     ? t("Submit for review")
                     : t("Publish version")}
                 </button>

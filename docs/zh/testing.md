@@ -4,7 +4,7 @@
 
 ## 软件验收范围 [#software-acceptance-scope]
 
-代码验收覆盖协议、身份/授权（本地 OIDC）、发布审核安装、App 状态保留、数据库迁移恢复、安全和打包。确切候选 revision 需跑完整支持平台 CI。
+代码验收覆盖协议、身份/授权（本地 OIDC）、发布审核安装、App 状态保留、数据库初始化与恢复、安全和打包。确切候选 revision 需跑完整支持平台 CI。
 
 真实 Entra、组织服务器/代理/存储、全新受管设备安装属于运维后续集成验收，不阻塞代码验收，也不能被本地成功替代。使用[部署检查](deployment-checklist.md)单列状态。
 
@@ -62,7 +62,7 @@ go test -count=1 -run TestPostgres ./internal/hub
 go test -count=1 -run TestDiscoveryCapacity -v ./internal/hub
 ```
 
-未设 DSN 时跳过，不代表通过。CI 覆盖 15/16/18，检查租约、迁移取消、配套恢复、损坏/缺包、失效会话、新目标回退和未完成标记。容量以合成内容验证权限分页、最新可读版本、精选、并发待办；记录宿主/工具版本，不把合成延迟当 SLA，实际负载在目标环境测量。
+未设 DSN 时跳过，不代表通过。CI 覆盖 15/16/18，检查租约、初始化取消、配套恢复、损坏/缺包、失效会话、新目标回退和未完成标记。容量以合成内容验证权限分页、最新可读版本、精选、并发待办；记录宿主/工具版本，不把合成延迟当 SLA，实际负载在目标环境测量。
 
 ## 兼容性 [#compatibility]
 
@@ -94,3 +94,9 @@ fixture 使用独立应用/凭据身份，不碰生产状态。不模拟浏览�
 ## 安全与部署 [#security-and-deployment]
 
 CI 扫秘密和依赖，静态扫描只是证据，发布前审阅归档/依赖。真实环境地址、租户、凭据和完成报告不入源码。CodeQL 分析 Go、JS/TS、Python、Actions 的远端/本地输入；任务成功只表示扫描运行。真实问题修复，误报需数据流/验证依据，不能禁规则隐藏问题。参见[安全策略](security.md)和[部署检查](deployment-checklist.md)。
+
+## 登录适配器与社区策略 [#login-adapters-and-community-policy]
+
+运行 `go test -race ./internal/identityprovider ./internal/hubhttp ./internal/hub ./internal/serverconfig`，验证配置、OIDC 签名与字段、OAuth PKCE、state/cookie/重放隔离、稳定身份、按模式准入、禁用/待审状态保留、安全头像初始化、配额、举报处理和 schema 10 升级恢复。适配器测试使用受控 HTTP transport，OIDC 使用本地 TLS 服务和真实签名，不要求或宣称使用真实提供方凭据。
+
+`TestPostgresCommunityPolicyAndModeration` 沿用 PostgreSQL 隔离测试库，覆盖 15、16、18。原生夹具验证举报弹窗、共享 Go 方法、队列权限、处理结果与评论占位。全部数据可丢弃，不打开部署方当前 Hub 数据。

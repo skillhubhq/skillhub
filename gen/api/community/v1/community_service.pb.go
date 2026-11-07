@@ -2093,6 +2093,627 @@ func (x *UpdateAvatarResponse) GetProfile() *Profile {
 	return nil
 }
 
+// GetParticipationRequest 查询当前账号，不接受任意用户标识。
+type GetParticipationRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetParticipationRequest) Reset() {
+	*x = GetParticipationRequest{}
+	mi := &file_api_community_v1_community_service_proto_msgTypes[34]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetParticipationRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetParticipationRequest) ProtoMessage() {}
+
+func (x *GetParticipationRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_community_v1_community_service_proto_msgTypes[34]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetParticipationRequest.ProtoReflect.Descriptor instead.
+func (*GetParticipationRequest) Descriptor() ([]byte, []int) {
+	return file_api_community_v1_community_service_proto_rawDescGZIP(), []int{34}
+}
+
+// GetParticipationResponse 描述当前 Hub 的策略和当前账号计量。
+type GetParticipationResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 是否启用社区准入和投稿策略。
+	CommunityMode bool `protobuf:"varint,1,opt,name=community_mode,json=communityMode,proto3" json:"community_mode,omitempty"`
+	// 当前账号个人空间；企业模式或未创建时为空。
+	PersonalNamespace string `protobuf:"bytes,2,opt,name=personal_namespace,json=personalNamespace,proto3" json:"personal_namespace,omitempty"`
+	// 当前账号累计版本数，含撤下和拒绝版本。
+	Versions uint64 `protobuf:"varint,3,opt,name=versions,proto3" json:"versions,omitempty"`
+	// 社区模式的账号版本上限。
+	VersionLimit uint64 `protobuf:"varint,4,opt,name=version_limit,json=versionLimit,proto3" json:"version_limit,omitempty"`
+	// 按版本累计压缩包字节数。
+	StorageBytes uint64 `protobuf:"varint,5,opt,name=storage_bytes,json=storageBytes,proto3" json:"storage_bytes,omitempty"`
+	// 社区模式的账号存储上限。
+	StorageLimit uint64 `protobuf:"varint,6,opt,name=storage_limit,json=storageLimit,proto3" json:"storage_limit,omitempty"`
+	// 最近二十四小时投稿数。
+	SubmissionsToday uint64 `protobuf:"varint,7,opt,name=submissions_today,json=submissionsToday,proto3" json:"submissions_today,omitempty"`
+	// 社区模式每日投稿上限。
+	SubmissionLimit uint64 `protobuf:"varint,8,opt,name=submission_limit,json=submissionLimit,proto3" json:"submission_limit,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *GetParticipationResponse) Reset() {
+	*x = GetParticipationResponse{}
+	mi := &file_api_community_v1_community_service_proto_msgTypes[35]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetParticipationResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetParticipationResponse) ProtoMessage() {}
+
+func (x *GetParticipationResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_api_community_v1_community_service_proto_msgTypes[35]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetParticipationResponse.ProtoReflect.Descriptor instead.
+func (*GetParticipationResponse) Descriptor() ([]byte, []int) {
+	return file_api_community_v1_community_service_proto_rawDescGZIP(), []int{35}
+}
+
+func (x *GetParticipationResponse) GetCommunityMode() bool {
+	if x != nil {
+		return x.CommunityMode
+	}
+	return false
+}
+
+func (x *GetParticipationResponse) GetPersonalNamespace() string {
+	if x != nil {
+		return x.PersonalNamespace
+	}
+	return ""
+}
+
+func (x *GetParticipationResponse) GetVersions() uint64 {
+	if x != nil {
+		return x.Versions
+	}
+	return 0
+}
+
+func (x *GetParticipationResponse) GetVersionLimit() uint64 {
+	if x != nil {
+		return x.VersionLimit
+	}
+	return 0
+}
+
+func (x *GetParticipationResponse) GetStorageBytes() uint64 {
+	if x != nil {
+		return x.StorageBytes
+	}
+	return 0
+}
+
+func (x *GetParticipationResponse) GetStorageLimit() uint64 {
+	if x != nil {
+		return x.StorageLimit
+	}
+	return 0
+}
+
+func (x *GetParticipationResponse) GetSubmissionsToday() uint64 {
+	if x != nil {
+		return x.SubmissionsToday
+	}
+	return 0
+}
+
+func (x *GetParticipationResponse) GetSubmissionLimit() uint64 {
+	if x != nil {
+		return x.SubmissionLimit
+	}
+	return 0
+}
+
+// ReportContentRequest 不接受目标用户或任意 URL。
+type ReportContentRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 幂等写入标识。
+	Mutation *v11.Mutation `protobuf:"bytes,1,opt,name=mutation,proto3" json:"mutation,omitempty"`
+	// 可访问的版本。
+	ReleaseId string `protobuf:"bytes,2,opt,name=release_id,json=releaseId,proto3" json:"release_id,omitempty"`
+	// 举报评论时填写，必须属于同一版本。
+	CommentId string `protobuf:"bytes,3,opt,name=comment_id,json=commentId,proto3" json:"comment_id,omitempty"`
+	// 具体问题，不含凭据或个人秘密。
+	Reason        string `protobuf:"bytes,4,opt,name=reason,proto3" json:"reason,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ReportContentRequest) Reset() {
+	*x = ReportContentRequest{}
+	mi := &file_api_community_v1_community_service_proto_msgTypes[36]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReportContentRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReportContentRequest) ProtoMessage() {}
+
+func (x *ReportContentRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_community_v1_community_service_proto_msgTypes[36]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReportContentRequest.ProtoReflect.Descriptor instead.
+func (*ReportContentRequest) Descriptor() ([]byte, []int) {
+	return file_api_community_v1_community_service_proto_rawDescGZIP(), []int{36}
+}
+
+func (x *ReportContentRequest) GetMutation() *v11.Mutation {
+	if x != nil {
+		return x.Mutation
+	}
+	return nil
+}
+
+func (x *ReportContentRequest) GetReleaseId() string {
+	if x != nil {
+		return x.ReleaseId
+	}
+	return ""
+}
+
+func (x *ReportContentRequest) GetCommentId() string {
+	if x != nil {
+		return x.CommentId
+	}
+	return ""
+}
+
+func (x *ReportContentRequest) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+// ReportContentResponse 仅返回受理编号。
+type ReportContentResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 举报编号。
+	Id            string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ReportContentResponse) Reset() {
+	*x = ReportContentResponse{}
+	mi := &file_api_community_v1_community_service_proto_msgTypes[37]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReportContentResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReportContentResponse) ProtoMessage() {}
+
+func (x *ReportContentResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_api_community_v1_community_service_proto_msgTypes[37]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReportContentResponse.ProtoReflect.Descriptor instead.
+func (*ReportContentResponse) Descriptor() ([]byte, []int) {
+	return file_api_community_v1_community_service_proto_rawDescGZIP(), []int{37}
+}
+
+func (x *ReportContentResponse) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+// ContentReport 仅向管理员展示举报人和目标信息。
+type ContentReport struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 举报编号。
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// 举报人账号标识。
+	Reporter string `protobuf:"bytes,2,opt,name=reporter,proto3" json:"reporter,omitempty"`
+	// 目标版本。
+	ReleaseId string `protobuf:"bytes,3,opt,name=release_id,json=releaseId,proto3" json:"release_id,omitempty"`
+	// 可选评论标识。
+	CommentId string `protobuf:"bytes,4,opt,name=comment_id,json=commentId,proto3" json:"comment_id,omitempty"`
+	// 举报说明。
+	Reason string `protobuf:"bytes,5,opt,name=reason,proto3" json:"reason,omitempty"`
+	// 是否已处理。
+	Resolved bool `protobuf:"varint,6,opt,name=resolved,proto3" json:"resolved,omitempty"`
+	// 处理说明。
+	Resolution string `protobuf:"bytes,7,opt,name=resolution,proto3" json:"resolution,omitempty"`
+	// 受理时间。
+	CreatedAt *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	// 处理时间。
+	ResolvedAt *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=resolved_at,json=resolvedAt,proto3" json:"resolved_at,omitempty"`
+	// 稳定技能坐标。
+	Coordinate string `protobuf:"bytes,10,opt,name=coordinate,proto3" json:"coordinate,omitempty"`
+	// 目标当前正文摘要；已删除评论不返回旧正文。
+	Content       string `protobuf:"bytes,11,opt,name=content,proto3" json:"content,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ContentReport) Reset() {
+	*x = ContentReport{}
+	mi := &file_api_community_v1_community_service_proto_msgTypes[38]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ContentReport) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ContentReport) ProtoMessage() {}
+
+func (x *ContentReport) ProtoReflect() protoreflect.Message {
+	mi := &file_api_community_v1_community_service_proto_msgTypes[38]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ContentReport.ProtoReflect.Descriptor instead.
+func (*ContentReport) Descriptor() ([]byte, []int) {
+	return file_api_community_v1_community_service_proto_rawDescGZIP(), []int{38}
+}
+
+func (x *ContentReport) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *ContentReport) GetReporter() string {
+	if x != nil {
+		return x.Reporter
+	}
+	return ""
+}
+
+func (x *ContentReport) GetReleaseId() string {
+	if x != nil {
+		return x.ReleaseId
+	}
+	return ""
+}
+
+func (x *ContentReport) GetCommentId() string {
+	if x != nil {
+		return x.CommentId
+	}
+	return ""
+}
+
+func (x *ContentReport) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+func (x *ContentReport) GetResolved() bool {
+	if x != nil {
+		return x.Resolved
+	}
+	return false
+}
+
+func (x *ContentReport) GetResolution() string {
+	if x != nil {
+		return x.Resolution
+	}
+	return ""
+}
+
+func (x *ContentReport) GetCreatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return nil
+}
+
+func (x *ContentReport) GetResolvedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.ResolvedAt
+	}
+	return nil
+}
+
+func (x *ContentReport) GetCoordinate() string {
+	if x != nil {
+		return x.Coordinate
+	}
+	return ""
+}
+
+func (x *ContentReport) GetContent() string {
+	if x != nil {
+		return x.Content
+	}
+	return ""
+}
+
+// ListReportsRequest 以服务端游标读取待处理或已处理集合。
+type ListReportsRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 分页参数。
+	Page *v11.PageRequest `protobuf:"bytes,1,opt,name=page,proto3" json:"page,omitempty"`
+	// 是否查看已处理记录。
+	Resolved      bool `protobuf:"varint,2,opt,name=resolved,proto3" json:"resolved,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListReportsRequest) Reset() {
+	*x = ListReportsRequest{}
+	mi := &file_api_community_v1_community_service_proto_msgTypes[39]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListReportsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListReportsRequest) ProtoMessage() {}
+
+func (x *ListReportsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_community_v1_community_service_proto_msgTypes[39]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListReportsRequest.ProtoReflect.Descriptor instead.
+func (*ListReportsRequest) Descriptor() ([]byte, []int) {
+	return file_api_community_v1_community_service_proto_rawDescGZIP(), []int{39}
+}
+
+func (x *ListReportsRequest) GetPage() *v11.PageRequest {
+	if x != nil {
+		return x.Page
+	}
+	return nil
+}
+
+func (x *ListReportsRequest) GetResolved() bool {
+	if x != nil {
+		return x.Resolved
+	}
+	return false
+}
+
+// ListReportsResponse 返回管理员可见的举报队列。
+type ListReportsResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 举报记录。
+	Reports []*ContentReport `protobuf:"bytes,1,rep,name=reports,proto3" json:"reports,omitempty"`
+	// 后续游标。
+	Page          *v11.PageResult `protobuf:"bytes,2,opt,name=page,proto3" json:"page,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListReportsResponse) Reset() {
+	*x = ListReportsResponse{}
+	mi := &file_api_community_v1_community_service_proto_msgTypes[40]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListReportsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListReportsResponse) ProtoMessage() {}
+
+func (x *ListReportsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_api_community_v1_community_service_proto_msgTypes[40]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListReportsResponse.ProtoReflect.Descriptor instead.
+func (*ListReportsResponse) Descriptor() ([]byte, []int) {
+	return file_api_community_v1_community_service_proto_rawDescGZIP(), []int{40}
+}
+
+func (x *ListReportsResponse) GetReports() []*ContentReport {
+	if x != nil {
+		return x.Reports
+	}
+	return nil
+}
+
+func (x *ListReportsResponse) GetPage() *v11.PageResult {
+	if x != nil {
+		return x.Page
+	}
+	return nil
+}
+
+// ResolveReportRequest 处理动作由服务端重新校验。
+type ResolveReportRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 幂等写入标识。
+	Mutation *v11.Mutation `protobuf:"bytes,1,opt,name=mutation,proto3" json:"mutation,omitempty"`
+	// 举报编号。
+	Id string `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
+	// 明确处理动作。
+	Action v1.ReportResolution `protobuf:"varint,3,opt,name=action,proto3,enum=common.registry.v1.ReportResolution" json:"action,omitempty"`
+	// 对管理员保留的处理依据。
+	Note          string `protobuf:"bytes,4,opt,name=note,proto3" json:"note,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ResolveReportRequest) Reset() {
+	*x = ResolveReportRequest{}
+	mi := &file_api_community_v1_community_service_proto_msgTypes[41]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ResolveReportRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ResolveReportRequest) ProtoMessage() {}
+
+func (x *ResolveReportRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_community_v1_community_service_proto_msgTypes[41]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ResolveReportRequest.ProtoReflect.Descriptor instead.
+func (*ResolveReportRequest) Descriptor() ([]byte, []int) {
+	return file_api_community_v1_community_service_proto_rawDescGZIP(), []int{41}
+}
+
+func (x *ResolveReportRequest) GetMutation() *v11.Mutation {
+	if x != nil {
+		return x.Mutation
+	}
+	return nil
+}
+
+func (x *ResolveReportRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *ResolveReportRequest) GetAction() v1.ReportResolution {
+	if x != nil {
+		return x.Action
+	}
+	return v1.ReportResolution(0)
+}
+
+func (x *ResolveReportRequest) GetNote() string {
+	if x != nil {
+		return x.Note
+	}
+	return ""
+}
+
+// ResolveReportResponse 表示处理已提交。
+type ResolveReportResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ResolveReportResponse) Reset() {
+	*x = ResolveReportResponse{}
+	mi := &file_api_community_v1_community_service_proto_msgTypes[42]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ResolveReportResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ResolveReportResponse) ProtoMessage() {}
+
+func (x *ResolveReportResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_api_community_v1_community_service_proto_msgTypes[42]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ResolveReportResponse.ProtoReflect.Descriptor instead.
+func (*ResolveReportResponse) Descriptor() ([]byte, []int) {
+	return file_api_community_v1_community_service_proto_rawDescGZIP(), []int{42}
+}
+
 var File_api_community_v1_community_service_proto protoreflect.FileDescriptor
 
 const file_api_community_v1_community_service_proto_rawDesc = "" +
@@ -2239,9 +2860,69 @@ const file_api_community_v1_community_service_proto_rawDesc = "" +
 	"\x05image\x18\x02 \x01(\fB\t\xbaH\x06z\x04\x18\x80\x80 R\x05image\x12+\n" +
 	"\x11expected_revision\x18\x03 \x01(\x04R\x10expectedRevision\"K\n" +
 	"\x14UpdateAvatarResponse\x123\n" +
-	"\aprofile\x18\x01 \x01(\v2\x19.api.community.v1.ProfileR\aprofile2\xb8\n" +
+	"\aprofile\x18\x01 \x01(\v2\x19.api.community.v1.ProfileR\aprofile\"\x19\n" +
+	"\x17GetParticipationRequest\"\xd3\x02\n" +
+	"\x18GetParticipationResponse\x12%\n" +
+	"\x0ecommunity_mode\x18\x01 \x01(\bR\rcommunityMode\x12-\n" +
+	"\x12personal_namespace\x18\x02 \x01(\tR\x11personalNamespace\x12\x1a\n" +
+	"\bversions\x18\x03 \x01(\x04R\bversions\x12#\n" +
+	"\rversion_limit\x18\x04 \x01(\x04R\fversionLimit\x12#\n" +
+	"\rstorage_bytes\x18\x05 \x01(\x04R\fstorageBytes\x12#\n" +
+	"\rstorage_limit\x18\x06 \x01(\x04R\fstorageLimit\x12+\n" +
+	"\x11submissions_today\x18\a \x01(\x04R\x10submissionsToday\x12)\n" +
+	"\x10submission_limit\x18\b \x01(\x04R\x0fsubmissionLimit\"\xcb\x01\n" +
+	"\x14ReportContentRequest\x12;\n" +
+	"\bmutation\x18\x01 \x01(\v2\x17.api.common.v1.MutationB\x06\xbaH\x03\xc8\x01\x01R\bmutation\x12)\n" +
 	"\n" +
-	"\x10CommunityService\x12]\n" +
+	"release_id\x18\x02 \x01(\tB\n" +
+	"\xbaH\ar\x05\x10\x01\x18\x80\x01R\treleaseId\x12'\n" +
+	"\n" +
+	"comment_id\x18\x03 \x01(\tB\b\xbaH\x05r\x03\x18\x80\x01R\tcommentId\x12\"\n" +
+	"\x06reason\x18\x04 \x01(\tB\n" +
+	"\xbaH\ar\x05\x10\x01\x18\xe8\aR\x06reason\"'\n" +
+	"\x15ReportContentResponse\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"\xff\x02\n" +
+	"\rContentReport\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
+	"\breporter\x18\x02 \x01(\tR\breporter\x12\x1d\n" +
+	"\n" +
+	"release_id\x18\x03 \x01(\tR\treleaseId\x12\x1d\n" +
+	"\n" +
+	"comment_id\x18\x04 \x01(\tR\tcommentId\x12\x16\n" +
+	"\x06reason\x18\x05 \x01(\tR\x06reason\x12\x1a\n" +
+	"\bresolved\x18\x06 \x01(\bR\bresolved\x12\x1e\n" +
+	"\n" +
+	"resolution\x18\a \x01(\tR\n" +
+	"resolution\x129\n" +
+	"\n" +
+	"created_at\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x12;\n" +
+	"\vresolved_at\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\n" +
+	"resolvedAt\x12\x1e\n" +
+	"\n" +
+	"coordinate\x18\n" +
+	" \x01(\tR\n" +
+	"coordinate\x12\x18\n" +
+	"\acontent\x18\v \x01(\tR\acontent\"`\n" +
+	"\x12ListReportsRequest\x12.\n" +
+	"\x04page\x18\x01 \x01(\v2\x1a.api.common.v1.PageRequestR\x04page\x12\x1a\n" +
+	"\bresolved\x18\x02 \x01(\bR\bresolved\"\x7f\n" +
+	"\x13ListReportsResponse\x129\n" +
+	"\areports\x18\x01 \x03(\v2\x1f.api.community.v1.ContentReportR\areports\x12-\n" +
+	"\x04page\x18\x02 \x01(\v2\x19.api.common.v1.PageResultR\x04page\"\xd9\x01\n" +
+	"\x14ResolveReportRequest\x12;\n" +
+	"\bmutation\x18\x01 \x01(\v2\x17.api.common.v1.MutationB\x06\xbaH\x03\xc8\x01\x01R\bmutation\x12\x1a\n" +
+	"\x02id\x18\x02 \x01(\tB\n" +
+	"\xbaH\ar\x05\x10\x01\x18\x80\x01R\x02id\x12H\n" +
+	"\x06action\x18\x03 \x01(\x0e2$.common.registry.v1.ReportResolutionB\n" +
+	"\xbaH\a\x82\x01\x04\x10\x01 \x00R\x06action\x12\x1e\n" +
+	"\x04note\x18\x04 \x01(\tB\n" +
+	"\xbaH\ar\x05\x10\x01\x18\xe8\aR\x04note\"\x17\n" +
+	"\x15ResolveReportResponse2\xc3\r\n" +
+	"\x10CommunityService\x12i\n" +
+	"\x10GetParticipation\x12).api.community.v1.GetParticipationRequest\x1a*.api.community.v1.GetParticipationResponse\x12`\n" +
+	"\rReportContent\x12&.api.community.v1.ReportContentRequest\x1a'.api.community.v1.ReportContentResponse\x12Z\n" +
+	"\vListReports\x12$.api.community.v1.ListReportsRequest\x1a%.api.community.v1.ListReportsResponse\x12`\n" +
+	"\rResolveReport\x12&.api.community.v1.ResolveReportRequest\x1a'.api.community.v1.ResolveReportResponse\x12]\n" +
 	"\fUpdateAvatar\x12%.api.community.v1.UpdateAvatarRequest\x1a&.api.community.v1.UpdateAvatarResponse\x12W\n" +
 	"\n" +
 	"GetProfile\x12#.api.community.v1.GetProfileRequest\x1a$.api.community.v1.GetProfileResponse\x12`\n" +
@@ -2272,7 +2953,7 @@ func file_api_community_v1_community_service_proto_rawDescGZIP() []byte {
 	return file_api_community_v1_community_service_proto_rawDescData
 }
 
-var file_api_community_v1_community_service_proto_msgTypes = make([]protoimpl.MessageInfo, 34)
+var file_api_community_v1_community_service_proto_msgTypes = make([]protoimpl.MessageInfo, 43)
 var file_api_community_v1_community_service_proto_goTypes = []any{
 	(*Profile)(nil),                   // 0: api.community.v1.Profile
 	(*Team)(nil),                      // 1: api.community.v1.Team
@@ -2308,82 +2989,108 @@ var file_api_community_v1_community_service_proto_goTypes = []any{
 	(*ListBookmarksResponse)(nil),     // 31: api.community.v1.ListBookmarksResponse
 	(*UpdateAvatarRequest)(nil),       // 32: api.community.v1.UpdateAvatarRequest
 	(*UpdateAvatarResponse)(nil),      // 33: api.community.v1.UpdateAvatarResponse
-	(v1.NamespaceRole)(0),             // 34: common.registry.v1.NamespaceRole
-	(v1.SkillIcon)(0),                 // 35: common.registry.v1.SkillIcon
-	(*timestamppb.Timestamp)(nil),     // 36: google.protobuf.Timestamp
-	(*v11.Mutation)(nil),              // 37: api.common.v1.Mutation
-	(*v11.PageRequest)(nil),           // 38: api.common.v1.PageRequest
-	(*v11.PageResult)(nil),            // 39: api.common.v1.PageResult
+	(*GetParticipationRequest)(nil),   // 34: api.community.v1.GetParticipationRequest
+	(*GetParticipationResponse)(nil),  // 35: api.community.v1.GetParticipationResponse
+	(*ReportContentRequest)(nil),      // 36: api.community.v1.ReportContentRequest
+	(*ReportContentResponse)(nil),     // 37: api.community.v1.ReportContentResponse
+	(*ContentReport)(nil),             // 38: api.community.v1.ContentReport
+	(*ListReportsRequest)(nil),        // 39: api.community.v1.ListReportsRequest
+	(*ListReportsResponse)(nil),       // 40: api.community.v1.ListReportsResponse
+	(*ResolveReportRequest)(nil),      // 41: api.community.v1.ResolveReportRequest
+	(*ResolveReportResponse)(nil),     // 42: api.community.v1.ResolveReportResponse
+	(v1.NamespaceRole)(0),             // 43: common.registry.v1.NamespaceRole
+	(v1.SkillIcon)(0),                 // 44: common.registry.v1.SkillIcon
+	(*timestamppb.Timestamp)(nil),     // 45: google.protobuf.Timestamp
+	(*v11.Mutation)(nil),              // 46: api.common.v1.Mutation
+	(*v11.PageRequest)(nil),           // 47: api.common.v1.PageRequest
+	(*v11.PageResult)(nil),            // 48: api.common.v1.PageResult
+	(v1.ReportResolution)(0),          // 49: common.registry.v1.ReportResolution
 }
 var file_api_community_v1_community_service_proto_depIdxs = []int32{
 	0,  // 0: api.community.v1.Member.profile:type_name -> api.community.v1.Profile
-	34, // 1: api.community.v1.Member.roles:type_name -> common.registry.v1.NamespaceRole
+	43, // 1: api.community.v1.Member.roles:type_name -> common.registry.v1.NamespaceRole
 	0,  // 2: api.community.v1.Contribution.author:type_name -> api.community.v1.Profile
-	35, // 3: api.community.v1.Contribution.icon:type_name -> common.registry.v1.SkillIcon
+	44, // 3: api.community.v1.Contribution.icon:type_name -> common.registry.v1.SkillIcon
 	0,  // 4: api.community.v1.Comment.author:type_name -> api.community.v1.Profile
-	36, // 5: api.community.v1.Comment.created_at:type_name -> google.protobuf.Timestamp
+	45, // 5: api.community.v1.Comment.created_at:type_name -> google.protobuf.Timestamp
 	0,  // 6: api.community.v1.GetProfileResponse.profile:type_name -> api.community.v1.Profile
-	37, // 7: api.community.v1.UpdateProfileRequest.mutation:type_name -> api.common.v1.Mutation
+	46, // 7: api.community.v1.UpdateProfileRequest.mutation:type_name -> api.common.v1.Mutation
 	0,  // 8: api.community.v1.UpdateProfileResponse.profile:type_name -> api.community.v1.Profile
 	1,  // 9: api.community.v1.GetTeamResponse.team:type_name -> api.community.v1.Team
-	37, // 10: api.community.v1.UpdateTeamRequest.mutation:type_name -> api.common.v1.Mutation
+	46, // 10: api.community.v1.UpdateTeamRequest.mutation:type_name -> api.common.v1.Mutation
 	1,  // 11: api.community.v1.UpdateTeamResponse.team:type_name -> api.community.v1.Team
-	38, // 12: api.community.v1.ListTeamsRequest.page:type_name -> api.common.v1.PageRequest
+	47, // 12: api.community.v1.ListTeamsRequest.page:type_name -> api.common.v1.PageRequest
 	1,  // 13: api.community.v1.ListTeamsResponse.teams:type_name -> api.community.v1.Team
-	39, // 14: api.community.v1.ListTeamsResponse.page:type_name -> api.common.v1.PageResult
-	38, // 15: api.community.v1.ListMembersRequest.page:type_name -> api.common.v1.PageRequest
+	48, // 14: api.community.v1.ListTeamsResponse.page:type_name -> api.common.v1.PageResult
+	47, // 15: api.community.v1.ListMembersRequest.page:type_name -> api.common.v1.PageRequest
 	2,  // 16: api.community.v1.ListMembersResponse.members:type_name -> api.community.v1.Member
-	39, // 17: api.community.v1.ListMembersResponse.page:type_name -> api.common.v1.PageResult
-	38, // 18: api.community.v1.ListContributionsRequest.page:type_name -> api.common.v1.PageRequest
+	48, // 17: api.community.v1.ListMembersResponse.page:type_name -> api.common.v1.PageResult
+	47, // 18: api.community.v1.ListContributionsRequest.page:type_name -> api.common.v1.PageRequest
 	3,  // 19: api.community.v1.ListContributionsResponse.contributions:type_name -> api.community.v1.Contribution
-	39, // 20: api.community.v1.ListContributionsResponse.page:type_name -> api.common.v1.PageResult
+	48, // 20: api.community.v1.ListContributionsResponse.page:type_name -> api.common.v1.PageResult
 	5,  // 21: api.community.v1.GetDiscussionResponse.discussion:type_name -> api.community.v1.Discussion
-	38, // 22: api.community.v1.ListCommentsRequest.page:type_name -> api.common.v1.PageRequest
+	47, // 22: api.community.v1.ListCommentsRequest.page:type_name -> api.common.v1.PageRequest
 	4,  // 23: api.community.v1.ListCommentsResponse.comments:type_name -> api.community.v1.Comment
-	39, // 24: api.community.v1.ListCommentsResponse.page:type_name -> api.common.v1.PageResult
-	37, // 25: api.community.v1.CreateCommentRequest.mutation:type_name -> api.common.v1.Mutation
+	48, // 24: api.community.v1.ListCommentsResponse.page:type_name -> api.common.v1.PageResult
+	46, // 25: api.community.v1.CreateCommentRequest.mutation:type_name -> api.common.v1.Mutation
 	4,  // 26: api.community.v1.CreateCommentResponse.comment:type_name -> api.community.v1.Comment
-	37, // 27: api.community.v1.DeleteCommentRequest.mutation:type_name -> api.common.v1.Mutation
-	37, // 28: api.community.v1.SetReactionRequest.mutation:type_name -> api.common.v1.Mutation
+	46, // 27: api.community.v1.DeleteCommentRequest.mutation:type_name -> api.common.v1.Mutation
+	46, // 28: api.community.v1.SetReactionRequest.mutation:type_name -> api.common.v1.Mutation
 	5,  // 29: api.community.v1.SetReactionResponse.discussion:type_name -> api.community.v1.Discussion
-	38, // 30: api.community.v1.ListBookmarksRequest.page:type_name -> api.common.v1.PageRequest
+	47, // 30: api.community.v1.ListBookmarksRequest.page:type_name -> api.common.v1.PageRequest
 	3,  // 31: api.community.v1.ListBookmarksResponse.contributions:type_name -> api.community.v1.Contribution
-	39, // 32: api.community.v1.ListBookmarksResponse.page:type_name -> api.common.v1.PageResult
-	37, // 33: api.community.v1.UpdateAvatarRequest.mutation:type_name -> api.common.v1.Mutation
+	48, // 32: api.community.v1.ListBookmarksResponse.page:type_name -> api.common.v1.PageResult
+	46, // 33: api.community.v1.UpdateAvatarRequest.mutation:type_name -> api.common.v1.Mutation
 	0,  // 34: api.community.v1.UpdateAvatarResponse.profile:type_name -> api.community.v1.Profile
-	32, // 35: api.community.v1.CommunityService.UpdateAvatar:input_type -> api.community.v1.UpdateAvatarRequest
-	6,  // 36: api.community.v1.CommunityService.GetProfile:input_type -> api.community.v1.GetProfileRequest
-	8,  // 37: api.community.v1.CommunityService.UpdateProfile:input_type -> api.community.v1.UpdateProfileRequest
-	10, // 38: api.community.v1.CommunityService.GetTeam:input_type -> api.community.v1.GetTeamRequest
-	12, // 39: api.community.v1.CommunityService.UpdateTeam:input_type -> api.community.v1.UpdateTeamRequest
-	14, // 40: api.community.v1.CommunityService.ListTeams:input_type -> api.community.v1.ListTeamsRequest
-	16, // 41: api.community.v1.CommunityService.ListMembers:input_type -> api.community.v1.ListMembersRequest
-	18, // 42: api.community.v1.CommunityService.ListContributions:input_type -> api.community.v1.ListContributionsRequest
-	20, // 43: api.community.v1.CommunityService.GetDiscussion:input_type -> api.community.v1.GetDiscussionRequest
-	22, // 44: api.community.v1.CommunityService.ListComments:input_type -> api.community.v1.ListCommentsRequest
-	24, // 45: api.community.v1.CommunityService.CreateComment:input_type -> api.community.v1.CreateCommentRequest
-	26, // 46: api.community.v1.CommunityService.DeleteComment:input_type -> api.community.v1.DeleteCommentRequest
-	28, // 47: api.community.v1.CommunityService.SetReaction:input_type -> api.community.v1.SetReactionRequest
-	30, // 48: api.community.v1.CommunityService.ListBookmarks:input_type -> api.community.v1.ListBookmarksRequest
-	33, // 49: api.community.v1.CommunityService.UpdateAvatar:output_type -> api.community.v1.UpdateAvatarResponse
-	7,  // 50: api.community.v1.CommunityService.GetProfile:output_type -> api.community.v1.GetProfileResponse
-	9,  // 51: api.community.v1.CommunityService.UpdateProfile:output_type -> api.community.v1.UpdateProfileResponse
-	11, // 52: api.community.v1.CommunityService.GetTeam:output_type -> api.community.v1.GetTeamResponse
-	13, // 53: api.community.v1.CommunityService.UpdateTeam:output_type -> api.community.v1.UpdateTeamResponse
-	15, // 54: api.community.v1.CommunityService.ListTeams:output_type -> api.community.v1.ListTeamsResponse
-	17, // 55: api.community.v1.CommunityService.ListMembers:output_type -> api.community.v1.ListMembersResponse
-	19, // 56: api.community.v1.CommunityService.ListContributions:output_type -> api.community.v1.ListContributionsResponse
-	21, // 57: api.community.v1.CommunityService.GetDiscussion:output_type -> api.community.v1.GetDiscussionResponse
-	23, // 58: api.community.v1.CommunityService.ListComments:output_type -> api.community.v1.ListCommentsResponse
-	25, // 59: api.community.v1.CommunityService.CreateComment:output_type -> api.community.v1.CreateCommentResponse
-	27, // 60: api.community.v1.CommunityService.DeleteComment:output_type -> api.community.v1.DeleteCommentResponse
-	29, // 61: api.community.v1.CommunityService.SetReaction:output_type -> api.community.v1.SetReactionResponse
-	31, // 62: api.community.v1.CommunityService.ListBookmarks:output_type -> api.community.v1.ListBookmarksResponse
-	49, // [49:63] is the sub-list for method output_type
-	35, // [35:49] is the sub-list for method input_type
-	35, // [35:35] is the sub-list for extension type_name
-	35, // [35:35] is the sub-list for extension extendee
-	0,  // [0:35] is the sub-list for field type_name
+	46, // 35: api.community.v1.ReportContentRequest.mutation:type_name -> api.common.v1.Mutation
+	45, // 36: api.community.v1.ContentReport.created_at:type_name -> google.protobuf.Timestamp
+	45, // 37: api.community.v1.ContentReport.resolved_at:type_name -> google.protobuf.Timestamp
+	47, // 38: api.community.v1.ListReportsRequest.page:type_name -> api.common.v1.PageRequest
+	38, // 39: api.community.v1.ListReportsResponse.reports:type_name -> api.community.v1.ContentReport
+	48, // 40: api.community.v1.ListReportsResponse.page:type_name -> api.common.v1.PageResult
+	46, // 41: api.community.v1.ResolveReportRequest.mutation:type_name -> api.common.v1.Mutation
+	49, // 42: api.community.v1.ResolveReportRequest.action:type_name -> common.registry.v1.ReportResolution
+	34, // 43: api.community.v1.CommunityService.GetParticipation:input_type -> api.community.v1.GetParticipationRequest
+	36, // 44: api.community.v1.CommunityService.ReportContent:input_type -> api.community.v1.ReportContentRequest
+	39, // 45: api.community.v1.CommunityService.ListReports:input_type -> api.community.v1.ListReportsRequest
+	41, // 46: api.community.v1.CommunityService.ResolveReport:input_type -> api.community.v1.ResolveReportRequest
+	32, // 47: api.community.v1.CommunityService.UpdateAvatar:input_type -> api.community.v1.UpdateAvatarRequest
+	6,  // 48: api.community.v1.CommunityService.GetProfile:input_type -> api.community.v1.GetProfileRequest
+	8,  // 49: api.community.v1.CommunityService.UpdateProfile:input_type -> api.community.v1.UpdateProfileRequest
+	10, // 50: api.community.v1.CommunityService.GetTeam:input_type -> api.community.v1.GetTeamRequest
+	12, // 51: api.community.v1.CommunityService.UpdateTeam:input_type -> api.community.v1.UpdateTeamRequest
+	14, // 52: api.community.v1.CommunityService.ListTeams:input_type -> api.community.v1.ListTeamsRequest
+	16, // 53: api.community.v1.CommunityService.ListMembers:input_type -> api.community.v1.ListMembersRequest
+	18, // 54: api.community.v1.CommunityService.ListContributions:input_type -> api.community.v1.ListContributionsRequest
+	20, // 55: api.community.v1.CommunityService.GetDiscussion:input_type -> api.community.v1.GetDiscussionRequest
+	22, // 56: api.community.v1.CommunityService.ListComments:input_type -> api.community.v1.ListCommentsRequest
+	24, // 57: api.community.v1.CommunityService.CreateComment:input_type -> api.community.v1.CreateCommentRequest
+	26, // 58: api.community.v1.CommunityService.DeleteComment:input_type -> api.community.v1.DeleteCommentRequest
+	28, // 59: api.community.v1.CommunityService.SetReaction:input_type -> api.community.v1.SetReactionRequest
+	30, // 60: api.community.v1.CommunityService.ListBookmarks:input_type -> api.community.v1.ListBookmarksRequest
+	35, // 61: api.community.v1.CommunityService.GetParticipation:output_type -> api.community.v1.GetParticipationResponse
+	37, // 62: api.community.v1.CommunityService.ReportContent:output_type -> api.community.v1.ReportContentResponse
+	40, // 63: api.community.v1.CommunityService.ListReports:output_type -> api.community.v1.ListReportsResponse
+	42, // 64: api.community.v1.CommunityService.ResolveReport:output_type -> api.community.v1.ResolveReportResponse
+	33, // 65: api.community.v1.CommunityService.UpdateAvatar:output_type -> api.community.v1.UpdateAvatarResponse
+	7,  // 66: api.community.v1.CommunityService.GetProfile:output_type -> api.community.v1.GetProfileResponse
+	9,  // 67: api.community.v1.CommunityService.UpdateProfile:output_type -> api.community.v1.UpdateProfileResponse
+	11, // 68: api.community.v1.CommunityService.GetTeam:output_type -> api.community.v1.GetTeamResponse
+	13, // 69: api.community.v1.CommunityService.UpdateTeam:output_type -> api.community.v1.UpdateTeamResponse
+	15, // 70: api.community.v1.CommunityService.ListTeams:output_type -> api.community.v1.ListTeamsResponse
+	17, // 71: api.community.v1.CommunityService.ListMembers:output_type -> api.community.v1.ListMembersResponse
+	19, // 72: api.community.v1.CommunityService.ListContributions:output_type -> api.community.v1.ListContributionsResponse
+	21, // 73: api.community.v1.CommunityService.GetDiscussion:output_type -> api.community.v1.GetDiscussionResponse
+	23, // 74: api.community.v1.CommunityService.ListComments:output_type -> api.community.v1.ListCommentsResponse
+	25, // 75: api.community.v1.CommunityService.CreateComment:output_type -> api.community.v1.CreateCommentResponse
+	27, // 76: api.community.v1.CommunityService.DeleteComment:output_type -> api.community.v1.DeleteCommentResponse
+	29, // 77: api.community.v1.CommunityService.SetReaction:output_type -> api.community.v1.SetReactionResponse
+	31, // 78: api.community.v1.CommunityService.ListBookmarks:output_type -> api.community.v1.ListBookmarksResponse
+	61, // [61:79] is the sub-list for method output_type
+	43, // [43:61] is the sub-list for method input_type
+	43, // [43:43] is the sub-list for extension type_name
+	43, // [43:43] is the sub-list for extension extendee
+	0,  // [0:43] is the sub-list for field type_name
 }
 
 func init() { file_api_community_v1_community_service_proto_init() }
@@ -2397,7 +3104,7 @@ func file_api_community_v1_community_service_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_community_v1_community_service_proto_rawDesc), len(file_api_community_v1_community_service_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   34,
+			NumMessages:   43,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

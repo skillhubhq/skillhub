@@ -1,33 +1,38 @@
 # 企业登录
 
-Hub 支持本地账号和一个 OIDC 身份提供方，优先满足企业内部使用。默认没有公开注册；首次企业验证进入准入审批，批准后再登录。企业身份绑定经过验证的 issuer/subject，不按邮箱自动合并本地账号。
+Hub 支持本地账号和最多八个可配置第三方登录入口，企业登录通过 OIDC 适配器接入。默认没有公开注册；首次企业验证进入准入审批，批准后再登录。企业身份绑定经过验证的 issuer/subject，不按邮箱自动合并本地账号。
 
 ## 账号与准入 [#accounts-and-admission]
 
 本地账号由有权限的管理员主动创建，密码通过 stdin 或受控界面输入。企业登录证明身份；Hub 成员资格与发布、审核、管理权限分别授予。
 
-默认 `oidc.allow_signup: false`：新身份验证后创建待审批申请，不发放可用会话。Hub 管理员或人员管理员在“创作 → Hub 设置 → 人员”审批；批准仅成为普通成员，不获得命名空间或平台角色。拒绝和禁用状态不会因再次登录自动解除。显式开启自动准入时，新身份可直接成为普通成员，仍不获得管理能力。
+默认 `mode: enterprise`：新身份验证后创建待审批申请，不发放可用会话。Hub 管理员或人员管理员在“创作 → Hub 设置 → 人员”审批；批准仅成为普通成员，不获得命名空间或平台角色。拒绝和禁用状态不会因再次登录自动解除。显式选择[社区模式](community-hosting.md)时，新身份可直接成为普通成员，仍不获得管理能力。
 
 ## 配置 Microsoft Entra ID [#configure-microsoft-entra-id]
 
-1. 创建单租户应用，使用 Web 平台；注册精确 HTTPS 回调 `https://skills.example.com/auth/oidc/callback`。
+1. 创建单租户应用，使用 Web 平台；注册精确 HTTPS 回调 `https://skills.example.com/auth/providers/company/callback`。
 2. 记录租户 ID、应用 Client ID，确认管理员同意所需权限。
 3. 在企业应用中要求用户分配，只分配预期用户/分组，明确来宾和 MFA 策略。使用租户专属 issuer，不能用 `/common`、`/organizations` 或邮箱后缀代替租户边界。全局管理员不受相同分配约束，测试未分配拒绝时必须用普通账号。
 4. 创建应用凭据，通过受控密钥存储注入 **secret value**，不要把密钥放入 Git、前端、App、命令参数或截图。
 5. 保留独立本地管理员，用于首批审批和应急恢复。
 
-```sh
-skillhub-server serve \
-  --data /srv/skillhub --listen 127.0.0.1:8080 \
-  --public-url https://skills.example.com --name 'Team Skills' --private=true \
-  --oidc-issuer https://login.microsoftonline.com/TENANT_ID/v2.0 \
-  --oidc-client-id APPLICATION_CLIENT_ID --oidc-name Microsoft \
-  --oidc-allow-signup=false
+```yaml
+mode: enterprise
+private: true
+public_url: https://skills.example.com
+auth:
+  providers:
+    - id: company
+      type: oidc
+      name: Microsoft
+      issuer: https://login.microsoftonline.com/TENANT_ID/v2.0
+      client_id: APPLICATION_CLIENT_ID
+      client_secret_file: /run/secrets/skillhub-identity
 ```
 
-通过密钥服务注入 `SKILLHUB_OIDC_CLIENT_SECRET`，或使用[配置](configuration.md)中的密钥文件。示例 ID 是占位符。新 SSO 用户不会自动成为初始化管理员。
+通过 `skillhub-server check-config --config PATH` 校验，再用 `serve --config PATH` 启动。也可改用 `client_secret_env: SKILLHUB_IDENTITY_SECRET`，与文件互斥。新 SSO 用户不会自动成为初始化管理员。
 
-Hub 仅请求 `openid profile email`，使用稳定身份与初始展示名，不读取 Microsoft Graph、目录分组或头像，不保留身份提供方的访问/刷新令牌。登录使用授权码、PKCE、一次性 state、浏览器绑定 cookie 和 nonce，验证签名、issuer、audience 与有效期。修改配置需重启。
+Hub 仅请求 `openid profile`，使用稳定身份与初始展示名，不读取 Microsoft Graph、目录分组或头像，不保留身份提供方的访问/刷新令牌。登录使用授权码、PKCE、一次性 state、浏览器绑定 cookie 和 nonce，验证签名、issuer、audience 与有效期。修改配置需重启。
 
 ## Web、App 与 CLI [#web-app-and-cli-sign-in]
 

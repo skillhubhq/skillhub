@@ -11,9 +11,10 @@ export function setLanguage(value: Language) {
   language = value === "zh" ? "zh" : "en";
   try {
     localStorage.setItem(key, language);
-    document.cookie = `skillhub-language=${language}; Path=/; SameSite=Strict`;
+    document.cookie = `skillhub-language=${language}; Path=/; SameSite=Lax`;
   } catch {}
-  document.documentElement.lang = language === "zh" ? "zh-CN" : "en";
+  if (typeof document !== "undefined")
+    document.documentElement.lang = language === "zh" ? "zh-CN" : "en";
   listeners.forEach((listener) => listener());
 }
 export function useLanguage() {
@@ -38,8 +39,9 @@ export function dateLabel(value: string) {
     { month: "short", day: "numeric", year: "numeric" },
   );
 }
-document.documentElement.lang = language === "zh" ? "zh-CN" : "en";
-
-window.addEventListener("storage", (event) => {
-  if (event.key === key) setLanguage(event.newValue === "zh" ? "zh" : "en");
-});
+if (typeof window !== "undefined") {
+  document.documentElement.lang = language === "zh" ? "zh-CN" : "en";
+  window.addEventListener("storage", (event) => {
+    if (event.key === key) setLanguage(event.newValue === "zh" ? "zh" : "en");
+  });
+}

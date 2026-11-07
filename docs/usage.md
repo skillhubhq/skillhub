@@ -205,7 +205,7 @@ Batch application commits one target at a time and returns a result per target. 
 
 To change shared requirements, repeat `project add ...@NEW_VERSION`, run `project lock`, review the two files and restore. `project remove NAME --tool TOOL` removes only the desired entry; use `skillhub remove TARGET` to uninstall its managed files. Editing a manifest makes its existing lock stale until resolved again. Metadata writes use a temporary file and atomic replacement; a lock is accepted only when its recorded manifest digest matches.
 
-`project show` registers an existing project in the local SQLite inventory shared by CLI and App. `project forget --project PATH` removes only that shortcut, including for a deleted directory. It preserves metadata and installed files. Client database migration v1 → v2 preserves prior source/installation records and adds project shortcuts; future schema versions are rejected.
+`project show` registers an existing project in the local SQLite inventory shared by CLI and App. `project forget --project PATH` removes only that shortcut, including for a deleted directory. It preserves metadata and installed files. Client schema 1 stores sources, installations and project shortcuts together; unsupported schema versions are rejected.
 
 ## Hub backup and recovery
 

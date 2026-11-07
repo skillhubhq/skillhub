@@ -66,6 +66,7 @@ if (process.platform === "darwin") {
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
 <key>CFBundleIdentifier</key><string>io.github.skillhubhq.skillhub${smoke ? ".smoke" : ""}</string>
+<key>CFBundleURLTypes</key><array><dict><key>CFBundleURLName</key><string>io.github.skillhubhq.skillhub</string><key>CFBundleURLSchemes</key><array><string>${smoke ? "skillhub-smoke" : "skillhub"}</string></array></dict></array>
 <key>CFBundleName</key><string>${appName}</string>
 <key>CFBundleDisplayName</key><string>${appName}</string>
 <key>CFBundleExecutable</key><string>SkillHub</string>

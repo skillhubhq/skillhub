@@ -293,6 +293,15 @@ func (s *Store) CreateComment(ctx context.Context, actor Identity, key string, c
 		if recent >= 20 {
 			return c.Comment{}, ErrRateLimited
 		}
+		if s.policy.IsCommunity() {
+			var daily int
+			if err := tx.QueryRowContext(ctx, "SELECT count(*) FROM comments WHERE author_id=? AND created_at>?", user.ID, s.now().Add(-24*time.Hour).Unix()).Scan(&daily); err != nil {
+				return c.Comment{}, err
+			}
+			if daily >= s.policy.Limits.CommentsPerDay {
+				return c.Comment{}, ErrQuota
+			}
+		}
 		var parent any
 		if cmd.ParentID != "" {
 			var valid bool

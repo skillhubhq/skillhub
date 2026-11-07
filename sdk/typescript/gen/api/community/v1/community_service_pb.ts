@@ -7,7 +7,7 @@ import { fileDesc, messageDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2
 import type { Mutation, PageRequest, PageResult } from "../../common/v1/types_pb.js";
 import { file_api_common_v1_types } from "../../common/v1/types_pb.js";
 import { file_buf_validate_validate } from "../../../buf/validate/validate_pb.js";
-import type { NamespaceRole, SkillIcon } from "../../../common/registry/v1/taxonomy_pb.js";
+import type { NamespaceRole, ReportResolution, SkillIcon } from "../../../common/registry/v1/taxonomy_pb.js";
 import { file_common_registry_v1_taxonomy } from "../../../common/registry/v1/taxonomy_pb.js";
 import type { Timestamp } from "@bufbuild/protobuf/wkt";
 import { file_google_protobuf_timestamp } from "@bufbuild/protobuf/wkt";
@@ -17,7 +17,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file api/community/v1/community_service.proto.
  */
 export const file_api_community_v1_community_service: GenFile = /*@__PURE__*/
-  fileDesc("CihhcGkvY29tbXVuaXR5L3YxL2NvbW11bml0eV9zZXJ2aWNlLnByb3RvEhBhcGkuY29tbXVuaXR5LnYxIoMBCgdQcm9maWxlEg8KB3VzZXJfaWQYASABKAkSEAoIdXNlcm5hbWUYAiABKAkSFAoMZGlzcGxheV9uYW1lGAMgASgJEgsKA2JpbxgEIAEoCRIQCghyZXZpc2lvbhgFIAEoBBIQCghjYW5fZWRpdBgGIAEoCBIOCgZhdmF0YXIYByABKAkiegoEVGVhbRIRCgluYW1lc3BhY2UYASABKAkSFAoMZGlzcGxheV9uYW1lGAIgASgJEgsKA2JpbxgDIAEoCRIQCghyZXZpc2lvbhgEIAEoBBIQCghjYW5fZWRpdBgFIAEoCBIYChBjYW5fdmlld19tZW1iZXJzGAYgASgIImYKBk1lbWJlchIqCgdwcm9maWxlGAEgASgLMhkuYXBpLmNvbW11bml0eS52MS5Qcm9maWxlEjAKBXJvbGVzGAIgAygOMiEuY29tbW9uLnJlZ2lzdHJ5LnYxLk5hbWVzcGFjZVJvbGUi8wEKDENvbnRyaWJ1dGlvbhISCgpyZWxlYXNlX2lkGAEgASgJEhEKCW5hbWVzcGFjZRgCIAEoCRIMCgRuYW1lGAMgASgJEg8KB3ZlcnNpb24YBCABKAkSEwoLZGVzY3JpcHRpb24YBSABKAkSKQoGYXV0aG9yGAYgASgLMhkuYXBpLmNvbW11bml0eS52MS5Qcm9maWxlEhcKD2Rpc3BsYXlfbmFtZV9lbhgHIAEoCRIXCg9kaXNwbGF5X25hbWVfemgYCCABKAkSKwoEaWNvbhgJIAEoDjIdLmNvbW1vbi5yZWdpc3RyeS52MS5Ta2lsbEljb24i0gEKB0NvbW1lbnQSEgoKY29tbWVudF9pZBgBIAEoCRISCgpyZWxlYXNlX2lkGAIgASgJEhEKCXBhcmVudF9pZBgDIAEoCRIpCgZhdXRob3IYBCABKAsyGS5hcGkuY29tbXVuaXR5LnYxLlByb2ZpbGUSDAoEYm9keRgFIAEoCRIuCgpjcmVhdGVkX2F0GAYgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIPCgdkZWxldGVkGAcgASgIEhIKCmNhbl9kZWxldGUYCCABKAgicAoKRGlzY3Vzc2lvbhISCgpsaWtlX2NvdW50GAEgASgEEhUKDWNvbW1lbnRfY291bnQYAiABKAQSDQoFbGlrZWQYAyABKAgSEgoKYm9va21hcmtlZBgEIAEoCBIUCgxjYW5faW50ZXJhY3QYBSABKAgiLgoRR2V0UHJvZmlsZVJlcXVlc3QSGQoHdXNlcl9pZBgBIAEoCUIIukgFcgMYgAEiQAoSR2V0UHJvZmlsZVJlc3BvbnNlEioKB3Byb2ZpbGUYASABKAsyGS5hcGkuY29tbXVuaXR5LnYxLlByb2ZpbGUimgEKFFVwZGF0ZVByb2ZpbGVSZXF1ZXN0EjEKCG11dGF0aW9uGAEgASgLMhcuYXBpLmNvbW1vbi52MS5NdXRhdGlvbkIGukgDyAEBEh0KDGRpc3BsYXlfbmFtZRgCIAEoCUIHukgEcgIYUBIVCgNiaW8YAyABKAlCCLpIBXIDGNgEEhkKEWV4cGVjdGVkX3JldmlzaW9uGAQgASgEIkMKFVVwZGF0ZVByb2ZpbGVSZXNwb25zZRIqCgdwcm9maWxlGAEgASgLMhkuYXBpLmNvbW11bml0eS52MS5Qcm9maWxlIi0KDkdldFRlYW1SZXF1ZXN0EhsKCW5hbWVzcGFjZRgBIAEoCUIIukgFcgMYgAEiNwoPR2V0VGVhbVJlc3BvbnNlEiQKBHRlYW0YASABKAsyFi5hcGkuY29tbXVuaXR5LnYxLlRlYW0itAEKEVVwZGF0ZVRlYW1SZXF1ZXN0EjEKCG11dGF0aW9uGAEgASgLMhcuYXBpLmNvbW1vbi52MS5NdXRhdGlvbkIGukgDyAEBEhsKCW5hbWVzcGFjZRgCIAEoCUIIukgFcgMYgAESHQoMZGlzcGxheV9uYW1lGAMgASgJQge6SARyAhhQEhUKA2JpbxgEIAEoCUIIukgFcgMY2AQSGQoRZXhwZWN0ZWRfcmV2aXNpb24YBSABKAQiOgoSVXBkYXRlVGVhbVJlc3BvbnNlEiQKBHRlYW0YASABKAsyFi5hcGkuY29tbXVuaXR5LnYxLlRlYW0iPAoQTGlzdFRlYW1zUmVxdWVzdBIoCgRwYWdlGAEgASgLMhouYXBpLmNvbW1vbi52MS5QYWdlUmVxdWVzdCJjChFMaXN0VGVhbXNSZXNwb25zZRIlCgV0ZWFtcxgBIAMoCzIWLmFwaS5jb21tdW5pdHkudjEuVGVhbRInCgRwYWdlGAIgASgLMhkuYXBpLmNvbW1vbi52MS5QYWdlUmVzdWx0IlsKEkxpc3RNZW1iZXJzUmVxdWVzdBIbCgluYW1lc3BhY2UYASABKAlCCLpIBXIDGIABEigKBHBhZ2UYAiABKAsyGi5hcGkuY29tbW9uLnYxLlBhZ2VSZXF1ZXN0ImkKE0xpc3RNZW1iZXJzUmVzcG9uc2USKQoHbWVtYmVycxgBIAMoCzIYLmFwaS5jb21tdW5pdHkudjEuTWVtYmVyEicKBHBhZ2UYAiABKAsyGS5hcGkuY29tbW9uLnYxLlBhZ2VSZXN1bHQifAoYTGlzdENvbnRyaWJ1dGlvbnNSZXF1ZXN0EhkKB3VzZXJfaWQYASABKAlCCLpIBXIDGIABEhsKCW5hbWVzcGFjZRgCIAEoCUIIukgFcgMYgAESKAoEcGFnZRgDIAEoCzIaLmFwaS5jb21tb24udjEuUGFnZVJlcXVlc3QiewoZTGlzdENvbnRyaWJ1dGlvbnNSZXNwb25zZRI1Cg1jb250cmlidXRpb25zGAEgAygLMh4uYXBpLmNvbW11bml0eS52MS5Db250cmlidXRpb24SJwoEcGFnZRgCIAEoCzIZLmFwaS5jb21tb24udjEuUGFnZVJlc3VsdCI0ChRHZXREaXNjdXNzaW9uUmVxdWVzdBIcCgpyZWxlYXNlX2lkGAEgASgJQgi6SAVyAxiAASJJChVHZXREaXNjdXNzaW9uUmVzcG9uc2USMAoKZGlzY3Vzc2lvbhgBIAEoCzIcLmFwaS5jb21tdW5pdHkudjEuRGlzY3Vzc2lvbiJ6ChNMaXN0Q29tbWVudHNSZXF1ZXN0EhwKCnJlbGVhc2VfaWQYASABKAlCCLpIBXIDGIABEhsKCXBhcmVudF9pZBgCIAEoCUIIukgFcgMYgAESKAoEcGFnZRgDIAEoCzIaLmFwaS5jb21tb24udjEuUGFnZVJlcXVlc3QibAoUTGlzdENvbW1lbnRzUmVzcG9uc2USKwoIY29tbWVudHMYASADKAsyGS5hcGkuY29tbXVuaXR5LnYxLkNvbW1lbnQSJwoEcGFnZRgCIAEoCzIZLmFwaS5jb21tb24udjEuUGFnZVJlc3VsdCKcAQoUQ3JlYXRlQ29tbWVudFJlcXVlc3QSMQoIbXV0YXRpb24YASABKAsyFy5hcGkuY29tbW9uLnYxLk11dGF0aW9uQga6SAPIAQESHAoKcmVsZWFzZV9pZBgCIAEoCUIIukgFcgMYgAESGwoJcGFyZW50X2lkGAMgASgJQgi6SAVyAxiAARIWCgRib2R5GAQgASgJQgi6SAVyAxigHyJDChVDcmVhdGVDb21tZW50UmVzcG9uc2USKgoHY29tbWVudBgBIAEoCzIZLmFwaS5jb21tdW5pdHkudjEuQ29tbWVudCJnChREZWxldGVDb21tZW50UmVxdWVzdBIxCghtdXRhdGlvbhgBIAEoCzIXLmFwaS5jb21tb24udjEuTXV0YXRpb25CBrpIA8gBARIcCgpjb21tZW50X2lkGAIgASgJQgi6SAVyAxiAASIXChVEZWxldGVDb21tZW50UmVzcG9uc2UihwEKElNldFJlYWN0aW9uUmVxdWVzdBIxCghtdXRhdGlvbhgBIAEoCzIXLmFwaS5jb21tb24udjEuTXV0YXRpb25CBrpIA8gBARIcCgpyZWxlYXNlX2lkGAIgASgJQgi6SAVyAxiAARIQCghib29rbWFyaxgDIAEoCBIOCgZhY3RpdmUYBCABKAgiRwoTU2V0UmVhY3Rpb25SZXNwb25zZRIwCgpkaXNjdXNzaW9uGAEgASgLMhwuYXBpLmNvbW11bml0eS52MS5EaXNjdXNzaW9uIkAKFExpc3RCb29rbWFya3NSZXF1ZXN0EigKBHBhZ2UYASABKAsyGi5hcGkuY29tbW9uLnYxLlBhZ2VSZXF1ZXN0IncKFUxpc3RCb29rbWFya3NSZXNwb25zZRI1Cg1jb250cmlidXRpb25zGAEgAygLMh4uYXBpLmNvbW11bml0eS52MS5Db250cmlidXRpb24SJwoEcGFnZRgCIAEoCzIZLmFwaS5jb21tb24udjEuUGFnZVJlc3VsdCJ9ChNVcGRhdGVBdmF0YXJSZXF1ZXN0EjEKCG11dGF0aW9uGAEgASgLMhcuYXBpLmNvbW1vbi52MS5NdXRhdGlvbkIGukgDyAEBEhgKBWltYWdlGAIgASgMQgm6SAZ6BBiAgCASGQoRZXhwZWN0ZWRfcmV2aXNpb24YAyABKAQiQgoUVXBkYXRlQXZhdGFyUmVzcG9uc2USKgoHcHJvZmlsZRgBIAEoCzIZLmFwaS5jb21tdW5pdHkudjEuUHJvZmlsZTK4CgoQQ29tbXVuaXR5U2VydmljZRJdCgxVcGRhdGVBdmF0YXISJS5hcGkuY29tbXVuaXR5LnYxLlVwZGF0ZUF2YXRhclJlcXVlc3QaJi5hcGkuY29tbXVuaXR5LnYxLlVwZGF0ZUF2YXRhclJlc3BvbnNlElcKCkdldFByb2ZpbGUSIy5hcGkuY29tbXVuaXR5LnYxLkdldFByb2ZpbGVSZXF1ZXN0GiQuYXBpLmNvbW11bml0eS52MS5HZXRQcm9maWxlUmVzcG9uc2USYAoNVXBkYXRlUHJvZmlsZRImLmFwaS5jb21tdW5pdHkudjEuVXBkYXRlUHJvZmlsZVJlcXVlc3QaJy5hcGkuY29tbXVuaXR5LnYxLlVwZGF0ZVByb2ZpbGVSZXNwb25zZRJOCgdHZXRUZWFtEiAuYXBpLmNvbW11bml0eS52MS5HZXRUZWFtUmVxdWVzdBohLmFwaS5jb21tdW5pdHkudjEuR2V0VGVhbVJlc3BvbnNlElcKClVwZGF0ZVRlYW0SIy5hcGkuY29tbXVuaXR5LnYxLlVwZGF0ZVRlYW1SZXF1ZXN0GiQuYXBpLmNvbW11bml0eS52MS5VcGRhdGVUZWFtUmVzcG9uc2USVAoJTGlzdFRlYW1zEiIuYXBpLmNvbW11bml0eS52MS5MaXN0VGVhbXNSZXF1ZXN0GiMuYXBpLmNvbW11bml0eS52MS5MaXN0VGVhbXNSZXNwb25zZRJaCgtMaXN0TWVtYmVycxIkLmFwaS5jb21tdW5pdHkudjEuTGlzdE1lbWJlcnNSZXF1ZXN0GiUuYXBpLmNvbW11bml0eS52MS5MaXN0TWVtYmVyc1Jlc3BvbnNlEmwKEUxpc3RDb250cmlidXRpb25zEiouYXBpLmNvbW11bml0eS52MS5MaXN0Q29udHJpYnV0aW9uc1JlcXVlc3QaKy5hcGkuY29tbXVuaXR5LnYxLkxpc3RDb250cmlidXRpb25zUmVzcG9uc2USYAoNR2V0RGlzY3Vzc2lvbhImLmFwaS5jb21tdW5pdHkudjEuR2V0RGlzY3Vzc2lvblJlcXVlc3QaJy5hcGkuY29tbXVuaXR5LnYxLkdldERpc2N1c3Npb25SZXNwb25zZRJdCgxMaXN0Q29tbWVudHMSJS5hcGkuY29tbXVuaXR5LnYxLkxpc3RDb21tZW50c1JlcXVlc3QaJi5hcGkuY29tbXVuaXR5LnYxLkxpc3RDb21tZW50c1Jlc3BvbnNlEmAKDUNyZWF0ZUNvbW1lbnQSJi5hcGkuY29tbXVuaXR5LnYxLkNyZWF0ZUNvbW1lbnRSZXF1ZXN0GicuYXBpLmNvbW11bml0eS52MS5DcmVhdGVDb21tZW50UmVzcG9uc2USYAoNRGVsZXRlQ29tbWVudBImLmFwaS5jb21tdW5pdHkudjEuRGVsZXRlQ29tbWVudFJlcXVlc3QaJy5hcGkuY29tbXVuaXR5LnYxLkRlbGV0ZUNvbW1lbnRSZXNwb25zZRJaCgtTZXRSZWFjdGlvbhIkLmFwaS5jb21tdW5pdHkudjEuU2V0UmVhY3Rpb25SZXF1ZXN0GiUuYXBpLmNvbW11bml0eS52MS5TZXRSZWFjdGlvblJlc3BvbnNlEmAKDUxpc3RCb29rbWFya3MSJi5hcGkuY29tbXVuaXR5LnYxLkxpc3RCb29rbWFya3NSZXF1ZXN0GicuYXBpLmNvbW11bml0eS52MS5MaXN0Qm9va21hcmtzUmVzcG9uc2VC0AEKFGNvbS5hcGkuY29tbXVuaXR5LnYxQhVDb21tdW5pdHlTZXJ2aWNlUHJvdG9QAVo/Z2l0aHViLmNvbS9za2lsbGh1YmhxL3NraWxsaHViL2dlbi9hcGkvY29tbXVuaXR5L3YxO2NvbW11bml0eXYxogIDQUNYqgIQQXBpLkNvbW11bml0eS5WMcoCEEFwaVxDb21tdW5pdHlcVjHiAhxBcGlcQ29tbXVuaXR5XFYxXEdQQk1ldGFkYXRh6gISQXBpOjpDb21tdW5pdHk6OlYxYgZwcm90bzM", [file_api_common_v1_types, file_buf_validate_validate, file_common_registry_v1_taxonomy, file_google_protobuf_timestamp]);
+  fileDesc("CihhcGkvY29tbXVuaXR5L3YxL2NvbW11bml0eV9zZXJ2aWNlLnByb3RvEhBhcGkuY29tbXVuaXR5LnYxIoMBCgdQcm9maWxlEg8KB3VzZXJfaWQYASABKAkSEAoIdXNlcm5hbWUYAiABKAkSFAoMZGlzcGxheV9uYW1lGAMgASgJEgsKA2JpbxgEIAEoCRIQCghyZXZpc2lvbhgFIAEoBBIQCghjYW5fZWRpdBgGIAEoCBIOCgZhdmF0YXIYByABKAkiegoEVGVhbRIRCgluYW1lc3BhY2UYASABKAkSFAoMZGlzcGxheV9uYW1lGAIgASgJEgsKA2JpbxgDIAEoCRIQCghyZXZpc2lvbhgEIAEoBBIQCghjYW5fZWRpdBgFIAEoCBIYChBjYW5fdmlld19tZW1iZXJzGAYgASgIImYKBk1lbWJlchIqCgdwcm9maWxlGAEgASgLMhkuYXBpLmNvbW11bml0eS52MS5Qcm9maWxlEjAKBXJvbGVzGAIgAygOMiEuY29tbW9uLnJlZ2lzdHJ5LnYxLk5hbWVzcGFjZVJvbGUi8wEKDENvbnRyaWJ1dGlvbhISCgpyZWxlYXNlX2lkGAEgASgJEhEKCW5hbWVzcGFjZRgCIAEoCRIMCgRuYW1lGAMgASgJEg8KB3ZlcnNpb24YBCABKAkSEwoLZGVzY3JpcHRpb24YBSABKAkSKQoGYXV0aG9yGAYgASgLMhkuYXBpLmNvbW11bml0eS52MS5Qcm9maWxlEhcKD2Rpc3BsYXlfbmFtZV9lbhgHIAEoCRIXCg9kaXNwbGF5X25hbWVfemgYCCABKAkSKwoEaWNvbhgJIAEoDjIdLmNvbW1vbi5yZWdpc3RyeS52MS5Ta2lsbEljb24i0gEKB0NvbW1lbnQSEgoKY29tbWVudF9pZBgBIAEoCRISCgpyZWxlYXNlX2lkGAIgASgJEhEKCXBhcmVudF9pZBgDIAEoCRIpCgZhdXRob3IYBCABKAsyGS5hcGkuY29tbXVuaXR5LnYxLlByb2ZpbGUSDAoEYm9keRgFIAEoCRIuCgpjcmVhdGVkX2F0GAYgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIPCgdkZWxldGVkGAcgASgIEhIKCmNhbl9kZWxldGUYCCABKAgicAoKRGlzY3Vzc2lvbhISCgpsaWtlX2NvdW50GAEgASgEEhUKDWNvbW1lbnRfY291bnQYAiABKAQSDQoFbGlrZWQYAyABKAgSEgoKYm9va21hcmtlZBgEIAEoCBIUCgxjYW5faW50ZXJhY3QYBSABKAgiLgoRR2V0UHJvZmlsZVJlcXVlc3QSGQoHdXNlcl9pZBgBIAEoCUIIukgFcgMYgAEiQAoSR2V0UHJvZmlsZVJlc3BvbnNlEioKB3Byb2ZpbGUYASABKAsyGS5hcGkuY29tbXVuaXR5LnYxLlByb2ZpbGUimgEKFFVwZGF0ZVByb2ZpbGVSZXF1ZXN0EjEKCG11dGF0aW9uGAEgASgLMhcuYXBpLmNvbW1vbi52MS5NdXRhdGlvbkIGukgDyAEBEh0KDGRpc3BsYXlfbmFtZRgCIAEoCUIHukgEcgIYUBIVCgNiaW8YAyABKAlCCLpIBXIDGNgEEhkKEWV4cGVjdGVkX3JldmlzaW9uGAQgASgEIkMKFVVwZGF0ZVByb2ZpbGVSZXNwb25zZRIqCgdwcm9maWxlGAEgASgLMhkuYXBpLmNvbW11bml0eS52MS5Qcm9maWxlIi0KDkdldFRlYW1SZXF1ZXN0EhsKCW5hbWVzcGFjZRgBIAEoCUIIukgFcgMYgAEiNwoPR2V0VGVhbVJlc3BvbnNlEiQKBHRlYW0YASABKAsyFi5hcGkuY29tbXVuaXR5LnYxLlRlYW0itAEKEVVwZGF0ZVRlYW1SZXF1ZXN0EjEKCG11dGF0aW9uGAEgASgLMhcuYXBpLmNvbW1vbi52MS5NdXRhdGlvbkIGukgDyAEBEhsKCW5hbWVzcGFjZRgCIAEoCUIIukgFcgMYgAESHQoMZGlzcGxheV9uYW1lGAMgASgJQge6SARyAhhQEhUKA2JpbxgEIAEoCUIIukgFcgMY2AQSGQoRZXhwZWN0ZWRfcmV2aXNpb24YBSABKAQiOgoSVXBkYXRlVGVhbVJlc3BvbnNlEiQKBHRlYW0YASABKAsyFi5hcGkuY29tbXVuaXR5LnYxLlRlYW0iPAoQTGlzdFRlYW1zUmVxdWVzdBIoCgRwYWdlGAEgASgLMhouYXBpLmNvbW1vbi52MS5QYWdlUmVxdWVzdCJjChFMaXN0VGVhbXNSZXNwb25zZRIlCgV0ZWFtcxgBIAMoCzIWLmFwaS5jb21tdW5pdHkudjEuVGVhbRInCgRwYWdlGAIgASgLMhkuYXBpLmNvbW1vbi52MS5QYWdlUmVzdWx0IlsKEkxpc3RNZW1iZXJzUmVxdWVzdBIbCgluYW1lc3BhY2UYASABKAlCCLpIBXIDGIABEigKBHBhZ2UYAiABKAsyGi5hcGkuY29tbW9uLnYxLlBhZ2VSZXF1ZXN0ImkKE0xpc3RNZW1iZXJzUmVzcG9uc2USKQoHbWVtYmVycxgBIAMoCzIYLmFwaS5jb21tdW5pdHkudjEuTWVtYmVyEicKBHBhZ2UYAiABKAsyGS5hcGkuY29tbW9uLnYxLlBhZ2VSZXN1bHQifAoYTGlzdENvbnRyaWJ1dGlvbnNSZXF1ZXN0EhkKB3VzZXJfaWQYASABKAlCCLpIBXIDGIABEhsKCW5hbWVzcGFjZRgCIAEoCUIIukgFcgMYgAESKAoEcGFnZRgDIAEoCzIaLmFwaS5jb21tb24udjEuUGFnZVJlcXVlc3QiewoZTGlzdENvbnRyaWJ1dGlvbnNSZXNwb25zZRI1Cg1jb250cmlidXRpb25zGAEgAygLMh4uYXBpLmNvbW11bml0eS52MS5Db250cmlidXRpb24SJwoEcGFnZRgCIAEoCzIZLmFwaS5jb21tb24udjEuUGFnZVJlc3VsdCI0ChRHZXREaXNjdXNzaW9uUmVxdWVzdBIcCgpyZWxlYXNlX2lkGAEgASgJQgi6SAVyAxiAASJJChVHZXREaXNjdXNzaW9uUmVzcG9uc2USMAoKZGlzY3Vzc2lvbhgBIAEoCzIcLmFwaS5jb21tdW5pdHkudjEuRGlzY3Vzc2lvbiJ6ChNMaXN0Q29tbWVudHNSZXF1ZXN0EhwKCnJlbGVhc2VfaWQYASABKAlCCLpIBXIDGIABEhsKCXBhcmVudF9pZBgCIAEoCUIIukgFcgMYgAESKAoEcGFnZRgDIAEoCzIaLmFwaS5jb21tb24udjEuUGFnZVJlcXVlc3QibAoUTGlzdENvbW1lbnRzUmVzcG9uc2USKwoIY29tbWVudHMYASADKAsyGS5hcGkuY29tbXVuaXR5LnYxLkNvbW1lbnQSJwoEcGFnZRgCIAEoCzIZLmFwaS5jb21tb24udjEuUGFnZVJlc3VsdCKcAQoUQ3JlYXRlQ29tbWVudFJlcXVlc3QSMQoIbXV0YXRpb24YASABKAsyFy5hcGkuY29tbW9uLnYxLk11dGF0aW9uQga6SAPIAQESHAoKcmVsZWFzZV9pZBgCIAEoCUIIukgFcgMYgAESGwoJcGFyZW50X2lkGAMgASgJQgi6SAVyAxiAARIWCgRib2R5GAQgASgJQgi6SAVyAxigHyJDChVDcmVhdGVDb21tZW50UmVzcG9uc2USKgoHY29tbWVudBgBIAEoCzIZLmFwaS5jb21tdW5pdHkudjEuQ29tbWVudCJnChREZWxldGVDb21tZW50UmVxdWVzdBIxCghtdXRhdGlvbhgBIAEoCzIXLmFwaS5jb21tb24udjEuTXV0YXRpb25CBrpIA8gBARIcCgpjb21tZW50X2lkGAIgASgJQgi6SAVyAxiAASIXChVEZWxldGVDb21tZW50UmVzcG9uc2UihwEKElNldFJlYWN0aW9uUmVxdWVzdBIxCghtdXRhdGlvbhgBIAEoCzIXLmFwaS5jb21tb24udjEuTXV0YXRpb25CBrpIA8gBARIcCgpyZWxlYXNlX2lkGAIgASgJQgi6SAVyAxiAARIQCghib29rbWFyaxgDIAEoCBIOCgZhY3RpdmUYBCABKAgiRwoTU2V0UmVhY3Rpb25SZXNwb25zZRIwCgpkaXNjdXNzaW9uGAEgASgLMhwuYXBpLmNvbW11bml0eS52MS5EaXNjdXNzaW9uIkAKFExpc3RCb29rbWFya3NSZXF1ZXN0EigKBHBhZ2UYASABKAsyGi5hcGkuY29tbW9uLnYxLlBhZ2VSZXF1ZXN0IncKFUxpc3RCb29rbWFya3NSZXNwb25zZRI1Cg1jb250cmlidXRpb25zGAEgAygLMh4uYXBpLmNvbW11bml0eS52MS5Db250cmlidXRpb24SJwoEcGFnZRgCIAEoCzIZLmFwaS5jb21tb24udjEuUGFnZVJlc3VsdCJ9ChNVcGRhdGVBdmF0YXJSZXF1ZXN0EjEKCG11dGF0aW9uGAEgASgLMhcuYXBpLmNvbW1vbi52MS5NdXRhdGlvbkIGukgDyAEBEhgKBWltYWdlGAIgASgMQgm6SAZ6BBiAgCASGQoRZXhwZWN0ZWRfcmV2aXNpb24YAyABKAQiQgoUVXBkYXRlQXZhdGFyUmVzcG9uc2USKgoHcHJvZmlsZRgBIAEoCzIZLmFwaS5jb21tdW5pdHkudjEuUHJvZmlsZSIZChdHZXRQYXJ0aWNpcGF0aW9uUmVxdWVzdCLaAQoYR2V0UGFydGljaXBhdGlvblJlc3BvbnNlEhYKDmNvbW11bml0eV9tb2RlGAEgASgIEhoKEnBlcnNvbmFsX25hbWVzcGFjZRgCIAEoCRIQCgh2ZXJzaW9ucxgDIAEoBBIVCg12ZXJzaW9uX2xpbWl0GAQgASgEEhUKDXN0b3JhZ2VfYnl0ZXMYBSABKAQSFQoNc3RvcmFnZV9saW1pdBgGIAEoBBIZChFzdWJtaXNzaW9uc190b2RheRgHIAEoBBIYChBzdWJtaXNzaW9uX2xpbWl0GAggASgEIqMBChRSZXBvcnRDb250ZW50UmVxdWVzdBIxCghtdXRhdGlvbhgBIAEoCzIXLmFwaS5jb21tb24udjEuTXV0YXRpb25CBrpIA8gBARIeCgpyZWxlYXNlX2lkGAIgASgJQgq6SAdyBRABGIABEhwKCmNvbW1lbnRfaWQYAyABKAlCCLpIBXIDGIABEhoKBnJlYXNvbhgEIAEoCUIKukgHcgUQARjoByIjChVSZXBvcnRDb250ZW50UmVzcG9uc2USCgoCaWQYASABKAkikQIKDUNvbnRlbnRSZXBvcnQSCgoCaWQYASABKAkSEAoIcmVwb3J0ZXIYAiABKAkSEgoKcmVsZWFzZV9pZBgDIAEoCRISCgpjb21tZW50X2lkGAQgASgJEg4KBnJlYXNvbhgFIAEoCRIQCghyZXNvbHZlZBgGIAEoCBISCgpyZXNvbHV0aW9uGAcgASgJEi4KCmNyZWF0ZWRfYXQYCCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEi8KC3Jlc29sdmVkX2F0GAkgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBISCgpjb29yZGluYXRlGAogASgJEg8KB2NvbnRlbnQYCyABKAkiUAoSTGlzdFJlcG9ydHNSZXF1ZXN0EigKBHBhZ2UYASABKAsyGi5hcGkuY29tbW9uLnYxLlBhZ2VSZXF1ZXN0EhAKCHJlc29sdmVkGAIgASgIInAKE0xpc3RSZXBvcnRzUmVzcG9uc2USMAoHcmVwb3J0cxgBIAMoCzIfLmFwaS5jb21tdW5pdHkudjEuQ29udGVudFJlcG9ydBInCgRwYWdlGAIgASgLMhkuYXBpLmNvbW1vbi52MS5QYWdlUmVzdWx0Ir0BChRSZXNvbHZlUmVwb3J0UmVxdWVzdBIxCghtdXRhdGlvbhgBIAEoCzIXLmFwaS5jb21tb24udjEuTXV0YXRpb25CBrpIA8gBARIWCgJpZBgCIAEoCUIKukgHcgUQARiAARJACgZhY3Rpb24YAyABKA4yJC5jb21tb24ucmVnaXN0cnkudjEuUmVwb3J0UmVzb2x1dGlvbkIKukgHggEEEAEgABIYCgRub3RlGAQgASgJQgq6SAdyBRABGOgHIhcKFVJlc29sdmVSZXBvcnRSZXNwb25zZTLDDQoQQ29tbXVuaXR5U2VydmljZRJpChBHZXRQYXJ0aWNpcGF0aW9uEikuYXBpLmNvbW11bml0eS52MS5HZXRQYXJ0aWNpcGF0aW9uUmVxdWVzdBoqLmFwaS5jb21tdW5pdHkudjEuR2V0UGFydGljaXBhdGlvblJlc3BvbnNlEmAKDVJlcG9ydENvbnRlbnQSJi5hcGkuY29tbXVuaXR5LnYxLlJlcG9ydENvbnRlbnRSZXF1ZXN0GicuYXBpLmNvbW11bml0eS52MS5SZXBvcnRDb250ZW50UmVzcG9uc2USWgoLTGlzdFJlcG9ydHMSJC5hcGkuY29tbXVuaXR5LnYxLkxpc3RSZXBvcnRzUmVxdWVzdBolLmFwaS5jb21tdW5pdHkudjEuTGlzdFJlcG9ydHNSZXNwb25zZRJgCg1SZXNvbHZlUmVwb3J0EiYuYXBpLmNvbW11bml0eS52MS5SZXNvbHZlUmVwb3J0UmVxdWVzdBonLmFwaS5jb21tdW5pdHkudjEuUmVzb2x2ZVJlcG9ydFJlc3BvbnNlEl0KDFVwZGF0ZUF2YXRhchIlLmFwaS5jb21tdW5pdHkudjEuVXBkYXRlQXZhdGFyUmVxdWVzdBomLmFwaS5jb21tdW5pdHkudjEuVXBkYXRlQXZhdGFyUmVzcG9uc2USVwoKR2V0UHJvZmlsZRIjLmFwaS5jb21tdW5pdHkudjEuR2V0UHJvZmlsZVJlcXVlc3QaJC5hcGkuY29tbXVuaXR5LnYxLkdldFByb2ZpbGVSZXNwb25zZRJgCg1VcGRhdGVQcm9maWxlEiYuYXBpLmNvbW11bml0eS52MS5VcGRhdGVQcm9maWxlUmVxdWVzdBonLmFwaS5jb21tdW5pdHkudjEuVXBkYXRlUHJvZmlsZVJlc3BvbnNlEk4KB0dldFRlYW0SIC5hcGkuY29tbXVuaXR5LnYxLkdldFRlYW1SZXF1ZXN0GiEuYXBpLmNvbW11bml0eS52MS5HZXRUZWFtUmVzcG9uc2USVwoKVXBkYXRlVGVhbRIjLmFwaS5jb21tdW5pdHkudjEuVXBkYXRlVGVhbVJlcXVlc3QaJC5hcGkuY29tbXVuaXR5LnYxLlVwZGF0ZVRlYW1SZXNwb25zZRJUCglMaXN0VGVhbXMSIi5hcGkuY29tbXVuaXR5LnYxLkxpc3RUZWFtc1JlcXVlc3QaIy5hcGkuY29tbXVuaXR5LnYxLkxpc3RUZWFtc1Jlc3BvbnNlEloKC0xpc3RNZW1iZXJzEiQuYXBpLmNvbW11bml0eS52MS5MaXN0TWVtYmVyc1JlcXVlc3QaJS5hcGkuY29tbXVuaXR5LnYxLkxpc3RNZW1iZXJzUmVzcG9uc2USbAoRTGlzdENvbnRyaWJ1dGlvbnMSKi5hcGkuY29tbXVuaXR5LnYxLkxpc3RDb250cmlidXRpb25zUmVxdWVzdBorLmFwaS5jb21tdW5pdHkudjEuTGlzdENvbnRyaWJ1dGlvbnNSZXNwb25zZRJgCg1HZXREaXNjdXNzaW9uEiYuYXBpLmNvbW11bml0eS52MS5HZXREaXNjdXNzaW9uUmVxdWVzdBonLmFwaS5jb21tdW5pdHkudjEuR2V0RGlzY3Vzc2lvblJlc3BvbnNlEl0KDExpc3RDb21tZW50cxIlLmFwaS5jb21tdW5pdHkudjEuTGlzdENvbW1lbnRzUmVxdWVzdBomLmFwaS5jb21tdW5pdHkudjEuTGlzdENvbW1lbnRzUmVzcG9uc2USYAoNQ3JlYXRlQ29tbWVudBImLmFwaS5jb21tdW5pdHkudjEuQ3JlYXRlQ29tbWVudFJlcXVlc3QaJy5hcGkuY29tbXVuaXR5LnYxLkNyZWF0ZUNvbW1lbnRSZXNwb25zZRJgCg1EZWxldGVDb21tZW50EiYuYXBpLmNvbW11bml0eS52MS5EZWxldGVDb21tZW50UmVxdWVzdBonLmFwaS5jb21tdW5pdHkudjEuRGVsZXRlQ29tbWVudFJlc3BvbnNlEloKC1NldFJlYWN0aW9uEiQuYXBpLmNvbW11bml0eS52MS5TZXRSZWFjdGlvblJlcXVlc3QaJS5hcGkuY29tbXVuaXR5LnYxLlNldFJlYWN0aW9uUmVzcG9uc2USYAoNTGlzdEJvb2ttYXJrcxImLmFwaS5jb21tdW5pdHkudjEuTGlzdEJvb2ttYXJrc1JlcXVlc3QaJy5hcGkuY29tbXVuaXR5LnYxLkxpc3RCb29rbWFya3NSZXNwb25zZULQAQoUY29tLmFwaS5jb21tdW5pdHkudjFCFUNvbW11bml0eVNlcnZpY2VQcm90b1ABWj9naXRodWIuY29tL3NraWxsaHViaHEvc2tpbGxodWIvZ2VuL2FwaS9jb21tdW5pdHkvdjE7Y29tbXVuaXR5djGiAgNBQ1iqAhBBcGkuQ29tbXVuaXR5LlYxygIQQXBpXENvbW11bml0eVxWMeICHEFwaVxDb21tdW5pdHlcVjFcR1BCTWV0YWRhdGHqAhJBcGk6OkNvbW11bml0eTo6VjFiBnByb3RvMw", [file_api_common_v1_types, file_buf_validate_validate, file_common_registry_v1_taxonomy, file_google_protobuf_timestamp]);
 
 /**
  * Profile 为社区资源的传输投影。
@@ -1127,11 +1127,403 @@ export const UpdateAvatarResponseSchema: GenMessage<UpdateAvatarResponse> = /*@_
   messageDesc(file_api_community_v1_community_service, 33);
 
 /**
+ * GetParticipationRequest 查询当前账号，不接受任意用户标识。
+ *
+ * @generated from message api.community.v1.GetParticipationRequest
+ */
+export type GetParticipationRequest = Message<"api.community.v1.GetParticipationRequest"> & {
+};
+
+/**
+ * Describes the message api.community.v1.GetParticipationRequest.
+ * Use `create(GetParticipationRequestSchema)` to create a new message.
+ */
+export const GetParticipationRequestSchema: GenMessage<GetParticipationRequest> = /*@__PURE__*/
+  messageDesc(file_api_community_v1_community_service, 34);
+
+/**
+ * GetParticipationResponse 描述当前 Hub 的策略和当前账号计量。
+ *
+ * @generated from message api.community.v1.GetParticipationResponse
+ */
+export type GetParticipationResponse = Message<"api.community.v1.GetParticipationResponse"> & {
+  /**
+   * 是否启用社区准入和投稿策略。
+   *
+   * @generated from field: bool community_mode = 1;
+   */
+  communityMode: boolean;
+
+  /**
+   * 当前账号个人空间；企业模式或未创建时为空。
+   *
+   * @generated from field: string personal_namespace = 2;
+   */
+  personalNamespace: string;
+
+  /**
+   * 当前账号累计版本数，含撤下和拒绝版本。
+   *
+   * @generated from field: uint64 versions = 3;
+   */
+  versions: bigint;
+
+  /**
+   * 社区模式的账号版本上限。
+   *
+   * @generated from field: uint64 version_limit = 4;
+   */
+  versionLimit: bigint;
+
+  /**
+   * 按版本累计压缩包字节数。
+   *
+   * @generated from field: uint64 storage_bytes = 5;
+   */
+  storageBytes: bigint;
+
+  /**
+   * 社区模式的账号存储上限。
+   *
+   * @generated from field: uint64 storage_limit = 6;
+   */
+  storageLimit: bigint;
+
+  /**
+   * 最近二十四小时投稿数。
+   *
+   * @generated from field: uint64 submissions_today = 7;
+   */
+  submissionsToday: bigint;
+
+  /**
+   * 社区模式每日投稿上限。
+   *
+   * @generated from field: uint64 submission_limit = 8;
+   */
+  submissionLimit: bigint;
+};
+
+/**
+ * Describes the message api.community.v1.GetParticipationResponse.
+ * Use `create(GetParticipationResponseSchema)` to create a new message.
+ */
+export const GetParticipationResponseSchema: GenMessage<GetParticipationResponse> = /*@__PURE__*/
+  messageDesc(file_api_community_v1_community_service, 35);
+
+/**
+ * ReportContentRequest 不接受目标用户或任意 URL。
+ *
+ * @generated from message api.community.v1.ReportContentRequest
+ */
+export type ReportContentRequest = Message<"api.community.v1.ReportContentRequest"> & {
+  /**
+   * 幂等写入标识。
+   *
+   * @generated from field: api.common.v1.Mutation mutation = 1;
+   */
+  mutation?: Mutation | undefined;
+
+  /**
+   * 可访问的版本。
+   *
+   * @generated from field: string release_id = 2;
+   */
+  releaseId: string;
+
+  /**
+   * 举报评论时填写，必须属于同一版本。
+   *
+   * @generated from field: string comment_id = 3;
+   */
+  commentId: string;
+
+  /**
+   * 具体问题，不含凭据或个人秘密。
+   *
+   * @generated from field: string reason = 4;
+   */
+  reason: string;
+};
+
+/**
+ * Describes the message api.community.v1.ReportContentRequest.
+ * Use `create(ReportContentRequestSchema)` to create a new message.
+ */
+export const ReportContentRequestSchema: GenMessage<ReportContentRequest> = /*@__PURE__*/
+  messageDesc(file_api_community_v1_community_service, 36);
+
+/**
+ * ReportContentResponse 仅返回受理编号。
+ *
+ * @generated from message api.community.v1.ReportContentResponse
+ */
+export type ReportContentResponse = Message<"api.community.v1.ReportContentResponse"> & {
+  /**
+   * 举报编号。
+   *
+   * @generated from field: string id = 1;
+   */
+  id: string;
+};
+
+/**
+ * Describes the message api.community.v1.ReportContentResponse.
+ * Use `create(ReportContentResponseSchema)` to create a new message.
+ */
+export const ReportContentResponseSchema: GenMessage<ReportContentResponse> = /*@__PURE__*/
+  messageDesc(file_api_community_v1_community_service, 37);
+
+/**
+ * ContentReport 仅向管理员展示举报人和目标信息。
+ *
+ * @generated from message api.community.v1.ContentReport
+ */
+export type ContentReport = Message<"api.community.v1.ContentReport"> & {
+  /**
+   * 举报编号。
+   *
+   * @generated from field: string id = 1;
+   */
+  id: string;
+
+  /**
+   * 举报人账号标识。
+   *
+   * @generated from field: string reporter = 2;
+   */
+  reporter: string;
+
+  /**
+   * 目标版本。
+   *
+   * @generated from field: string release_id = 3;
+   */
+  releaseId: string;
+
+  /**
+   * 可选评论标识。
+   *
+   * @generated from field: string comment_id = 4;
+   */
+  commentId: string;
+
+  /**
+   * 举报说明。
+   *
+   * @generated from field: string reason = 5;
+   */
+  reason: string;
+
+  /**
+   * 是否已处理。
+   *
+   * @generated from field: bool resolved = 6;
+   */
+  resolved: boolean;
+
+  /**
+   * 处理说明。
+   *
+   * @generated from field: string resolution = 7;
+   */
+  resolution: string;
+
+  /**
+   * 受理时间。
+   *
+   * @generated from field: google.protobuf.Timestamp created_at = 8;
+   */
+  createdAt?: Timestamp | undefined;
+
+  /**
+   * 处理时间。
+   *
+   * @generated from field: google.protobuf.Timestamp resolved_at = 9;
+   */
+  resolvedAt?: Timestamp | undefined;
+
+  /**
+   * 稳定技能坐标。
+   *
+   * @generated from field: string coordinate = 10;
+   */
+  coordinate: string;
+
+  /**
+   * 目标当前正文摘要；已删除评论不返回旧正文。
+   *
+   * @generated from field: string content = 11;
+   */
+  content: string;
+};
+
+/**
+ * Describes the message api.community.v1.ContentReport.
+ * Use `create(ContentReportSchema)` to create a new message.
+ */
+export const ContentReportSchema: GenMessage<ContentReport> = /*@__PURE__*/
+  messageDesc(file_api_community_v1_community_service, 38);
+
+/**
+ * ListReportsRequest 以服务端游标读取待处理或已处理集合。
+ *
+ * @generated from message api.community.v1.ListReportsRequest
+ */
+export type ListReportsRequest = Message<"api.community.v1.ListReportsRequest"> & {
+  /**
+   * 分页参数。
+   *
+   * @generated from field: api.common.v1.PageRequest page = 1;
+   */
+  page?: PageRequest | undefined;
+
+  /**
+   * 是否查看已处理记录。
+   *
+   * @generated from field: bool resolved = 2;
+   */
+  resolved: boolean;
+};
+
+/**
+ * Describes the message api.community.v1.ListReportsRequest.
+ * Use `create(ListReportsRequestSchema)` to create a new message.
+ */
+export const ListReportsRequestSchema: GenMessage<ListReportsRequest> = /*@__PURE__*/
+  messageDesc(file_api_community_v1_community_service, 39);
+
+/**
+ * ListReportsResponse 返回管理员可见的举报队列。
+ *
+ * @generated from message api.community.v1.ListReportsResponse
+ */
+export type ListReportsResponse = Message<"api.community.v1.ListReportsResponse"> & {
+  /**
+   * 举报记录。
+   *
+   * @generated from field: repeated api.community.v1.ContentReport reports = 1;
+   */
+  reports: ContentReport[];
+
+  /**
+   * 后续游标。
+   *
+   * @generated from field: api.common.v1.PageResult page = 2;
+   */
+  page?: PageResult | undefined;
+};
+
+/**
+ * Describes the message api.community.v1.ListReportsResponse.
+ * Use `create(ListReportsResponseSchema)` to create a new message.
+ */
+export const ListReportsResponseSchema: GenMessage<ListReportsResponse> = /*@__PURE__*/
+  messageDesc(file_api_community_v1_community_service, 40);
+
+/**
+ * ResolveReportRequest 处理动作由服务端重新校验。
+ *
+ * @generated from message api.community.v1.ResolveReportRequest
+ */
+export type ResolveReportRequest = Message<"api.community.v1.ResolveReportRequest"> & {
+  /**
+   * 幂等写入标识。
+   *
+   * @generated from field: api.common.v1.Mutation mutation = 1;
+   */
+  mutation?: Mutation | undefined;
+
+  /**
+   * 举报编号。
+   *
+   * @generated from field: string id = 2;
+   */
+  id: string;
+
+  /**
+   * 明确处理动作。
+   *
+   * @generated from field: common.registry.v1.ReportResolution action = 3;
+   */
+  action: ReportResolution;
+
+  /**
+   * 对管理员保留的处理依据。
+   *
+   * @generated from field: string note = 4;
+   */
+  note: string;
+};
+
+/**
+ * Describes the message api.community.v1.ResolveReportRequest.
+ * Use `create(ResolveReportRequestSchema)` to create a new message.
+ */
+export const ResolveReportRequestSchema: GenMessage<ResolveReportRequest> = /*@__PURE__*/
+  messageDesc(file_api_community_v1_community_service, 41);
+
+/**
+ * ResolveReportResponse 表示处理已提交。
+ *
+ * @generated from message api.community.v1.ResolveReportResponse
+ */
+export type ResolveReportResponse = Message<"api.community.v1.ResolveReportResponse"> & {
+};
+
+/**
+ * Describes the message api.community.v1.ResolveReportResponse.
+ * Use `create(ResolveReportResponseSchema)` to create a new message.
+ */
+export const ResolveReportResponseSchema: GenMessage<ResolveReportResponse> = /*@__PURE__*/
+  messageDesc(file_api_community_v1_community_service, 42);
+
+/**
  * CommunityService 提供受发布受众约束的身份、团队与社区互动。
  *
  * @generated from service api.community.v1.CommunityService
  */
 export const CommunityService: GenService<{
+  /**
+   * GetParticipation 返回当前用户的投稿空间和模式配额。
+   *
+   * @generated from rpc api.community.v1.CommunityService.GetParticipation
+   */
+  getParticipation: {
+    methodKind: "unary";
+    input: typeof GetParticipationRequestSchema;
+    output: typeof GetParticipationResponseSchema;
+  },
+  /**
+   * ReportContent 举报当前可访问的已发布版本或评论。
+   *
+   * @generated from rpc api.community.v1.CommunityService.ReportContent
+   */
+  reportContent: {
+    methodKind: "unary";
+    input: typeof ReportContentRequestSchema;
+    output: typeof ReportContentResponseSchema;
+  },
+  /**
+   * ListReports 仅管理员读取举报队列和处理结果。
+   *
+   * @generated from rpc api.community.v1.CommunityService.ListReports
+   */
+  listReports: {
+    methodKind: "unary";
+    input: typeof ListReportsRequestSchema;
+    output: typeof ListReportsResponseSchema;
+  },
+  /**
+   * ResolveReport 原子处理举报与对应内容，保留审计。
+   *
+   * @generated from rpc api.community.v1.CommunityService.ResolveReport
+   */
+  resolveReport: {
+    methodKind: "unary";
+    input: typeof ResolveReportRequestSchema;
+    output: typeof ResolveReportResponseSchema;
+  },
   /**
    * UpdateAvatar 上传或移除当前用户的头像，由 Hub 规范化图片。
    *

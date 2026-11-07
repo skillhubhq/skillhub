@@ -1,3 +1,4 @@
+import { OpenSkillLink } from "./OpenSkillLink";
 import { Downloads, ProjectFooter } from "./Downloads";
 import { AccessState, needsSignIn } from "./AccessState";
 import { useResource } from "./community-ui";
@@ -106,6 +107,11 @@ const pages = [
 ];
 function explain(error: unknown) {
   const text = error instanceof Error ? error.message : String(error);
+  if (/community quota reached/i.test(text))
+    return t(
+      "A community limit has been reached. Check your submission usage or contact the Hub operator.",
+      "已达到社区配额，请查看投稿用量或联系 Hub 部署方。",
+    );
   if (/local modifications/.test(text))
     return t(
       "Local changes detected. Save or restore them before making a new plan.",
@@ -295,6 +301,7 @@ export default function App() {
       <div
         className={`shell community-shell ${isWeb ? "web-shell" : "desktop-shell"}`}
       >
+        {!isWeb && <OpenSkillLink />}
         <Navigation page={page} />
         <main className={`page-${page}`}>
           <header className="page-header" hidden={accessBlocked}>

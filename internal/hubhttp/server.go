@@ -4,6 +4,7 @@ package hubhttp
 import (
 	"context"
 	"errors"
+	"github.com/skillhubhq/skillhub/internal/community"
 	"log/slog"
 	"net"
 	"net/http"
@@ -27,29 +28,34 @@ import (
 	registryv1 "github.com/skillhubhq/skillhub/gen/api/registry/v1"
 	"github.com/skillhubhq/skillhub/gen/api/registry/v1/registryv1connect"
 	"github.com/skillhubhq/skillhub/internal/hub"
+	"github.com/skillhubhq/skillhub/internal/hubpolicy"
+	"github.com/skillhubhq/skillhub/internal/identityprovider"
 	"github.com/skillhubhq/skillhub/internal/packageformat"
 	"github.com/skillhubhq/skillhub/internal/webui"
 	"google.golang.org/protobuf/proto"
 )
 
 type Config struct {
-	TrustedProxies []string
-	oidcHTTPClient *http.Client
-	OIDC           *OIDCConfig
-	DisplayName    string
-	PublicURL      string
-	Private        bool
-	Logger         *slog.Logger
+	Site               community.Site
+	Policy             hubpolicy.Policy
+	Providers          []identityprovider.Config
+	providerHTTPClient *http.Client
+	TrustedProxies     []string
+	DisplayName        string
+	PublicURL          string
+	Private            bool
+	Logger             *slog.Logger
 }
 
 type Server struct {
-	proxies []netip.Prefix
-	oidc    *oidcLogin
-	store   *hub.Store
-	config  Config
-	handler http.Handler
-	limiter *rateLimiter
-	uploads chan struct{}
+	proxies       []netip.Prefix
+	providers     map[string]*externalLogin
+	providerOrder []string
+	store         *hub.Store
+	config        Config
+	handler       http.Handler
+	limiter       *rateLimiter
+	uploads       chan struct{}
 }
 
 func New(store *hub.Store, config Config) (*Server, error) {
@@ -85,7 +91,10 @@ func New(store *hub.Store, config Config) (*Server, error) {
 		}
 		s.proxies = append(s.proxies, prefix)
 	}
-	if err := s.configureOIDC(); err != nil {
+	if err := store.ConfigurePolicy(config.Policy); err != nil {
+		return nil, err
+	}
+	if err := s.configureProviders(); err != nil {
 		return nil, err
 	}
 	interceptor := connect.UnaryInterceptorFunc(func(next connect.UnaryFunc) connect.UnaryFunc {
@@ -114,8 +123,7 @@ func New(store *hub.Store, config Config) (*Server, error) {
 	mux.Handle(adminv1connect.NewAdminServiceHandler(s, connect.WithInterceptors(interceptor), connect.WithReadMaxBytes(64<<10)))
 	mux.Handle(catalogv1connect.NewCatalogServiceHandler(s, connect.WithInterceptors(interceptor), connect.WithReadMaxBytes(64<<10)))
 	mux.Handle(publishingv1connect.NewPublishingServiceHandler(s, connect.WithInterceptors(interceptor), connect.WithReadMaxBytes(32<<20)))
-	mux.HandleFunc("/auth/oidc/start", s.oidcStart)
-	mux.HandleFunc("/auth/oidc/callback", s.oidcCallback)
+	s.registerProviderRoutes(mux)
 	mux.HandleFunc("/authorize", s.authorize)
 	mux.HandleFunc("/login", s.session)
 	mux.HandleFunc("/logout", s.session)
@@ -143,11 +151,23 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) GetRegistry(ctx context.Context, req *connect.Request[registryv1.GetRegistryRequest]) (*connect.Response[registryv1.GetRegistryResponse], error) {
-	capabilities := []string{"identity.local", "identity.device", "catalog.v1", "publishing.review.v1", "admin.v1", "community.v1", "catalog.presentation.v1", "governance.v1", "catalog.discovery.v1", "governance.tasks.v1", "evaluation.v1"}
-	if s.oidc != nil {
-		capabilities = append(capabilities, "identity.oidc")
+	capabilities := []string{"identity.local", "identity.device", "catalog.v1", "publishing.review.v1", "admin.v1", "community.v1", "community.moderation.v1", "catalog.presentation.v1", "governance.v1", "catalog.discovery.v1", "governance.tasks.v1", "evaluation.v1"}
+
+	if s.config.Policy.IsCommunity() {
+		capabilities = append(capabilities, "community.public.v1")
 	}
-	return connect.NewResponse(&registryv1.GetRegistryResponse{RegistryId: s.store.RegistryID(), DisplayName: s.config.DisplayName, ProtocolMajor: 1, PrivateMode: s.config.Private, Capabilities: capabilities, MaxPackageBytes: packageformat.MaxArchiveBytes}), nil
+	if len(s.providers) > 0 {
+		capabilities = append(capabilities, "identity.external")
+		// 保留协议能力声明供旧客户端探测；登录界面仍只消费通用提供方列表。
+		seen := map[string]bool{}
+		for _, provider := range s.config.Providers {
+			if !seen[provider.Type] {
+				capabilities = append(capabilities, "identity."+provider.Type)
+				seen[provider.Type] = true
+			}
+		}
+	}
+	return connect.NewResponse(&registryv1.GetRegistryResponse{RegistryId: s.store.RegistryID(), DisplayName: s.config.DisplayName, ProtocolMajor: 1, PrivateMode: s.config.Private, Capabilities: capabilities, MaxPackageBytes: packageformat.MaxArchiveBytes, CommunityMode: s.config.Policy.IsCommunity(), PrivacyUrl: s.config.Site.PrivacyURL, TermsUrl: s.config.Site.TermsURL, ContactUrl: s.config.Site.ContactURL, FilingText: s.config.Site.FilingText, FilingUrl: s.config.Site.FilingURL}), nil
 }
 
 func publicError(err error) error {
@@ -159,6 +179,10 @@ func publicError(err error) error {
 	key := "INTERNAL"
 	message := "request could not be completed"
 	switch {
+	case errors.Is(err, hub.ErrQuota):
+		code = connect.CodeResourceExhausted
+		key = "COMMUNITY_QUOTA"
+		message = "community quota reached; contact the hub operator"
 	case errors.Is(err, hub.ErrUnauthenticated):
 		code = connect.CodeUnauthenticated
 		key = "AUTH_REQUIRED"
@@ -235,6 +259,11 @@ func (s *Server) boundary(next http.Handler) http.Handler {
 		if !s.browserSession(w, r) {
 			return
 		}
+		if s.config.Policy.IsCommunity() && strings.HasPrefix(r.URL.Path, "/api.") && !s.limiter.allow("community|"+s.clientAddress(r), s.config.Policy.Limits.RequestsPerMinute) {
+			w.Header().Set("Retry-After", "60")
+			_ = connect.NewErrorWriter().Write(w, r, publicError(hub.ErrRateLimited))
+			return
+		}
 		if r.URL.Path == publishingv1connect.PublishingServiceSubmitReleaseProcedure || r.URL.Path == communityv1connect.CommunityServiceUpdateAvatarProcedure || (r.URL.Path == governancev1connect.GovernanceServiceScanReleaseProcedure || r.URL.Path == evaluationv1connect.EvaluationServiceImportEvidenceProcedure) {
 			if _, err := s.identity(r.Context(), r.Header); err != nil {
 				_ = connect.NewErrorWriter().Write(w, r, publicError(err))
@@ -254,7 +283,7 @@ func (s *Server) boundary(next http.Handler) http.Handler {
 				http.Error(w, "request could not be completed", http.StatusInternalServerError)
 			}
 		}()
-		if (r.URL.Path == governancev1connect.GovernanceServiceScanReleaseProcedure || r.URL.Path == evaluationv1connect.EvaluationServiceImportEvidenceProcedure) || strings.HasPrefix(r.URL.Path, "/auth/oidc/") || strings.HasPrefix(r.URL.Path, "/api.auth.v1.AuthService/") || r.URL.Path == "/authorize" || r.URL.Path == "/login" || r.URL.Path == "/logout" {
+		if (r.URL.Path == governancev1connect.GovernanceServiceScanReleaseProcedure || r.URL.Path == evaluationv1connect.EvaluationServiceImportEvidenceProcedure) || strings.HasPrefix(r.URL.Path, "/auth/") || strings.HasPrefix(r.URL.Path, "/api.auth.v1.AuthService/") || r.URL.Path == "/authorize" || r.URL.Path == "/login" || r.URL.Path == "/logout" {
 			ip := s.clientAddress(r)
 			limit := 120
 			if (r.URL.Path == governancev1connect.GovernanceServiceScanReleaseProcedure || r.URL.Path == evaluationv1connect.EvaluationServiceImportEvidenceProcedure) || r.URL.Path == authv1connect.AuthServiceLoginProcedure || r.URL.Path == authv1connect.AuthServiceStartDeviceLoginProcedure || ((r.URL.Path == "/authorize" || r.URL.Path == "/login") && r.Method == http.MethodPost) {

@@ -1,3 +1,5 @@
+import { skillAppURL } from "./official";
+import { ReportButton } from "./Moderation";
 import { Select } from "./Select";
 import { ProjectLink, releasesURL } from "./Downloads";
 import { signInURL } from "./auth";
@@ -73,6 +75,7 @@ export function SkillActions({
         {t("Comment", "评论")}
         <span>{summary?.comment_count ?? "—"}</span>
       </button>
+      {summary?.can_interact && <ReportButton source={source} release={id} />}
     </div>
   );
 }
@@ -126,7 +129,7 @@ export function WebInstallGuide({
 }) {
   const ui = useUI();
   const [downloaded, setDownloaded] = useState(false);
-  const [method, setMethod] = useState("zip"),
+  const [method, setMethod] = useState("app"),
     [tool, setTool] = useState("codex"),
     [scope, setScope] = useState("project"),
     [alias, setAlias] = useState("my-hub");
@@ -198,32 +201,40 @@ export function WebInstallGuide({
           )}
         </div>
       ) : method === "app" ? (
-        <>
-          <p>
-            <ProjectLink href={releasesURL}>
-              {t("Get the desktop app", "获取桌面 App")}
-            </ProjectLink>
-          </p>
-          <h3>{t("Connect this community", "连接当前社区")}</h3>
+        <div className="stack app-install-guide">
+          <h3>
+            {t("Open this version in SkillHub", "在 SkillHub 中打开当前版本")}
+          </h3>
           <p>
             {t(
-              "In SkillHub App, open Settings → Connections and add this Hub. Sign in with your account for this Hub.",
-              "在 SkillHub App 的「设置 → 连接与账号」中添加此 Hub，并使用该 Hub 的账号登录。",
+              "Choose Codex or Claude Code and a project or global destination in the App. Review the file changes before installing.",
+              "在 App 内选择 Codex 或 Claude Code，以及项目或全局位置。确认文件变更后再安装。",
             )}
           </p>
-          <CopyValue label={t("Hub address", "Hub 地址")} value={url} />
-          <h3>{t("Find the skill and install", "找到技能并安装")}</h3>
-          <p>
+          <a
+            className="primary app-open-link"
+            href={skillAppURL(url, coordinate)}
+          >
+            {t("Open in SkillHub", "在 SkillHub 中打开")} ↗
+          </a>
+          <p className="muted">
             {t(
-              "Search for this skill in that community, choose this version, then select your tool and project or global destination.",
-              "在该社区中搜索此技能、选择当前版本，再选择工具及项目或全局安装位置。",
+              "If nothing opens, install the current App first, then return here. Your browser may ask permission to open it.",
+              "如果没有打开，请先安装最新 App 后返回。浏览器可能会询问是否允许打开应用。",
             )}
           </p>
-          <CopyValue
-            label={t("Exact version", "精确版本")}
-            value={coordinate}
-          />
-        </>
+          <ProjectLink href={releasesURL}>
+            {t("Download the desktop app", "下载桌面 App")}
+          </ProjectLink>
+          <details>
+            <summary>{t("Connect manually", "手动连接")}</summary>
+            <CopyValue label={t("Hub address", "Hub 地址")} value={url} />
+            <CopyValue
+              label={t("Exact version", "精确版本")}
+              value={coordinate}
+            />
+          </details>
+        </div>
       ) : (
         <>
           <p>

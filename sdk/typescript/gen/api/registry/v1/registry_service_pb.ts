@@ -10,7 +10,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file api/registry/v1/registry_service.proto.
  */
 export const file_api_registry_v1_registry_service: GenFile = /*@__PURE__*/
-  fileDesc("CiZhcGkvcmVnaXN0cnkvdjEvcmVnaXN0cnlfc2VydmljZS5wcm90bxIPYXBpLnJlZ2lzdHJ5LnYxIhQKEkdldFJlZ2lzdHJ5UmVxdWVzdCKfAQoTR2V0UmVnaXN0cnlSZXNwb25zZRITCgtyZWdpc3RyeV9pZBgBIAEoCRIUCgxkaXNwbGF5X25hbWUYAiABKAkSFgoOcHJvdG9jb2xfbWFqb3IYAyABKA0SFAoMcHJpdmF0ZV9tb2RlGAQgASgIEhQKDGNhcGFiaWxpdGllcxgFIAMoCRIZChFtYXhfcGFja2FnZV9ieXRlcxgGIAEoBDJrCg9SZWdpc3RyeVNlcnZpY2USWAoLR2V0UmVnaXN0cnkSIy5hcGkucmVnaXN0cnkudjEuR2V0UmVnaXN0cnlSZXF1ZXN0GiQuYXBpLnJlZ2lzdHJ5LnYxLkdldFJlZ2lzdHJ5UmVzcG9uc2VCyAEKE2NvbS5hcGkucmVnaXN0cnkudjFCFFJlZ2lzdHJ5U2VydmljZVByb3RvUAFaPWdpdGh1Yi5jb20vc2tpbGxodWJocS9za2lsbGh1Yi9nZW4vYXBpL3JlZ2lzdHJ5L3YxO3JlZ2lzdHJ5djGiAgNBUliqAg9BcGkuUmVnaXN0cnkuVjHKAg9BcGlcUmVnaXN0cnlcVjHiAhtBcGlcUmVnaXN0cnlcVjFcR1BCTWV0YWRhdGHqAhFBcGk6OlJlZ2lzdHJ5OjpWMWIGcHJvdG8z");
+  fileDesc("CiZhcGkvcmVnaXN0cnkvdjEvcmVnaXN0cnlfc2VydmljZS5wcm90bxIPYXBpLnJlZ2lzdHJ5LnYxIhQKEkdldFJlZ2lzdHJ5UmVxdWVzdCKdAgoTR2V0UmVnaXN0cnlSZXNwb25zZRITCgtyZWdpc3RyeV9pZBgBIAEoCRIUCgxkaXNwbGF5X25hbWUYAiABKAkSFgoOcHJvdG9jb2xfbWFqb3IYAyABKA0SFAoMcHJpdmF0ZV9tb2RlGAQgASgIEhQKDGNhcGFiaWxpdGllcxgFIAMoCRIZChFtYXhfcGFja2FnZV9ieXRlcxgGIAEoBBIWCg5jb21tdW5pdHlfbW9kZRgHIAEoCBITCgtwcml2YWN5X3VybBgIIAEoCRIRCgl0ZXJtc191cmwYCSABKAkSEwoLY29udGFjdF91cmwYCiABKAkSEwoLZmlsaW5nX3RleHQYCyABKAkSEgoKZmlsaW5nX3VybBgMIAEoCTJrCg9SZWdpc3RyeVNlcnZpY2USWAoLR2V0UmVnaXN0cnkSIy5hcGkucmVnaXN0cnkudjEuR2V0UmVnaXN0cnlSZXF1ZXN0GiQuYXBpLnJlZ2lzdHJ5LnYxLkdldFJlZ2lzdHJ5UmVzcG9uc2VCyAEKE2NvbS5hcGkucmVnaXN0cnkudjFCFFJlZ2lzdHJ5U2VydmljZVByb3RvUAFaPWdpdGh1Yi5jb20vc2tpbGxodWJocS9za2lsbGh1Yi9nZW4vYXBpL3JlZ2lzdHJ5L3YxO3JlZ2lzdHJ5djGiAgNBUliqAg9BcGkuUmVnaXN0cnkuVjHKAg9BcGlcUmVnaXN0cnlcVjHiAhtBcGlcUmVnaXN0cnlcVjFcR1BCTWV0YWRhdGHqAhFBcGk6OlJlZ2lzdHJ5OjpWMWIGcHJvdG8z");
 
 /**
  * GetRegistryRequest 无需提供账号。
@@ -74,6 +74,48 @@ export type GetRegistryResponse = Message<"api.registry.v1.GetRegistryResponse">
    * @generated from field: uint64 max_package_bytes = 6;
    */
   maxPackageBytes: bigint;
+
+  /**
+   * 社区模式采用自动准入、个人空间和强制独立审核。
+   *
+   * @generated from field: bool community_mode = 7;
+   */
+  communityMode: boolean;
+
+  /**
+   * 部署方隐私说明地址。
+   *
+   * @generated from field: string privacy_url = 8;
+   */
+  privacyUrl: string;
+
+  /**
+   * 部署方服务条款地址。
+   *
+   * @generated from field: string terms_url = 9;
+   */
+  termsUrl: string;
+
+  /**
+   * 部署方联系地址。
+   *
+   * @generated from field: string contact_url = 10;
+   */
+  contactUrl: string;
+
+  /**
+   * 部署方公开备案文本。
+   *
+   * @generated from field: string filing_text = 11;
+   */
+  filingText: string;
+
+  /**
+   * 对应备案信息链接。
+   *
+   * @generated from field: string filing_url = 12;
+   */
+  filingUrl: string;
 };
 
 /**

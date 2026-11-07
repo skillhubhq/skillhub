@@ -9,30 +9,26 @@ import (
 	"github.com/skillhubhq/skillhub/internal/sqliteutil"
 )
 
-func TestClientMigrationPreservesV1AndRejectsFutureSchema(t *testing.T) {
+func TestClientReopenPreservesStateAndRejectsUnsupportedSchema(t *testing.T) {
 	root := t.TempDir()
-	db, err := sqliteutil.Open(filepath.Join(root, "client.db"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	_, err = db.Exec(`CREATE TABLE client_schema(version INTEGER NOT NULL); INSERT INTO client_schema VALUES(1);
-CREATE TABLE installations(target TEXT PRIMARY KEY,id TEXT UNIQUE NOT NULL,record TEXT NOT NULL);
-CREATE TABLE install_journals(target TEXT PRIMARY KEY,record TEXT NOT NULL);
-CREATE TABLE sources(alias TEXT PRIMARY KEY,registry_id TEXT NOT NULL,record TEXT NOT NULL);
-INSERT INTO installations VALUES('/example','id','{"id":"id","target":"/example","version":"1.0.0"}');`)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err = db.Close(); err != nil {
-		t.Fatal(err)
-	}
 	store, err := OpenStore(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = store.db.Exec(`INSERT INTO installations VALUES('/example','id','{"id":"id","target":"/example","version":"1.0.0"}')`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err = store.Close(); err != nil {
+		t.Fatal(err)
+	}
+	store, err = OpenStore(root)
 	if err != nil {
 		t.Fatal(err)
 	}
 	items, err := store.ListInstallations(context.Background())
 	if err != nil || len(items) != 1 || items[0].ID != "id" {
-		t.Fatal("migration lost existing installations")
+		t.Fatal("reopen lost existing installations")
 	}
 	core := NewClient(store, ClientOptions{})
 	project := t.TempDir()
@@ -72,7 +68,7 @@ INSERT INTO installations VALUES('/example','id','{"id":"id","target":"/example"
 		reopened.Close()
 		t.Fatal("opened future schema")
 	}
-	db, err = sqliteutil.Open(filepath.Join(root, "client.db"))
+	db, err := sqliteutil.Open(filepath.Join(root, "client.db"))
 	if err != nil {
 		t.Fatal(err)
 	}

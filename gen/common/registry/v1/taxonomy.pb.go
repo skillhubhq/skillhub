@@ -436,6 +436,59 @@ func (CatalogOrder) EnumDescriptor() ([]byte, []int) {
 	return file_common_registry_v1_taxonomy_proto_rawDescGZIP(), []int{6}
 }
 
+// ReportResolution 表示管理员对社区举报的处理动作。
+type ReportResolution int32
+
+const (
+	// 未选择，拒绝处理。
+	ReportResolution_REPORT_RESOLUTION_UNSPECIFIED ReportResolution = 0
+	// 无需移除，保留处理说明。
+	ReportResolution_REPORT_RESOLUTION_DISMISS ReportResolution = 1
+	// 移除评论或撤下对应技能版本。
+	ReportResolution_REPORT_RESOLUTION_REMOVE_CONTENT ReportResolution = 2
+)
+
+// Enum value maps for ReportResolution.
+var (
+	ReportResolution_name = map[int32]string{
+		0: "REPORT_RESOLUTION_UNSPECIFIED",
+		1: "REPORT_RESOLUTION_DISMISS",
+		2: "REPORT_RESOLUTION_REMOVE_CONTENT",
+	}
+	ReportResolution_value = map[string]int32{
+		"REPORT_RESOLUTION_UNSPECIFIED":    0,
+		"REPORT_RESOLUTION_DISMISS":        1,
+		"REPORT_RESOLUTION_REMOVE_CONTENT": 2,
+	}
+)
+
+func (x ReportResolution) Enum() *ReportResolution {
+	p := new(ReportResolution)
+	*p = x
+	return p
+}
+
+func (x ReportResolution) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ReportResolution) Descriptor() protoreflect.EnumDescriptor {
+	return file_common_registry_v1_taxonomy_proto_enumTypes[7].Descriptor()
+}
+
+func (ReportResolution) Type() protoreflect.EnumType {
+	return &file_common_registry_v1_taxonomy_proto_enumTypes[7]
+}
+
+func (x ReportResolution) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ReportResolution.Descriptor instead.
+func (ReportResolution) EnumDescriptor() ([]byte, []int) {
+	return file_common_registry_v1_taxonomy_proto_rawDescGZIP(), []int{7}
+}
+
 var File_common_registry_v1_taxonomy_proto protoreflect.FileDescriptor
 
 const file_common_registry_v1_taxonomy_proto_rawDesc = "" +
@@ -480,7 +533,11 @@ const file_common_registry_v1_taxonomy_proto_rawDesc = "" +
 	"\fCatalogOrder\x12\x1d\n" +
 	"\x19CATALOG_ORDER_UNSPECIFIED\x10\x00\x12\x16\n" +
 	"\x12CATALOG_ORDER_NAME\x10\x01\x12\x18\n" +
-	"\x14CATALOG_ORDER_RECENT\x10\x02B\xd3\x01\n" +
+	"\x14CATALOG_ORDER_RECENT\x10\x02*z\n" +
+	"\x10ReportResolution\x12!\n" +
+	"\x1dREPORT_RESOLUTION_UNSPECIFIED\x10\x00\x12\x1d\n" +
+	"\x19REPORT_RESOLUTION_DISMISS\x10\x01\x12$\n" +
+	" REPORT_RESOLUTION_REMOVE_CONTENT\x10\x02B\xd3\x01\n" +
 	"\x16com.common.registry.v1B\rTaxonomyProtoP\x01Z@github.com/skillhubhq/skillhub/gen/common/registry/v1;registryv1\xa2\x02\x03CRX\xaa\x02\x12Common.Registry.V1\xca\x02\x12Common\\Registry\\V1\xe2\x02\x1eCommon\\Registry\\V1\\GPBMetadata\xea\x02\x14Common::Registry::V1b\x06proto3"
 
 var (
@@ -495,15 +552,16 @@ func file_common_registry_v1_taxonomy_proto_rawDescGZIP() []byte {
 	return file_common_registry_v1_taxonomy_proto_rawDescData
 }
 
-var file_common_registry_v1_taxonomy_proto_enumTypes = make([]protoimpl.EnumInfo, 7)
+var file_common_registry_v1_taxonomy_proto_enumTypes = make([]protoimpl.EnumInfo, 8)
 var file_common_registry_v1_taxonomy_proto_goTypes = []any{
-	(Visibility)(0),    // 0: common.registry.v1.Visibility
-	(ReleaseStatus)(0), // 1: common.registry.v1.ReleaseStatus
-	(NamespaceRole)(0), // 2: common.registry.v1.NamespaceRole
-	(PrincipalKind)(0), // 3: common.registry.v1.PrincipalKind
-	(SkillIcon)(0),     // 4: common.registry.v1.SkillIcon
-	(PlatformRole)(0),  // 5: common.registry.v1.PlatformRole
-	(CatalogOrder)(0),  // 6: common.registry.v1.CatalogOrder
+	(Visibility)(0),       // 0: common.registry.v1.Visibility
+	(ReleaseStatus)(0),    // 1: common.registry.v1.ReleaseStatus
+	(NamespaceRole)(0),    // 2: common.registry.v1.NamespaceRole
+	(PrincipalKind)(0),    // 3: common.registry.v1.PrincipalKind
+	(SkillIcon)(0),        // 4: common.registry.v1.SkillIcon
+	(PlatformRole)(0),     // 5: common.registry.v1.PlatformRole
+	(CatalogOrder)(0),     // 6: common.registry.v1.CatalogOrder
+	(ReportResolution)(0), // 7: common.registry.v1.ReportResolution
 }
 var file_common_registry_v1_taxonomy_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type
@@ -523,7 +581,7 @@ func file_common_registry_v1_taxonomy_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_common_registry_v1_taxonomy_proto_rawDesc), len(file_common_registry_v1_taxonomy_proto_rawDesc)),
-			NumEnums:      7,
+			NumEnums:      8,
 			NumMessages:   0,
 			NumExtensions: 0,
 			NumServices:   0,

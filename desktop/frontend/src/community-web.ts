@@ -73,6 +73,71 @@ export function communityWeb(
   const api = clients.community;
   const page = (pageToken: string) => ({ pageToken, pageSize: 30 });
   return {
+    CommunitySite: async () => {
+      const v = await clients.registry.getRegistry({});
+      return {
+        privacy_url: v.privacyUrl,
+        terms_url: v.termsUrl,
+        contact_url: v.contactUrl,
+        filing_text: v.filingText,
+        filing_url: v.filingUrl,
+      };
+    },
+    CommunityParticipation: async () => {
+      const supported = (
+        await clients.registry.getRegistry({})
+      ).capabilities.includes("community.moderation.v1");
+      const v = supported ? await api.getParticipation({}) : null;
+      return {
+        supported,
+        community_mode: v?.communityMode ?? false,
+        personal_namespace: v?.personalNamespace ?? "",
+        versions: Number(v?.versions ?? 0),
+        version_limit: Number(v?.versionLimit ?? 0),
+        submissions_today: Number(v?.submissionsToday ?? 0),
+        submission_limit: Number(v?.submissionLimit ?? 0),
+        storage_bytes: Number(v?.storageBytes ?? 0),
+        storage_limit: Number(v?.storageLimit ?? 0),
+      };
+    },
+    CommunityReport: async (_s, releaseId, commentId, reason, key) =>
+      (
+        await api.reportContent({
+          releaseId,
+          commentId,
+          reason,
+          mutation: { idempotencyKey: key },
+        })
+      ).id,
+    CommunityReports: async (_s, resolved, token) => {
+      const v = await api.listReports({ resolved, page: page(token) });
+      return {
+        items: v.reports.map((r) => ({
+          id: r.id,
+          reporter: r.reporter,
+          release_id: r.releaseId,
+          comment_id: r.commentId,
+          reason: r.reason,
+          resolved: r.resolved,
+          resolution: r.resolution,
+          coordinate: r.coordinate,
+          content: r.content,
+          created_at: new Date(
+            Number(r.createdAt?.seconds ?? 0) * 1000,
+          ).toISOString(),
+        })),
+        next_page: v.page?.nextPageToken ?? "",
+      };
+    },
+    CommunityResolveReport: async (_s, id, action, note, key) => {
+      await api.resolveReport({
+        id,
+        action: Number(action),
+        note,
+        mutation: { idempotencyKey: key },
+      });
+      return true;
+    },
     CommunityUpdateAvatar: async (_s, image, revision, key) =>
       profile(
         (

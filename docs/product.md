@@ -1,6 +1,6 @@
 # Product scope
 
-SkillHub is a self-hosted registry for sharing, reviewing and installing agent skills. It serves enterprise communities with independent identities and permissions. It manages skill files; it does not execute skills, invoke models or provide an agent runtime.
+SkillHub is a self-hosted registry for sharing, reviewing and installing agent skills. It serves enterprise and public communities with independent identities and permissions. It manages skill files; it does not execute skills, invoke models or provide an agent runtime.
 
 ## Hub, Web, App and CLI
 
@@ -11,7 +11,7 @@ SkillHub is a self-hosted registry for sharing, reviewing and installing agent s
 | App | Connect independent Hubs, browse their communities, author skills and manage installations on this device |
 | CLI | Script the same remote and local workflows through the shared Go client core |
 
-Each Hub owns its users and content. The default is private access with no public registration. Operators may enable anonymous browsing of published Public releases. Publishing and administration always require authentication. Local accounts are provisioned by authorized administrators; verified enterprise sign-in enters an approval queue by default. See [identity and access](identity-and-access.md) and [enterprise login](enterprise-login.md).
+Each Hub owns its users and content. The default is private access with no public registration. Operators may enable anonymous browsing of published Public releases. Publishing and administration always require authentication. Local accounts are provisioned by authorized administrators; verified enterprise sign-in enters an approval queue by default. Community mode enables automatic third-party admission, personal publication spaces, mandatory review and quotas using the same user and permission model; see [community hosting](community-hosting.md). See [identity and access](identity-and-access.md) and [enterprise login](enterprise-login.md).
 
 ## Publication and governance
 

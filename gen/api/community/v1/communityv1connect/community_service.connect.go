@@ -33,6 +33,18 @@ const (
 // reflection-formatted method names, remove the leading slash and convert the remaining slash to a
 // period.
 const (
+	// CommunityServiceGetParticipationProcedure is the fully-qualified name of the CommunityService's
+	// GetParticipation RPC.
+	CommunityServiceGetParticipationProcedure = "/api.community.v1.CommunityService/GetParticipation"
+	// CommunityServiceReportContentProcedure is the fully-qualified name of the CommunityService's
+	// ReportContent RPC.
+	CommunityServiceReportContentProcedure = "/api.community.v1.CommunityService/ReportContent"
+	// CommunityServiceListReportsProcedure is the fully-qualified name of the CommunityService's
+	// ListReports RPC.
+	CommunityServiceListReportsProcedure = "/api.community.v1.CommunityService/ListReports"
+	// CommunityServiceResolveReportProcedure is the fully-qualified name of the CommunityService's
+	// ResolveReport RPC.
+	CommunityServiceResolveReportProcedure = "/api.community.v1.CommunityService/ResolveReport"
 	// CommunityServiceUpdateAvatarProcedure is the fully-qualified name of the CommunityService's
 	// UpdateAvatar RPC.
 	CommunityServiceUpdateAvatarProcedure = "/api.community.v1.CommunityService/UpdateAvatar"
@@ -79,6 +91,14 @@ const (
 
 // CommunityServiceClient is a client for the api.community.v1.CommunityService service.
 type CommunityServiceClient interface {
+	// GetParticipation 返回当前用户的投稿空间和模式配额。
+	GetParticipation(context.Context, *connect.Request[v1.GetParticipationRequest]) (*connect.Response[v1.GetParticipationResponse], error)
+	// ReportContent 举报当前可访问的已发布版本或评论。
+	ReportContent(context.Context, *connect.Request[v1.ReportContentRequest]) (*connect.Response[v1.ReportContentResponse], error)
+	// ListReports 仅管理员读取举报队列和处理结果。
+	ListReports(context.Context, *connect.Request[v1.ListReportsRequest]) (*connect.Response[v1.ListReportsResponse], error)
+	// ResolveReport 原子处理举报与对应内容，保留审计。
+	ResolveReport(context.Context, *connect.Request[v1.ResolveReportRequest]) (*connect.Response[v1.ResolveReportResponse], error)
 	// UpdateAvatar 上传或移除当前用户的头像，由 Hub 规范化图片。
 	UpdateAvatar(context.Context, *connect.Request[v1.UpdateAvatarRequest]) (*connect.Response[v1.UpdateAvatarResponse], error)
 	// GetProfile 按当前主体权限执行社区操作。
@@ -120,6 +140,30 @@ func NewCommunityServiceClient(httpClient connect.HTTPClient, baseURL string, op
 	baseURL = strings.TrimRight(baseURL, "/")
 	communityServiceMethods := v1.File_api_community_v1_community_service_proto.Services().ByName("CommunityService").Methods()
 	return &communityServiceClient{
+		getParticipation: connect.NewClient[v1.GetParticipationRequest, v1.GetParticipationResponse](
+			httpClient,
+			baseURL+CommunityServiceGetParticipationProcedure,
+			connect.WithSchema(communityServiceMethods.ByName("GetParticipation")),
+			connect.WithClientOptions(opts...),
+		),
+		reportContent: connect.NewClient[v1.ReportContentRequest, v1.ReportContentResponse](
+			httpClient,
+			baseURL+CommunityServiceReportContentProcedure,
+			connect.WithSchema(communityServiceMethods.ByName("ReportContent")),
+			connect.WithClientOptions(opts...),
+		),
+		listReports: connect.NewClient[v1.ListReportsRequest, v1.ListReportsResponse](
+			httpClient,
+			baseURL+CommunityServiceListReportsProcedure,
+			connect.WithSchema(communityServiceMethods.ByName("ListReports")),
+			connect.WithClientOptions(opts...),
+		),
+		resolveReport: connect.NewClient[v1.ResolveReportRequest, v1.ResolveReportResponse](
+			httpClient,
+			baseURL+CommunityServiceResolveReportProcedure,
+			connect.WithSchema(communityServiceMethods.ByName("ResolveReport")),
+			connect.WithClientOptions(opts...),
+		),
 		updateAvatar: connect.NewClient[v1.UpdateAvatarRequest, v1.UpdateAvatarResponse](
 			httpClient,
 			baseURL+CommunityServiceUpdateAvatarProcedure,
@@ -209,6 +253,10 @@ func NewCommunityServiceClient(httpClient connect.HTTPClient, baseURL string, op
 
 // communityServiceClient implements CommunityServiceClient.
 type communityServiceClient struct {
+	getParticipation  *connect.Client[v1.GetParticipationRequest, v1.GetParticipationResponse]
+	reportContent     *connect.Client[v1.ReportContentRequest, v1.ReportContentResponse]
+	listReports       *connect.Client[v1.ListReportsRequest, v1.ListReportsResponse]
+	resolveReport     *connect.Client[v1.ResolveReportRequest, v1.ResolveReportResponse]
 	updateAvatar      *connect.Client[v1.UpdateAvatarRequest, v1.UpdateAvatarResponse]
 	getProfile        *connect.Client[v1.GetProfileRequest, v1.GetProfileResponse]
 	updateProfile     *connect.Client[v1.UpdateProfileRequest, v1.UpdateProfileResponse]
@@ -223,6 +271,26 @@ type communityServiceClient struct {
 	deleteComment     *connect.Client[v1.DeleteCommentRequest, v1.DeleteCommentResponse]
 	setReaction       *connect.Client[v1.SetReactionRequest, v1.SetReactionResponse]
 	listBookmarks     *connect.Client[v1.ListBookmarksRequest, v1.ListBookmarksResponse]
+}
+
+// GetParticipation calls api.community.v1.CommunityService.GetParticipation.
+func (c *communityServiceClient) GetParticipation(ctx context.Context, req *connect.Request[v1.GetParticipationRequest]) (*connect.Response[v1.GetParticipationResponse], error) {
+	return c.getParticipation.CallUnary(ctx, req)
+}
+
+// ReportContent calls api.community.v1.CommunityService.ReportContent.
+func (c *communityServiceClient) ReportContent(ctx context.Context, req *connect.Request[v1.ReportContentRequest]) (*connect.Response[v1.ReportContentResponse], error) {
+	return c.reportContent.CallUnary(ctx, req)
+}
+
+// ListReports calls api.community.v1.CommunityService.ListReports.
+func (c *communityServiceClient) ListReports(ctx context.Context, req *connect.Request[v1.ListReportsRequest]) (*connect.Response[v1.ListReportsResponse], error) {
+	return c.listReports.CallUnary(ctx, req)
+}
+
+// ResolveReport calls api.community.v1.CommunityService.ResolveReport.
+func (c *communityServiceClient) ResolveReport(ctx context.Context, req *connect.Request[v1.ResolveReportRequest]) (*connect.Response[v1.ResolveReportResponse], error) {
+	return c.resolveReport.CallUnary(ctx, req)
 }
 
 // UpdateAvatar calls api.community.v1.CommunityService.UpdateAvatar.
@@ -297,6 +365,14 @@ func (c *communityServiceClient) ListBookmarks(ctx context.Context, req *connect
 
 // CommunityServiceHandler is an implementation of the api.community.v1.CommunityService service.
 type CommunityServiceHandler interface {
+	// GetParticipation 返回当前用户的投稿空间和模式配额。
+	GetParticipation(context.Context, *connect.Request[v1.GetParticipationRequest]) (*connect.Response[v1.GetParticipationResponse], error)
+	// ReportContent 举报当前可访问的已发布版本或评论。
+	ReportContent(context.Context, *connect.Request[v1.ReportContentRequest]) (*connect.Response[v1.ReportContentResponse], error)
+	// ListReports 仅管理员读取举报队列和处理结果。
+	ListReports(context.Context, *connect.Request[v1.ListReportsRequest]) (*connect.Response[v1.ListReportsResponse], error)
+	// ResolveReport 原子处理举报与对应内容，保留审计。
+	ResolveReport(context.Context, *connect.Request[v1.ResolveReportRequest]) (*connect.Response[v1.ResolveReportResponse], error)
 	// UpdateAvatar 上传或移除当前用户的头像，由 Hub 规范化图片。
 	UpdateAvatar(context.Context, *connect.Request[v1.UpdateAvatarRequest]) (*connect.Response[v1.UpdateAvatarResponse], error)
 	// GetProfile 按当前主体权限执行社区操作。
@@ -334,6 +410,30 @@ type CommunityServiceHandler interface {
 // and JSON codecs. They also support gzip compression.
 func NewCommunityServiceHandler(svc CommunityServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
 	communityServiceMethods := v1.File_api_community_v1_community_service_proto.Services().ByName("CommunityService").Methods()
+	communityServiceGetParticipationHandler := connect.NewUnaryHandler(
+		CommunityServiceGetParticipationProcedure,
+		svc.GetParticipation,
+		connect.WithSchema(communityServiceMethods.ByName("GetParticipation")),
+		connect.WithHandlerOptions(opts...),
+	)
+	communityServiceReportContentHandler := connect.NewUnaryHandler(
+		CommunityServiceReportContentProcedure,
+		svc.ReportContent,
+		connect.WithSchema(communityServiceMethods.ByName("ReportContent")),
+		connect.WithHandlerOptions(opts...),
+	)
+	communityServiceListReportsHandler := connect.NewUnaryHandler(
+		CommunityServiceListReportsProcedure,
+		svc.ListReports,
+		connect.WithSchema(communityServiceMethods.ByName("ListReports")),
+		connect.WithHandlerOptions(opts...),
+	)
+	communityServiceResolveReportHandler := connect.NewUnaryHandler(
+		CommunityServiceResolveReportProcedure,
+		svc.ResolveReport,
+		connect.WithSchema(communityServiceMethods.ByName("ResolveReport")),
+		connect.WithHandlerOptions(opts...),
+	)
 	communityServiceUpdateAvatarHandler := connect.NewUnaryHandler(
 		CommunityServiceUpdateAvatarProcedure,
 		svc.UpdateAvatar,
@@ -420,6 +520,14 @@ func NewCommunityServiceHandler(svc CommunityServiceHandler, opts ...connect.Han
 	)
 	return "/api.community.v1.CommunityService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
+		case CommunityServiceGetParticipationProcedure:
+			communityServiceGetParticipationHandler.ServeHTTP(w, r)
+		case CommunityServiceReportContentProcedure:
+			communityServiceReportContentHandler.ServeHTTP(w, r)
+		case CommunityServiceListReportsProcedure:
+			communityServiceListReportsHandler.ServeHTTP(w, r)
+		case CommunityServiceResolveReportProcedure:
+			communityServiceResolveReportHandler.ServeHTTP(w, r)
 		case CommunityServiceUpdateAvatarProcedure:
 			communityServiceUpdateAvatarHandler.ServeHTTP(w, r)
 		case CommunityServiceGetProfileProcedure:
@@ -456,6 +564,22 @@ func NewCommunityServiceHandler(svc CommunityServiceHandler, opts ...connect.Han
 
 // UnimplementedCommunityServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedCommunityServiceHandler struct{}
+
+func (UnimplementedCommunityServiceHandler) GetParticipation(context.Context, *connect.Request[v1.GetParticipationRequest]) (*connect.Response[v1.GetParticipationResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("api.community.v1.CommunityService.GetParticipation is not implemented"))
+}
+
+func (UnimplementedCommunityServiceHandler) ReportContent(context.Context, *connect.Request[v1.ReportContentRequest]) (*connect.Response[v1.ReportContentResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("api.community.v1.CommunityService.ReportContent is not implemented"))
+}
+
+func (UnimplementedCommunityServiceHandler) ListReports(context.Context, *connect.Request[v1.ListReportsRequest]) (*connect.Response[v1.ListReportsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("api.community.v1.CommunityService.ListReports is not implemented"))
+}
+
+func (UnimplementedCommunityServiceHandler) ResolveReport(context.Context, *connect.Request[v1.ResolveReportRequest]) (*connect.Response[v1.ResolveReportResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("api.community.v1.CommunityService.ResolveReport is not implemented"))
+}
 
 func (UnimplementedCommunityServiceHandler) UpdateAvatar(context.Context, *connect.Request[v1.UpdateAvatarRequest]) (*connect.Response[v1.UpdateAvatarResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("api.community.v1.CommunityService.UpdateAvatar is not implemented"))

@@ -90,37 +90,3 @@ func TestAvatarRejectsUnsupportedOversizedAndCorruptImages(t *testing.T) {
 		})
 	}
 }
-
-func TestAvatarMigrationPreservesExistingProfile(t *testing.T) {
-	root := t.TempDir()
-	s, err := Open(root)
-	if err != nil {
-		t.Fatal(err)
-	}
-	ctx := context.Background()
-	actor, err := s.Bootstrap(ctx, "migration-user", "a-strong-test-password")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if _, err = s.UpdateProfile(ctx, actor, "before-migration", c.ProfileChange{DisplayName: "Existing name", Bio: "Existing bio"}); err != nil {
-		t.Fatal(err)
-	}
-	if _, err = s.db.Exec("DROP TABLE evaluation_evidence; DROP TABLE featured_skills; DROP INDEX releases_review_queue; DROP TABLE review_notifications; DROP TABLE release_scans; DROP TABLE platform_roles; DROP TABLE access_requests; ALTER TABLE releases DROP COLUMN display_name_en; ALTER TABLE releases DROP COLUMN display_name_zh; ALTER TABLE releases DROP COLUMN icon; DROP TABLE external_identities; ALTER TABLE profiles DROP COLUMN avatar; PRAGMA user_version=3;"); err != nil {
-		t.Fatal(err)
-	}
-	if err = s.Close(); err != nil {
-		t.Fatal(err)
-	}
-	s, err = Open(root)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer s.Close()
-	p, err := s.GetProfile(ctx, actor, "")
-	if err != nil || p.DisplayName != "Existing name" || p.Bio != "Existing bio" || p.Revision != 1 || p.Avatar != "" {
-		t.Fatal("profile changed during migration", err)
-	}
-	if _, err = s.UpdateAvatar(ctx, actor, "after-migration", c.AvatarChange{Image: avatarImage(t, 20, 20), ExpectedRevision: p.Revision}); err != nil {
-		t.Fatal(err)
-	}
-}

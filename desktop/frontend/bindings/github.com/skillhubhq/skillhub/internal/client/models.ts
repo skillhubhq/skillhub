@@ -122,6 +122,16 @@ export interface NotificationPage {
     "next_page": string;
 }
 
+/**
+ * OpenRequest 只携带来源与精确版本；不接受凭据、本地路径或自动安装指令。
+ */
+export interface OpenRequest {
+    "hub": string;
+    "namespace": string;
+    "name": string;
+    "version": string;
+}
+
 export interface PlatformAccess {
     "can_curate": boolean;
     "supported": boolean;
@@ -248,6 +258,7 @@ export interface ScanInfo {
 }
 
 export interface Source {
+    "official": boolean;
     "alias": string;
     "url": string;
     "registry_id": string;

@@ -37,6 +37,7 @@ var (
 )
 
 type Source struct {
+	Official      bool   `json:"official"`
 	Alias         string `json:"alias"`
 	URL           string `json:"url"`
 	RegistryID    string `json:"registry_id"`
@@ -163,6 +164,7 @@ func (c *Client) AddSource(ctx context.Context, alias, address string) (Source, 
 	if n == 0 {
 		return Source{}, errors.New("source alias already exists")
 	}
+	source.Official = IsOfficialHub(source.URL)
 	return source, nil
 }
 
@@ -182,6 +184,7 @@ func (c *Client) Source(ctx context.Context, alias string) (Source, error) {
 	if source.Alias != alias {
 		return Source{}, errors.New("invalid source record")
 	}
+	source.Official = IsOfficialHub(source.URL)
 	return source, nil
 }
 
@@ -201,6 +204,7 @@ func (c *Client) ListSources(ctx context.Context) ([]Source, error) {
 		if err = json.Unmarshal([]byte(raw), &source); err != nil {
 			return nil, err
 		}
+		source.Official = IsOfficialHub(source.URL)
 		result = append(result, source)
 	}
 	return result, rows.Err()

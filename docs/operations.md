@@ -62,10 +62,10 @@ The `.skillhub-maintenance` marker blocks service startup while a destination is
 
 1. Make and verify a backup using the current binary before starting an upgraded binary.
 2. Stop the old process, retain the old binary/configuration, then start the new binary against the live data directory.
-3. Check startup, login, catalog permissions and a download. Migrations run transactionally at open; supported migrations preserve instance identity. Future unknown database versions are rejected.
+3. Check startup, login, catalog permissions and a download. Empty databases are initialized transactionally. Existing instance identity is preserved; unsupported database versions are rejected.
 4. To roll back a schema change, stop the new process and restore the pre-upgrade backup into a new directory using a compatible binary. Do not run an old binary against a newer schema. Reconcile writes accepted after the backup before selecting the rollback point.
 
-The Hub schema is 10 and the shared client schema is 2. SQLite backup manifest format 1 verifies supported Hub schemas through 10. Restoring retains the snapshot schema; opening the restored directory runs supported migrations. Future format/schema support must be added explicitly rather than silently rewriting old snapshots during verification.
+The Hub and shared client both use schema baseline 1. Backup manifest format 1 verifies that supported Hub schema. Restore preserves the snapshot structure and identity; verification never rewrites a snapshot.
 
 ## Diagnostics and limits
 
@@ -90,7 +90,7 @@ If all local administrator credentials are lost, stop the service first, make an
 
 ## Candidate preparation and internal-server acceptance
 
-`deploy/skillhub.service` and `deploy/nginx.conf.example` are templates, not installed services. Create a dedicated OS user; install a verified binary under `/opt/skillhub`; create `/var/lib/skillhub/data` owned by that user; initialize once; set the real domain/TLS/tenant configuration before enabling the service. For Entra, add the documented tenant-specific issuer/client ID flags and a root-controlled service environment file for `SKILLHUB_OIDC_CLIENT_SECRET`; do not put a secret in a checked-in unit or command line. See [enterprise sign-in](enterprise-login.md).
+`deploy/skillhub.service` and `deploy/nginx.conf.example` are templates, not installed services. Create a dedicated OS user; install a verified binary under `/opt/skillhub`; create `/var/lib/skillhub/data` owned by that user; initialize once; set the real domain/TLS/tenant configuration before enabling the service. For Entra, configure an `auth.providers` OIDC entry with the documented tenant-specific issuer/client ID and a protected secret file or explicit `client_secret_env`; do not put a secret in a checked-in unit or command line. See [enterprise sign-in](enterprise-login.md).
 
 From an authorized, clean revision, run `python3 scripts/build_candidate.py --output .local/candidate-<revision> --arch amd64`. It builds embedded Web assets and Linux Hub/CLI, and records the Git SHA, source hash, toolchain, target and binary checksums. `--allow-dirty` explicitly produces **local-only diagnostic artifacts**, never a release candidate. Hashes provide integrity, not authenticity. App builds use `node desktop/build.mjs` on their supported host and must use the same revision. Verify checksums after copying artifacts; keep the prior binaries and verified backup for rollback.
 

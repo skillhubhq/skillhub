@@ -38,7 +38,7 @@ python3 scripts/build_dmg.py --output desktop/bin/SkillHub-manual-preview.dmg
 
 公开仓库准备流程生成 GitHub attestations；私有可用性取决于计划，不能虚称存在。账号可见性和签名凭据不由本地代码决定。
 
-## 运维与迁移 [#operation-and-migration]
+## 维护 [#maintenance]
 
 下载页独立于社区登录，多 Hub App 软件更新与技能更新分开。服务器升级先备份并保留旧二进制/配置；schema 回退用兼容快照。将来需要离线分发，可通过自有部署系统镜像未修改的归档、摘要和来源证明，但不能让私有镜像成为开源产品依赖。
 

@@ -7,17 +7,17 @@ import { Code } from "@connectrpc/connect";
 import { createConnectTransport } from "@connectrpc/connect-web";
 import { createHubClients } from "../../sdk/typescript/src/index";
 import { HeaderFrame } from "../../desktop/frontend/src/HeaderFrame";
+import { PreferenceControls } from "../../desktop/frontend/src/PreferenceControls";
 import { Icon } from "../../desktop/frontend/src/Icon";
 
 export function DocsHeader({ locale }: { locale: "en" | "zh" }) {
   const pathname = usePathname();
   const tr = (en: string, zh: string) => (locale === "zh" ? zh : en);
-  const language = useRef<HTMLDetailsElement>(null);
   useEffect(() => {
     document.documentElement.lang = locale === "zh" ? "zh-CN" : "en";
     try {
       localStorage.setItem("skillhub.language", locale);
-      document.cookie = `skillhub-language=${locale}; Path=/; SameSite=Strict`;
+      document.cookie = `skillhub-language=${locale}; Path=/; SameSite=Lax`;
     } catch {}
   }, [locale]);
   const [languageHref, setLanguageHref] = useState("/docs/");
@@ -43,9 +43,8 @@ export function DocsHeader({ locale }: { locale: "en" | "zh" }) {
   const [privateHub, setPrivateHub] = useState(true);
   const [failedAvatar, setFailedAvatar] = useState(false);
   const header = useRef<HTMLElement>(null);
-  const appearance = useRef<HTMLDetailsElement>(null);
   const account = useRef<HTMLDetailsElement>(null);
-  const { theme, resolvedTheme, setTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
   useEffect(() => {
     const controller = new AbortController();
     const clients = createHubClients(
@@ -80,11 +79,7 @@ export function DocsHeader({ locale }: { locale: "en" | "zh" }) {
           );
       });
     const dismiss = (event: PointerEvent) => {
-      for (const menu of [
-        appearance.current,
-        account.current,
-        language.current,
-      ])
+      for (const menu of [account.current])
         if (menu && !menu.contains(event.target as Node)) menu.open = false;
     };
     document.addEventListener("pointerdown", dismiss);
@@ -154,69 +149,14 @@ export function DocsHeader({ locale }: { locale: "en" | "zh" }) {
         }
         utilities={
           <>
-            <details
-              ref={language}
-              className="docs-language"
-              name="docs-menu"
-              onKeyDown={closeOnEscape}
-            >
-              <summary aria-label={tr("Language", "语言")}>
-                <Icon name="language" />
-                <span>{tr("English", "简体中文")}</span>
-                <span aria-hidden="true">⌄</span>
-              </summary>
-              <div className="docs-account-popover">
-                <a
-                  href={locale === "en" ? "#" : languageHref}
-                  lang="en"
-                  aria-current={locale === "en" ? "true" : undefined}
-                >
-                  English
-                </a>
-                <a
-                  href={locale === "zh" ? "#" : languageHref}
-                  lang="zh-CN"
-                  aria-current={locale === "zh" ? "true" : undefined}
-                >
-                  简体中文
-                </a>
-              </div>
-            </details>
-            <details
-              ref={appearance}
-              className="quick-theme"
-              name="docs-menu"
-              onKeyDown={closeOnEscape}
-            >
-              <summary
-                aria-label={tr("Appearance", "外观")}
-                title={tr("Appearance", "外观")}
-              >
-                <Icon name={resolvedTheme === "dark" ? "moon" : "sun"} />
-              </summary>
-              <div className="theme-popover">
-                <p>{tr("Appearance", "外观")}</p>
-                {(
-                  [
-                    ["light", tr("Light", "浅色"), "sun"],
-                    ["dark", tr("Dark", "深色"), "moon"],
-                    ["system", tr("Follow system", "跟随系统"), "device"],
-                  ] as const
-                ).map(([value, label, icon]) => (
-                  <button
-                    key={value}
-                    aria-pressed={theme === value}
-                    onClick={() => {
-                      setTheme(value);
-                      if (appearance.current) appearance.current.open = false;
-                    }}
-                  >
-                    <Icon name={icon} />
-                    <span>{label}</span>
-                  </button>
-                ))}
-              </div>
-            </details>
+            <PreferenceControls
+              language={locale}
+              theme={theme ?? "system"}
+              onLanguage={(value) => {
+                if (value !== locale) location.href = languageHref;
+              }}
+              onTheme={setTheme}
+            />
             <a
               className="utility-settings"
               href="/#settings"

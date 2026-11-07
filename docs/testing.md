@@ -4,7 +4,7 @@ Use disposable databases, temporary client directories and synthetic packages. N
 
 ## Software acceptance scope
 
-Software release acceptance covers repository-controlled behavior: protocol compatibility, authorization and identity boundaries using local OIDC fixtures, publishing/review/install flows, native App state preservation, supported database migrations and recovery, security scans, and reproducible packaging. Run the supported-platform CI matrix against the exact candidate revision.
+Software release acceptance covers repository-controlled behavior: protocol compatibility, authorization and identity boundaries using local OIDC fixtures, publishing/review/install flows, native App state preservation, database initialization and recovery, security scans, and reproducible packaging. Run the supported-platform CI matrix against the exact candidate revision.
 
 A real Entra tenant, an organization's server/proxy/storage and clean managed-device installation are follow-up integration checks owned by the deployment operator. They are not prerequisites or blockers for the software release. Keep their status separate: passing code tests does not claim that those environments have been validated. Use the [deployment checklist](deployment-checklist.md) when preparing a particular installation.
 
@@ -61,7 +61,7 @@ go test -count=1 -run TestPostgres ./internal/hub
 go test -count=1 -run TestDiscoveryCapacity -v ./internal/hub
 ```
 
-Without the explicit DSN, PostgreSQL tests skip. CI covers PostgreSQL 15, 16 and 18 using matching native tools. Maintenance checks include lease exclusivity, migration cancellation, paired backup/restore, corrupted/missing packages, session invalidation, rollback into fresh destinations and incomplete-recovery guards.
+Without the explicit DSN, PostgreSQL tests skip. CI covers PostgreSQL 15, 16 and 18 using matching native tools. Maintenance checks include lease exclusivity, initialization cancellation, paired backup/restore, corrupted/missing packages, session invalidation, rollback into fresh destinations and incomplete-recovery guards.
 
 Capacity tests use generated content to verify access-filtered pagination, latest-version selection, curation and review counts under concurrent reads. Record timings with the host/tool versions; do not use synthetic query latency as a deployment SLA. Measure realistic publication/download load and package sizes on the target environment.
 
@@ -107,3 +107,9 @@ GitHub CodeQL default setup analyzes Go, JavaScript/TypeScript, Python and Actio
 The [deployment checklist](deployment-checklist.md) records optional-to-release, environment-specific follow-up against the actual identity provider, reverse proxy, database/storage and installation devices. Local fixtures cannot certify those integrations, and pending integration work does not fail code-level acceptance.
 
 Native overwrite tests use one isolated application and credential-store identity. When comparing a checkout with a different distributor identity, the harness normalizes only those identifiers and records the affected files in `fixture_identity_normalization`. Such a run verifies data-format compatibility; it does not certify automatic migration between application identities. Distributors must keep their application and credential-store identifiers stable across releases.
+
+## Login adapters and community policy
+
+Run `go test -race ./internal/identityprovider ./internal/hubhttp ./internal/hub ./internal/serverconfig` to verify provider validation, OIDC signatures/claims, OAuth PKCE, state/cookie/replay isolation, stable identities, mode-specific admission, disabled/pending account retention, safe avatar initialization, quotas, moderation and schema-10-to-current recovery. Adapter tests use controlled HTTP transports; OIDC tests use a local TLS provider with real signed tokens. They do not require or claim real provider credentials.
+
+`TestPostgresCommunityPolicyAndModeration` runs through the existing isolated PostgreSQL fixture on versions 15, 16 and 18. The native fixture additionally exercises the report dialog, shared Go methods, report queue authorization, resolution and comment tombstones. All fixture data is disposable; these tests never open the operator's current Hub data.

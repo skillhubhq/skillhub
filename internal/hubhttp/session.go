@@ -42,7 +42,7 @@ func (s *Server) browserSession(w http.ResponseWriter, r *http.Request) bool {
 	return true
 }
 
-var sessionPage = template.Must(template.New("session").Parse(`<!doctype html><html lang="{{.Language}}"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="icon" type="image/svg+xml" href="/assets/brand/favicon.svg"><script src="/assets/preferences-init.js"></script><title>{{.Labels.SignIn}} · {{.Name}}</title><style>body{font:16px/1.6 system-ui,sans-serif;background:#f8f9fb;color:#24272e;padding:8vh 20px;margin:0}main{max-width:400px;margin:auto;background:white;border:1px solid #e5e7eb;border-radius:8px;padding:40px}h1{font-size:24px}label{display:block;margin:20px 0 6px}input,button{box-sizing:border-box;width:100%;font:inherit;padding:12px;border:1px solid #c4cddc;border-radius:6px}button{background:#252a34;color:white;margin-top:24px;cursor:pointer}a{color:#252a34}.error{color:#992d37}</style><link rel="stylesheet" href="/assets/auth.css"><main><img class="brand-light" src="/assets/brand/logo-color.svg" alt="SkillHub" width="145"><img class="brand-dark" src="/assets/brand/logo-white.svg" alt="SkillHub" width="145"><h1>{{.Name}}</h1><p>{{if .Logout}}{{.Labels.Leave}}{{else}}{{.Labels.Intro}}{{end}}</p>{{if .Error}}<p class="error" role="alert">{{.Error}}</p>{{end}}{{if and .Provider (not .Logout)}}<p><a class="sso-button" href="{{.OIDCURL}}">{{.Labels.Continue}} {{.Provider}}</a></p><details class="local-login"><summary>{{.Labels.Local}}</summary>{{end}}<form method="post"><input type="hidden" name="next" value="{{.Next}}"><input type="hidden" name="csrf" value="{{.CSRF}}">{{if not .Logout}}<label for="username">{{.Labels.Username}}</label><input id="username" name="username" autocomplete="username" required maxlength="128"><label for="password">{{.Labels.Password}}</label><input id="password" name="password" type="password" autocomplete="current-password" required maxlength="1024">{{end}}<button>{{if .Logout}}{{.Labels.SignOut}}{{else}}{{.Labels.SignIn}}{{end}}</button></form>{{if and .Provider (not .Logout)}}</details>{{end}}<p><a href="/">{{.Labels.Back}}</a></p><p class="languages"><a href="{{.EnglishURL}}">English</a> · <a href="{{.ChineseURL}}">简体中文</a></p></main></html>`))
+var sessionPage = template.Must(template.New("session").Parse(`<!doctype html><html lang="{{.Language}}"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="icon" type="image/svg+xml" href="/assets/brand/favicon.svg"><script src="/assets/preferences-init.js"></script><title>{{.Labels.SignIn}} · {{.Name}}</title><style>body{font:16px/1.6 system-ui,sans-serif;background:#f8f9fb;color:#24272e;padding:8vh 20px;margin:0}main{max-width:400px;margin:auto;background:white;border:1px solid #e5e7eb;border-radius:8px;padding:40px}h1{font-size:24px}label{display:block;margin:20px 0 6px}input,button{box-sizing:border-box;width:100%;font:inherit;padding:12px;border:1px solid #c4cddc;border-radius:6px}button{background:#252a34;color:white;margin-top:24px;cursor:pointer}a{color:#252a34}.error{color:#992d37}</style><link rel="stylesheet" href="/assets/auth.css"><main><img class="brand-light" src="/assets/brand/logo-color.svg" alt="SkillHub" width="145"><img class="brand-dark" src="/assets/brand/logo-white.svg" alt="SkillHub" width="145"><h1>{{.Name}}</h1><p>{{if .Logout}}{{.Labels.Leave}}{{else}}{{.Labels.Intro}}{{end}}</p>{{if .Error}}<p class="error" role="alert">{{.Error}}</p>{{end}}{{if and .Providers (not .Logout)}}{{range .Providers}}<p><a class="sso-button" href="{{.URL}}">{{$.Labels.Continue}} {{.Name}}</a></p>{{end}}<details class="local-login"><summary>{{.Labels.Local}}</summary>{{end}}<form method="post"><input type="hidden" name="next" value="{{.Next}}"><input type="hidden" name="csrf" value="{{.CSRF}}">{{if not .Logout}}<label for="username">{{.Labels.Username}}</label><input id="username" name="username" autocomplete="username" required maxlength="128"><label for="password">{{.Labels.Password}}</label><input id="password" name="password" type="password" autocomplete="current-password" required maxlength="1024">{{end}}<button>{{if .Logout}}{{.Labels.SignOut}}{{else}}{{.Labels.SignIn}}{{end}}</button></form>{{if and .Providers (not .Logout)}}</details>{{end}}<p><a href="/">{{.Labels.Back}}</a></p><p class="languages"><a href="{{.EnglishURL}}">English</a> · <a href="{{.ChineseURL}}">简体中文</a></p></main></html>`))
 
 // 会话页面只处理浏览器认证，不新增第二套业务 API。
 func (s *Server) session(w http.ResponseWriter, r *http.Request) {
@@ -66,11 +66,12 @@ func (s *Server) session(w http.ResponseWriter, r *http.Request) {
 	}
 	labels := map[string]string{"Continue": "Continue with", "Local": "Use a local Hub account", "SignIn": "Sign in", "SignOut": "Sign out", "Username": "Username", "Password": "Password", "Intro": "Welcome back. Sign in to share, learn and work together.", "Leave": "Sign out of this hub?", "Back": "Back to the community", "Error": "Unable to sign in. Check your username and password."}
 	if language == "zh" {
-		labels = map[string]string{"Continue": "使用企业登录：", "Local": "使用本地 Hub 账号", "SignIn": "登录", "SignOut": "确认退出", "Username": "用户名", "Password": "密码", "Intro": "登录当前 Hub，继续浏览、发布与协作。", "Leave": "退出当前 Hub 账号？", "Back": "返回技能社区", "Error": "无法登录，请检查账号和密码。"}
+		labels = map[string]string{"Continue": "使用以下账号登录：", "Local": "使用本地 Hub 账号", "SignIn": "登录", "SignOut": "确认退出", "Username": "用户名", "Password": "密码", "Intro": "登录当前 Hub，继续浏览、发布与协作。", "Leave": "退出当前 Hub 账号？", "Back": "返回技能社区", "Error": "无法登录，请检查账号和密码。"}
 	} else {
 		language = "en"
 	}
-	http.SetCookie(w, &http.Cookie{Name: "skillhub-language", Value: language, Path: "/", SameSite: http.SameSiteStrictMode, Secure: secure, MaxAge: 365 * 24 * 60 * 60})
+	// 语言不是认证凭据；Lax 允许第三方登录回调继续使用用户选择的语言。
+	http.SetCookie(w, &http.Cookie{Name: "skillhub-language", Value: language, Path: "/", SameSite: http.SameSiteLaxMode, Secure: secure, MaxAge: 365 * 24 * 60 * 60})
 	next := returnPath(r.URL.Query().Get("next"))
 	logout := r.URL.Path == "/logout"
 	message := ""
@@ -119,16 +120,12 @@ func (s *Server) session(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &http.Cookie{Name: csrfName, Value: token, Path: "/", HttpOnly: true, Secure: secure, SameSite: http.SameSiteStrictMode, MaxAge: 600})
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(status)
-	provider := ""
-	if s.config.OIDC != nil {
-		provider = s.config.OIDC.DisplayName
-	}
 	_ = sessionPage.Execute(w, struct {
-		Name, CSRF, Error                     string
-		Next, OIDCURL, EnglishURL, ChineseURL string
-		Language                              string
-		Labels                                map[string]string
-		Provider                              string
-		Logout                                bool
-	}{Name: s.config.DisplayName, CSRF: token, Error: message, Next: next, OIDCURL: "/auth/oidc/start?next=" + url.QueryEscape(next), EnglishURL: "?lang=en&next=" + url.QueryEscape(next), ChineseURL: "?lang=zh&next=" + url.QueryEscape(next), Language: language, Labels: labels, Provider: provider, Logout: logout})
+		Name, CSRF, Error, Next, EnglishURL, ChineseURL, Language string
+		Providers                                                 []loginOption
+		Labels                                                    map[string]string
+		Logout                                                    bool
+	}{Name: s.config.DisplayName, CSRF: token, Error: message, Next: next,
+		EnglishURL: "?lang=en&next=" + url.QueryEscape(next), ChineseURL: "?lang=zh&next=" + url.QueryEscape(next),
+		Providers: s.loginOptions(next), Language: language, Labels: labels, Logout: logout})
 }

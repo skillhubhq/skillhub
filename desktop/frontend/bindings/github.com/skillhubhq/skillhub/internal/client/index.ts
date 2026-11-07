@@ -13,6 +13,7 @@ export type {
     LockedSkill,
     Notification,
     NotificationPage,
+    OpenRequest,
     PlatformAccess,
     PreviewContent,
     PreviewFile,

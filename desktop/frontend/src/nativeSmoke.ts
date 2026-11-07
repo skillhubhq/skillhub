@@ -7,6 +7,7 @@ import { skillTitle } from "./SkillIdentity";
 import { setLanguage, type Language } from "./i18n";
 import { setTheme, type Theme } from "./preferences";
 import {
+  ReportResolution as Resolution,
   NamespaceRole as Role,
   PlatformRole as Duty,
   PrincipalKind as Principal,
@@ -43,7 +44,7 @@ export async function runNativeSmoke() {
     check(
       document.querySelectorAll(".primary-navigation button").length === 3 &&
         !!document.querySelector(".quick-language .ui-select") &&
-        !!document.querySelector(".quick-theme summary"),
+        !!document.querySelector(".quick-theme .ui-select"),
       "task navigation and persistent preference shortcuts rendered",
     );
     await runSelectSmoke(check);
@@ -106,6 +107,76 @@ export async function runNativeSmoke() {
         await new Promise((resolve) => setTimeout(resolve, 50));
       }
     };
+    const webSkill =
+      pages.find((page) => page.source === "company")?.skills?.[0] ??
+      pages[0].skills![0];
+    const webSource = sources.find((source) => source.alias === "company")!;
+    const webLink = `skillhub://open?${new URLSearchParams({ hub: webSource.url, skill: `${webSkill.namespace}/${webSkill.name}`, version: webSkill.version })}`;
+    const installedBeforeLink = JSON.stringify(await API.ListInstalled());
+    await Call.ByName("main.NativeSmokeReporter.OpenLink", webLink);
+    await waitForUI(() => !!document.querySelector("dialog[open]"));
+    check(
+      document
+        .querySelector("dialog[open]")
+        ?.textContent?.includes(webSource.url),
+      "web link requires explicit source confirmation",
+    );
+    const linkButton = (label: string) =>
+      Array.from(
+        document.querySelectorAll<HTMLButtonElement>("dialog[open] button"),
+      ).find((button) => button.textContent === label)!;
+    linkButton("Cancel").click();
+    await waitForUI(() => !document.querySelector("dialog[open]"));
+    check(
+      JSON.stringify(await API.ListInstalled()) === installedBeforeLink,
+      "cancelled web link preserves local installations",
+    );
+    await Call.ByName("main.NativeSmokeReporter.OpenLink", webLink);
+    await waitForUI(() => !!document.querySelector("dialog[open]"));
+    linkButton("View skill").click();
+    await waitForUI(
+      () =>
+        !document.querySelector("dialog[open]") &&
+        !!document.querySelector(".skill-detail .detail-hero"),
+    );
+    check(
+      location.hash.includes(`version=${webSkill.version}`) &&
+        location.hash.includes("source=company"),
+      "confirmed web link opens its exact version and existing connection",
+    );
+    check(
+      JSON.stringify(await API.ListInstalled()) === installedBeforeLink,
+      "opening web detail never installs files",
+    );
+    check(
+      document
+        .querySelector<HTMLAnchorElement>(".source-web-link")
+        ?.href.startsWith(webSource.url + "/#discover?"),
+      "native detail links back to its source website",
+    );
+    location.hash = "discover?source=company";
+    await waitForUI(() => !!document.querySelector(".search-scope"));
+    const appearance = document.querySelector<HTMLButtonElement>(
+      ".quick-theme .ui-select",
+    )!;
+    appearance.click();
+    await waitForUI(() => !!document.querySelector(".ui-select-menu"));
+    const themeMenu = document.querySelector<HTMLElement>(".ui-select-menu")!;
+    const themeBounds = themeMenu.getBoundingClientRect();
+    check(
+      themeMenu.contains(
+        document.elementFromPoint(themeBounds.right - 20, themeBounds.top + 20),
+      ),
+      "appearance menu paints above the Hub switcher",
+    );
+    check(
+      themeMenu.querySelectorAll("[role=option]").length === 3,
+      "appearance uses the shared accessible select",
+    );
+    appearance.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
+    );
+    await waitForUI(() => !document.querySelector(".ui-select-menu"));
     const clickManagementTab = async (label: string) => {
       // 权限入口在身份返回后才出现；列表也可能先于全局请求状态更新。
       const findButton = () =>
@@ -171,9 +242,56 @@ export async function runNativeSmoke() {
         )!.disabled,
     );
     check(
-      document.querySelectorAll(".skill-social-actions button").length === 3,
-      "like save and comment are visible beside installation",
+      document.querySelectorAll(".skill-social-actions button").length === 4,
+      "like save comment and report are visible beside installation",
     );
+    Array.from(
+      document.querySelectorAll<HTMLButtonElement>(
+        ".skill-social-actions button",
+      ),
+    )
+      .find((b) => b.textContent === "Report")!
+      .click();
+    await waitForUI(() => !!document.querySelector("dialog[open] textarea"));
+    check(
+      !document
+        .querySelector<HTMLDialogElement>("dialog[open]")!
+        .textContent?.includes("does not support"),
+      "native report dialog supports the connected Hub",
+    );
+    check(
+      document.activeElement?.tagName === "TEXTAREA",
+      "report reason receives keyboard focus",
+    );
+    const socialAction = document.querySelector<HTMLButtonElement>(
+      ".skill-social-actions > button",
+    )!;
+    check(
+      ["inline-flex", "flex"].includes(
+        getComputedStyle(socialAction).display,
+      ) && parseFloat(getComputedStyle(socialAction).columnGap) >= 5,
+      "skill social actions retain readable icon and count spacing",
+    );
+    const reportModal =
+      document.querySelector<HTMLDialogElement>("dialog[open]")!;
+    const submitStyle = getComputedStyle(
+      reportModal.querySelector<HTMLButtonElement>("button.primary")!,
+    );
+    check(
+      submitStyle.backgroundColor !== "rgba(0, 0, 0, 0)" &&
+        submitStyle.backgroundColor !== submitStyle.color,
+      "report submit button keeps its primary contrast inside detail actions",
+    );
+    check(
+      reportModal.getBoundingClientRect().height <= 441,
+      "report form uses a compact stable dialog",
+    );
+    document
+      .querySelector<HTMLButtonElement>(
+        "dialog[open] button[aria-label='Close dialog']",
+      )!
+      .click();
+    await waitForUI(() => !document.querySelector("dialog[open]"));
     document
       .querySelector<HTMLButtonElement>(".skill-social-actions button")!
       .click();
@@ -233,7 +351,7 @@ export async function runNativeSmoke() {
       "back to discovery preserves aggregate scope",
     );
     const themeRect = document
-      .querySelector(".quick-theme summary .icon")!
+      .querySelector(".quick-theme .ui-select .icon")!
       .getBoundingClientRect();
     const settingsRect = document
       .querySelector(".utility-settings .icon")!
@@ -329,6 +447,54 @@ export async function runNativeSmoke() {
     check(
       replies.items?.some((item) => item.comment_id === reply.comment_id),
       "native comment replies read from Hub",
+    );
+    const participation = await API.CommunityParticipation("company");
+    check(
+      participation.supported && !participation.community_mode,
+      "enterprise mode and moderation capability cross native bridge",
+    );
+    const reported = await API.CommunityReport(
+      "company",
+      preview.release.id,
+      reply.comment_id,
+      "Synthetic content report",
+      await API.NewRequestID(),
+    );
+    let reportDenied = false;
+    try {
+      await API.CommunityReports("limited", false, "");
+    } catch {
+      reportDenied = true;
+    }
+    check(reportDenied, "non-administrator cannot read report queue");
+    const reports = await API.CommunityReports("company", false, "");
+    check(
+      reports.items?.some((r) => r.id === reported && r.content === reply.body),
+      "report queue includes exact comment and reason",
+    );
+    await API.CommunityResolveReport(
+      "company",
+      reported,
+      Resolution.ReportResolution_REPORT_RESOLUTION_REMOVE_CONTENT,
+      "Synthetic moderation decision",
+      await API.NewRequestID(),
+    );
+    const resolvedReports = await API.CommunityReports("company", true, "");
+    check(
+      resolvedReports.items?.some((r) => r.id === reported && r.resolved),
+      "moderation decision persists through native bridge",
+    );
+    const moderatedReplies = await API.CommunityListComments(
+      "company",
+      preview.release.id,
+      comment.comment_id,
+      "",
+    );
+    check(
+      moderatedReplies.items?.some(
+        (r) => r.comment_id === reply.comment_id && r.deleted && !r.body,
+      ),
+      "moderated comment body is no longer readable",
     );
     await API.CommunityDeleteComment(
       "company",

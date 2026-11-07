@@ -1,13 +1,15 @@
+import { OfficialBadge } from "./official";
 import { HeaderFrame } from "./HeaderFrame";
 import { ReviewInbox } from "./ReviewInbox";
 import { Select } from "./Select";
+import { PreferenceControls } from "./PreferenceControls";
 import { useEffect, useRef } from "react";
 import { useUI } from "./ui";
 import { isWeb } from "./platform";
 import { Icon } from "./Icon";
 import { WebAccount } from "./WebAccount";
 import { t, setLanguage, useLanguage } from "./i18n";
-import { setTheme, useTheme, type Theme } from "./preferences";
+import { setTheme, useTheme } from "./preferences";
 
 const community = ["discover", "teams", "bookmarks", "profile"];
 const studio = ["publish", "submissions", "review", "management"];
@@ -135,11 +137,6 @@ export function Navigation({ page }: { page: string }) {
         }
         utilities={
           <>
-            {ui.access === "member" &&
-              ui.activeSource &&
-              group !== "library" && (
-                <ReviewInbox key={ui.activeSource} source={ui.activeSource} />
-              )}
             <QuickPreferences />
             <button
               className="utility-settings"
@@ -150,6 +147,11 @@ export function Navigation({ page }: { page: string }) {
             >
               <Icon name="management" />
             </button>
+            {ui.access === "member" &&
+              ui.activeSource &&
+              group !== "library" && (
+                <ReviewInbox key={ui.activeSource} source={ui.activeSource} />
+              )}
             <WebAccount />
           </>
         }
@@ -186,76 +188,13 @@ export function Navigation({ page }: { page: string }) {
   );
 }
 function QuickPreferences() {
-  const language = useLanguage(),
-    theme = useTheme(),
-    menu = useRef<HTMLDetailsElement>(null);
-  useEffect(() => {
-    const dismiss = (e: PointerEvent) => {
-      if (!menu.current?.contains(e.target as Node))
-        menu.current?.removeAttribute("open");
-    };
-    document.addEventListener("pointerdown", dismiss);
-    return () => document.removeEventListener("pointerdown", dismiss);
-  }, []);
-  const options: [Theme, string, string][] = [
-    ["light", t("Light", "浅色"), "sun"],
-    ["dark", t("Dark", "深色"), "moon"],
-    ["system", t("Follow system", "跟随系统"), "device"],
-  ];
   return (
-    <>
-      <label className="quick-language" title={t("Language", "语言")}>
-        <Icon name="language" />
-        <Select
-          aria-label={t("Language", "语言")}
-          value={language}
-          onChange={(e) => setLanguage(e.target.value as "en" | "zh")}
-        >
-          <option value="en">English</option>
-          <option value="zh">简体中文</option>
-        </Select>
-      </label>
-      <details
-        ref={menu}
-        className="quick-theme"
-        name="navigation-menu"
-        onKeyDown={(e) => {
-          if (e.key === "Escape") {
-            menu.current?.removeAttribute("open");
-            menu.current?.querySelector("summary")?.focus();
-          }
-        }}
-      >
-        <summary
-          title={t("Appearance", "外观")}
-          aria-label={t("Appearance", "外观")}
-        >
-          <Icon
-            name={
-              theme === "system" ? "device" : theme === "dark" ? "moon" : "sun"
-            }
-          />
-        </summary>
-        <div className="theme-popover">
-          <p>{t("Appearance", "外观")}</p>
-          {options.map(([value, label, icon]) => (
-            <button
-              key={value}
-              aria-pressed={theme === value}
-              onClick={() => {
-                setTheme(value);
-                menu.current?.removeAttribute("open");
-                menu.current?.querySelector("summary")?.focus();
-              }}
-            >
-              <Icon name={icon} />
-              <span>{label}</span>
-              {theme === value && <Icon name="review" />}
-            </button>
-          ))}
-        </div>
-      </details>
-    </>
+    <PreferenceControls
+      language={useLanguage()}
+      theme={useTheme()}
+      onLanguage={setLanguage}
+      onTheme={setTheme}
+    />
   );
 }
 
@@ -295,6 +234,7 @@ function HubContext({ page }: { page: string }) {
         <span className="hub-switch-name">
           {current?.display_name || t("Connect a hub", "连接 Hub")}
         </span>
+        {current && <OfficialBadge url={current.url} />}
         <span className="menu-chevron" aria-hidden="true">
           ⌄
         </span>
@@ -312,7 +252,9 @@ function HubContext({ page }: { page: string }) {
             }}
           >
             <span>
-              <strong>{s.display_name || s.alias}</strong>
+              <strong>
+                {s.display_name || s.alias} <OfficialBadge url={s.url} />
+              </strong>
               <small>{s.alias}</small>
             </span>
             {s.alias === ui.activeSource && <Icon name="review" />}

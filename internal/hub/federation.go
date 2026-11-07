@@ -11,7 +11,7 @@ import (
 	"github.com/google/uuid"
 )
 
-// FederatedLogin 只接受服务端 OIDC 验证器确认的 issuer/sub，不按邮箱合并本地账号。
+// FederatedLogin 只接受服务端第三方身份适配器确认的 issuer/sub，不按邮箱合并本地账号。
 func (s *Store) FederatedLogin(ctx context.Context, issuer, subject, displayName string, allowCreate bool) (Session, error) {
 	if issuer == "" || subject == "" || len(issuer) > 2048 || len(subject) > 255 {
 		return Session{}, ErrInvalid
@@ -29,6 +29,15 @@ func (s *Store) FederatedLogin(ctx context.Context, issuer, subject, displayName
 	var disabled bool
 	err = tx.QueryRowContext(ctx, `SELECT u.id,u.username,u.administrator,u.disabled FROM external_identities e JOIN users u ON u.id=e.user_id WHERE e.issuer=? AND e.subject=?`, issuer, subject).Scan(&user.ID, &user.Username, &user.Administrator, &disabled)
 	if errors.Is(err, sql.ErrNoRows) {
+		if s.policy.IsCommunity() {
+			var count int
+			if e := tx.QueryRowContext(ctx, "SELECT count(*) FROM users").Scan(&count); e != nil {
+				return Session{}, e
+			}
+			if count >= s.policy.Limits.Users {
+				return Session{}, ErrQuota
+			}
+		}
 		if !allowCreate {
 			var pendingCount int
 			if err = tx.QueryRowContext(ctx, "SELECT count(*) FROM access_requests").Scan(&pendingCount); err != nil {
@@ -57,13 +66,13 @@ func (s *Store) FederatedLogin(ctx context.Context, issuer, subject, displayName
 		if _, err = tx.ExecContext(ctx, "INSERT INTO profiles(user_id,display_name) VALUES(?,?)", user.ID, displayName); err != nil {
 			return Session{}, err
 		}
-		action := "user.provision_oidc"
+		action := "user.provision_external"
 		if !allowCreate {
 			if _, err = tx.ExecContext(ctx, "INSERT INTO access_requests(user_id,created_at) VALUES(?,?)", user.ID, s.now().Unix()); err != nil {
 				return Session{}, err
 			}
 			disabled = true
-			action = "user.request_oidc_access"
+			action = "user.request_external_access"
 		}
 		if err = audit(ctx, tx, user.ID, action, user.ID, s.now()); err != nil {
 			return Session{}, err

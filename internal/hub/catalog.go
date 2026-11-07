@@ -176,6 +176,9 @@ func (s *Store) SubmitRelease(ctx context.Context, actor Identity, key string, c
 	return mutate(s, ctx, actor, "release.submit", key, cmd, func(tx *hubdb.Tx, user Identity) error {
 		return requireRole(ctx, tx, user, cmd.Namespace, taxonomy.NamespaceRole_NAMESPACE_ROLE_MAINTAINER)
 	}, func(tx *hubdb.Tx, user Identity) (Release, error) {
+		if err := s.checkSubmissionQuota(ctx, tx, user, cmd); err != nil {
+			return Release{}, err
+		}
 		bundle, err := packageformat.Inspect(cmd.Archive)
 		if err != nil || len(bundleMarkdown(bundle)) > 256<<10 {
 			return Release{}, ErrInvalid
@@ -206,7 +209,7 @@ func (s *Store) SubmitRelease(ctx context.Context, actor Identity, key string, c
 		if err != nil {
 			return Release{}, err
 		}
-		review = review || report.Blocking || !report.Complete || len(report.Findings) > 0
+		review = review || s.policy.IsCommunity() || report.Blocking || !report.Complete || len(report.Findings) > 0
 		status := taxonomy.ReleaseStatus_RELEASE_STATUS_PUBLISHED
 		if review {
 			status = taxonomy.ReleaseStatus_RELEASE_STATUS_PENDING
@@ -228,6 +231,9 @@ func (s *Store) SubmitRelease(ctx context.Context, actor Identity, key string, c
 			if _, err = tx.ExecContext(ctx, "INSERT INTO release_tags(release_id,tag) VALUES(?,?)", id, tag); err != nil {
 				return Release{}, err
 			}
+		}
+		if _, err = tx.ExecContext(ctx, "UPDATE releases SET archive_bytes=? WHERE id=?", len(cmd.Archive), id); err != nil {
+			return Release{}, err
 		}
 		if err = s.saveScan(ctx, tx, id, report); err != nil {
 			return Release{}, err
