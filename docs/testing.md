@@ -80,7 +80,7 @@ Before a release, also run against the last supported **released** binaries; the
 
 ### Native App replacement
 
-Build the candidate native-smoke App and Hub/CLI binaries as above, then select an explicit comparison commit:
+Build the candidate native-smoke App and Hub/CLI binaries as above, then select an explicit comparison commit using its full 40-character lowercase SHA:
 
 ```sh
 python3 scripts/desktop_upgrade.py \

@@ -10,6 +10,7 @@ import json
 import os
 from pathlib import Path
 import plistlib
+import re
 import secrets
 import shutil
 import subprocess
@@ -29,6 +30,8 @@ def run(args, **kwargs):
 @contextmanager
 def build_baseline(reference):
     """Overlay only test instrumentation onto a detached comparison revision."""
+    if re.fullmatch(r"[0-9a-f]{40}", reference) is None:
+        raise ValueError("comparison revision must be a full lowercase commit SHA")
     revision = run(["git", "rev-parse", "--verify", "--end-of-options", reference + "^{commit}"], cwd=ROOT, text=True).stdout.strip()
     scratch = ROOT / ".local/desktop-upgrade"
     scratch.mkdir(parents=True, exist_ok=True)
@@ -188,7 +191,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     baseline = parser.add_mutually_exclusive_group(required=True)
     baseline.add_argument("--baseline-app", type=Path)
-    baseline.add_argument("--baseline-ref", help="build a comparison commit with test-only instrumentation")
+    baseline.add_argument("--baseline-ref", help="build a full comparison commit SHA with test-only instrumentation")
     for name in ("candidate-app", "server", "cli", "report"):
         parser.add_argument("--" + name, type=Path, required=True)
     args = parser.parse_args()
