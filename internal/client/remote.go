@@ -179,6 +179,9 @@ func ResolveTarget(tool, scope, project, home, name string) (string, string, err
 				err = errors.New("project must be an existing directory")
 			}
 		}
+		if err == nil {
+			base, err = physicalSpelling(base)
+		}
 		canonicalProject = base
 	default:
 		return "", "", errors.New("scope must be global or project")

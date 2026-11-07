@@ -226,3 +226,20 @@ func TestProjectInstallationAcceptsInternalAndRootAliases(t *testing.T) {
 		t.Fatalf("valid alias rejected: %s %s %v", target, project, err)
 	}
 }
+
+func TestProjectInstallationAcceptsCaseAliasOfRoot(t *testing.T) {
+	parent := t.TempDir()
+	root := filepath.Join(parent, "MixedProject")
+	if err := os.Mkdir(root, 0700); err != nil {
+		t.Fatal(err)
+	}
+	alias := filepath.Join(parent, "mixedproject")
+	if _, err := os.Stat(alias); err != nil {
+		t.Skip("host filesystem is case-sensitive")
+	}
+	target, project, err := client.ResolveTarget("codex", "project", alias, "", "safe-skill")
+	canonical, e := filepath.EvalSymlinks(root)
+	if err != nil || e != nil || project != canonical || target != filepath.Join(canonical, ".agents", "skills", "safe-skill") {
+		t.Fatalf("case alias rejected: %s %s %v", target, project, err)
+	}
+}
