@@ -1,0 +1,202 @@
+@import "tailwindcss";
+@import "fumadocs-ui/css/neutral.css";
+@import "fumadocs-ui/css/preset.css";
+@import "../../desktop/frontend/src/brand.css";
+@import "../../desktop/frontend/src/navigation.css";
+@source '../node_modules/fumadocs-ui/dist/**/*.js';
+
+.dark .docs-brand-mark {
+  filter: brightness(0) invert(1);
+}
+
+:root {
+  --color-fd-background: var(--surface);
+  --color-fd-foreground: var(--ink);
+  --color-fd-card: var(--surface);
+  --color-fd-card-foreground: var(--ink);
+  --color-fd-popover: var(--surface);
+  --color-fd-popover-foreground: var(--ink);
+  --color-fd-primary: var(--link);
+  --color-fd-primary-foreground: var(--on-accent);
+  --color-fd-muted: var(--surface-soft);
+  --color-fd-muted-foreground: var(--muted);
+  --color-fd-border: var(--line);
+  --color-fd-accent: var(--accent-light);
+  --color-fd-accent-foreground: var(--link);
+  --fd-layout-width: 1280px;
+  --fd-banner-height: var(--site-header-height, 72px);
+  font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+}
+.docs-shell .docs-site-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.6;
+}
+.docs-site-header .home-link {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  text-decoration: none;
+  color: var(--ink);
+}
+.docs-site-header button {
+  cursor: pointer;
+  font: inherit;
+}
+.docs-site-header .icon {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+}
+.docs-site-header :is(a, button, summary):focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+.docs-site-header .utility-settings {
+  text-decoration: none;
+  border-radius: 6px;
+}
+.docs-account {
+  position: relative;
+}
+.docs-account > summary {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  cursor: pointer;
+  border-radius: 6px;
+}
+.docs-avatar {
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--accent-light);
+  color: var(--link);
+  font-size: 11px;
+  font-weight: 600;
+}
+.docs-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.docs-account-popover {
+  display: grid;
+  gap: 4px;
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 220px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: 0 12px 36px var(--shadow-color);
+}
+.docs-account-popover > span {
+  color: var(--muted);
+  margin-bottom: 8px;
+  font-size: 12px;
+}
+.docs-account-popover a {
+  padding: 8px;
+  border-radius: 6px;
+  text-decoration: none;
+}
+.docs-account-popover a:hover {
+  background: var(--surface-soft);
+}
+.docs-shell #nd-sidebar {
+  background: var(--surface);
+}
+.docs-shell #nd-page {
+  padding-top: 36px;
+}
+.docs-shell #nd-page h1 {
+  font-size: 32px;
+  letter-spacing: -0.03em;
+}
+.docs-shell #nd-page h2 {
+  font-size: 23px;
+  letter-spacing: -0.02em;
+}
+.docs-shell #nd-page .prose {
+  font-size: 15px;
+  line-height: 1.75;
+}
+.docs-shell #nd-page :is(h1, h2, h3) {
+  scroll-margin-top: calc(var(--site-header-height, 72px) + 64px);
+}
+.docs-shell #nd-sidebar :is(a, button) {
+  font-size: 13px;
+}
+.docs-shell #nd-sidebar > div:first-child {
+  padding-top: 24px;
+}
+.docs-shell #nd-toc {
+  font-size: 12px;
+}
+@media (max-width: 760px) {
+  .docs-shell .global-navigation {
+    min-height: 108px;
+  }
+  .docs-shell #nd-page {
+    padding-top: 24px;
+  }
+  .docs-shell #nd-page h1 {
+    font-size: 28px;
+  }
+}
+
+.docs-language {
+  position: relative;
+}
+.docs-language > summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 8px;
+  cursor: pointer;
+  list-style: none;
+  border-radius: 6px;
+}
+.docs-language > summary::-webkit-details-marker {
+  display: none;
+}
+.docs-language a[aria-current="true"] {
+  color: var(--link);
+  background: var(--accent-light);
+}
+.docs-site-header summary {
+  list-style: none;
+}
+.docs-site-header summary::-webkit-details-marker {
+  display: none;
+}
+@media (max-width: 480px) {
+  .docs-language > summary > span {
+    display: none;
+  }
+}
+
+/* 为窄屏目录条预留网格高度，避免粘性目录覆盖正文标题。 */
+@media (width < 1280px) {
+  .docs-shell #nd-docs-layout {
+    --fd-toc-popover-height: 40px;
+  }
+}

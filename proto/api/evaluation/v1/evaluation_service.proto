@@ -1,0 +1,102 @@
+syntax = "proto3";
+package api.evaluation.v1;
+
+import "api/common/v1/types.proto";
+
+// EvaluationService 管理外部执行证据，不执行 Agent 或模型。
+service EvaluationService {
+  // ImportEvidence 校验并追加确切版本的外部报告。
+  rpc ImportEvidence(ImportEvidenceRequest) returns (ImportEvidenceResponse);
+  // ListEvidence 按版本权限返回有界证据摘要。
+  rpc ListEvidence(ListEvidenceRequest) returns (ListEvidenceResponse);
+  // GetEvidence 重新授权后读取完整报告。
+  rpc GetEvidence(GetEvidenceRequest) returns (GetEvidenceResponse);
+  // RetractEvidence 清除误传正文并保留撤回记录。
+  rpc RetractEvidence(RetractEvidenceRequest) returns (RetractEvidenceResponse);
+}
+// Evidence 是外部声明；结果不是 Hub 独立验证或认证。
+message Evidence {
+  // 报告标识。
+  string id = 1;
+  // 确切版本标识。
+  string release_id = 2;
+  // 规范化报告摘要。
+  string digest = 3;
+  // 用例集名称。
+  string suite_name = 4;
+  // 用例集版本。
+  string suite_version = 5;
+  // 用例集摘要。
+  string suite_digest = 6;
+  // 执行器及版本。
+  string runner = 7;
+  // Agent 及版本。
+  string agent = 8;
+  // 模型及版本。
+  string model = 9;
+  // 外部声明的执行时间。
+  string executed_at = 10;
+  // Hub 记录的导入时间。
+  string imported_at = 11;
+  // 通过数。
+  uint32 passed = 12;
+  // 失败数。
+  uint32 failed = 13;
+  // 错误数。
+  uint32 errors = 14;
+  // 跳过数。
+  uint32 skipped = 15;
+  // 已提交基线通过数。
+  uint32 baseline_passed = 16;
+  // 已提交基线总数。
+  uint32 baseline_total = 17;
+  // 是否已撤回；撤回后无正文。
+  bool retracted = 18;
+  // 仅详情响应携带符合 skillhub.evaluation.v1 的规范化 JSON。
+  string document_json = 19;
+}
+// ImportEvidenceRequest 使用公开评测文件规范，最多 256 KiB。
+message ImportEvidenceRequest {
+  // 幂等写入标识。
+  .api.common.v1.Mutation mutation = 1;
+  // 版本标识。
+  string release_id = 2;
+  // 外部执行结果文件，不接受 URL 或本地路径。
+  bytes document = 3;
+}
+// ImportEvidenceResponse 不保存或重放报告正文。
+message ImportEvidenceResponse {
+  // 报告标识。
+  string id = 1;
+}
+// ListEvidenceRequest 指定一个版本。
+message ListEvidenceRequest {
+  // 版本标识。
+  string release_id = 1;
+}
+// ListEvidenceResponse 最多返回 100 条摘要，包含已撤回记录。
+message ListEvidenceResponse {
+  // 证据摘要。
+  repeated Evidence evidence = 1;
+  // 当前身份能否导入或撤回。
+  bool can_manage = 2;
+}
+// GetEvidenceRequest 指定单个证据。
+message GetEvidenceRequest {
+  // 证据标识。
+  string id = 1;
+}
+// GetEvidenceResponse 不包含提交者的登录身份。
+message GetEvidenceResponse {
+  // 报告详情。
+  Evidence evidence = 1;
+}
+// RetractEvidenceRequest 需要当前命名空间维护权限。
+message RetractEvidenceRequest {
+  // 幂等写入标识。
+  .api.common.v1.Mutation mutation = 1;
+  // 证据标识。
+  string id = 2;
+}
+// RetractEvidenceResponse 表示已撤回，不删除审计摘要。
+message RetractEvidenceResponse {}

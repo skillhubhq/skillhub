@@ -29,7 +29,11 @@ def run(args, **kwargs):
 
 @contextmanager
 def build_baseline(reference):
-    """Overlay only test instrumentation onto a detached comparison revision."""
+    """Build comparison code with test instrumentation and a shared fixture identity.
+
+    Identity normalization is recorded separately: this test verifies data-format
+    upgrades within one application identity, not migration between distributors.
+    """
     if re.fullmatch(r"[0-9a-f]{40}", reference) is None:
         raise ValueError("comparison revision must be a full lowercase commit SHA")
     revision = run(["git", "rev-parse", "--verify", "--end-of-options", reference + "^{commit}"], cwd=ROOT, text=True).stdout.strip()
@@ -49,12 +53,21 @@ def build_baseline(reference):
                 if hook not in source: raise RuntimeError("comparison revision lacks the supported native smoke entry")
                 source = 'import { runUpgradeSmoke } from "./nativeUpgrade";\n' + source.replace(hook, hook + "\n  if (await runUpgradeSmoke()) return;", 1)
                 entry.write_text(source, encoding="utf-8")
+            identity_overlays = {}
+            identity = "io.github.skillhubhq.skillhub"
+            for name in ("desktop/build.mjs", "desktop/assets/windows.manifest", "internal/client/sources.go"):
+                path = worktree / name
+                original = path.read_text(encoding="utf-8")
+                normalized = re.sub(r"(?:[a-z0-9-]+\.)+skillhub(?=[\"$])", identity, original)
+                if original != normalized:
+                    path.write_text(normalized, encoding="utf-8")
+                    identity_overlays[name] = hashlib.sha256(path.read_bytes()).hexdigest()
             npm = "npm.cmd" if os.name == "nt" else "npm"
             for directory in ("sdk/typescript", "desktop/frontend"):
                 run([npm, "ci", "--ignore-scripts"], cwd=worktree / directory, timeout=600)
             run(["node", "build.mjs", "--native-smoke"], cwd=worktree / "desktop", timeout=900)
             app = worktree / "desktop/bin" / ("SkillHub-smoke.app" if sys.platform == "darwin" else "SkillHub-smoke.exe")
-            provenance = {"baseline_revision": revision, "baseline_test_overlays": {
+            provenance = {"baseline_revision": revision, "fixture_identity_normalization": identity_overlays, "baseline_test_overlays": {
                 name: hashlib.sha256((worktree / name).read_bytes()).hexdigest()
                 for name in [*overlays, "desktop/frontend/src/nativeSmoke.ts"]}}
             yield app, provenance
@@ -117,7 +130,7 @@ def exercise(baseline, candidate, server, cli, report_path, provenance=None):
             if sys.platform == "darwin":
                 for app in (baseline, candidate):
                     with (app / "Contents/Info.plist").open("rb") as f: info = plistlib.load(f)
-                    if info.get("CFBundleIdentifier") != "net.silkage.skillhub.smoke":
+                    if info.get("CFBundleIdentifier") != "io.github.skillhubhq.skillhub.smoke":
                         raise RuntimeError("use isolated native-smoke bundles, never the installed production App")
             accounts = []
             for alias in ("company", "partner"):

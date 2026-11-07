@@ -174,7 +174,7 @@ skillhub cache info
 skillhub cache clear --yes
 ```
 
-CLI and App share a bounded cache under the client data directory. The App shows usage and a cleanup button on **我的源**. The cache keeps up to 128 coordinate entries / 256 MiB of compressed packages and evicts the least recently used entries when admitting another package. An entry is isolated by canonical Hub URL, registry ID, namespace, name and exact version. Two aliases for the same Hub/coordinate can reuse bytes; different Hubs cannot share a cache key.
+CLI and App share a bounded cache under the client data directory. The App shows usage and a cleanup button on **Settings → Connections**. The cache keeps up to 128 coordinate entries / 256 MiB of compressed packages and evicts the least recently used entries when admitting another package. An entry is isolated by canonical Hub URL, registry ID, namespace, name and exact version. Two aliases for the same Hub/coordinate can reuse bytes; different Hubs cannot share a cache key.
 
 A cache hit still contacts that Hub with the current source identity. `DownloadRelease.known_digest` allows a matching response to omit archive bytes only after normal authorization, publication-status and server-blob integrity checks. The client verifies the coordinates, digest and package structure before using cached bytes. Withdrawn versions, revoked access and offline sources fail instead of falling back to cached installation. Older Hubs that return the complete package remain compatible.
 
@@ -240,7 +240,7 @@ Use **Teams** to browse namespace homepages, published skills and (when authoriz
 
 Open a published skill to like it, save it privately, post a comment or reply. **Saved** lists the exact releases saved by the current identity in the selected Hub. Comments and reactions belong to the selected version, and remain subject to its current audience. Removing a comment keeps the reply thread readable. These actions persist in the Hub database and are visible across Web and App; they persist with the community.
 
-Both applications start in English. Choose **简体中文** in the header to switch immediately and retain the choice on reload. User-authored content and administrator-defined category names keep their original language.
+Both applications start in English. Choose **Simplified Chinese** in the header to switch immediately and retain the choice on reload. User-authored content and administrator-defined category names keep their original language.
 
 
 ### Multiple accounts on one Hub: updates

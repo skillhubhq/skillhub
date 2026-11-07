@@ -1,3 +1,4 @@
+import { lockModalScroll } from "./modalScroll";
 import { Select } from "./Select";
 import { t } from "./i18n";
 import {
@@ -34,6 +35,7 @@ export type UI = {
   access?: "checking" | "member" | "guest" | "unavailable";
   run: <T>(task: () => Promise<T>) => Promise<T | undefined>;
   changed: (message: string) => void;
+  refresh: () => void;
   plan: (task: () => Promise<ChangePlan>) => void;
   preview: (task: () => Promise<ReleasePreview>) => void;
   confirm: (
@@ -197,11 +199,15 @@ export function Modal({
   children,
   onClose,
   wide = false,
+  stable = false,
+  toolbar,
 }: {
   title: string;
   children: ReactNode;
   onClose: () => void;
   wide?: boolean;
+  stable?: boolean;
+  toolbar?: ReactNode;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   const id = useId();
@@ -209,21 +215,27 @@ export function Modal({
   useLayoutEffect(() => {
     const dialog = ref.current!;
     const trigger = document.activeElement;
+    const unlock = lockModalScroll();
     dialog.showModal();
     return () => {
       // 在 React 移除 dialog 前关闭，避免 Chromium 丢失原始焦点目标。
       dialog.close();
-      if (trigger instanceof HTMLElement && trigger.isConnected)
-        trigger.focus({ preventScroll: true });
+      unlock();
+      // 等待顶层模态状态解除，再恢复焦点；StrictMode 重新打开时不抢焦点。
+      queueMicrotask(() => {
+        if (!dialog.open && trigger instanceof HTMLElement && trigger.isConnected)
+          trigger.focus({ preventScroll: true });
+      });
     };
   }, []);
   return (
     <dialog
       ref={ref}
-      className={wide ? "wide" : ""}
+      className={`app-modal${wide ? " wide" : ""}${stable ? " modal-stable" : ""}`}
       aria-labelledby={id}
       onCancel={(e) => {
         e.preventDefault();
+        e.stopPropagation();
         if (!busy) onClose();
       }}
     >
@@ -238,12 +250,15 @@ export function Modal({
           ×
         </button>
       </div>
-      {error && (
-        <div className="notice error" role="alert">
-          {error}
-        </div>
-      )}
-      <fieldset disabled={busy}>{children}</fieldset>
+      {toolbar && <div className="modal-toolbar">{toolbar}</div>}
+      <div className="modal-body">
+        {error && (
+          <div className="notice error" role="alert">
+            {error}
+          </div>
+        )}
+        <fieldset disabled={busy}>{children}</fieldset>
+      </div>
     </dialog>
   );
 }

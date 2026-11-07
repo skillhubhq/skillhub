@@ -22,10 +22,13 @@ class DependencyContractTests(unittest.TestCase):
 
     def test_reviewed_license_sources_match_shipped_versions(self):
         sources = json.loads((ROOT / "third_party/npm/sources.json").read_text())
-        lock = json.loads((ROOT / "desktop/frontend/package-lock.json").read_text())
+        locks = [json.loads((ROOT / directory / "package-lock.json").read_text())
+                 for directory in ["desktop/frontend", "website"]]
         for name, source in sources.items():
             with self.subTest(package=name):
-                self.assertEqual(source["version"], lock["packages"][f"node_modules/{name}"]["version"])
+                versions = {lock["packages"][f"node_modules/{name}"]["version"]
+                            for lock in locks if f"node_modules/{name}" in lock["packages"]}
+                self.assertEqual({source["version"]}, versions)
 
 
 if __name__ == "__main__":

@@ -57,7 +57,7 @@ func (a *application) configureHelp(root *cobra.Command) {
 			c.GroupID = "discover"
 		case "install", "list", "update", "updates", "remove", "project", "cache":
 			c.GroupID = "local"
-		case "publish", "review", "yank", "admin", "governance":
+		case "eval", "init", "validate", "publish", "review", "yank", "admin", "governance":
 			c.GroupID = "publish"
 		case "source", "login", "logout", "whoami", "password-change":
 			c.GroupID = "account"
@@ -66,13 +66,16 @@ func (a *application) configureHelp(root *cobra.Command) {
 		}
 	}
 	examples := map[string]string{
-		"source":  "  skillhub source add work https://skills.example.com\n  skillhub source list",
-		"search":  "  skillhub search review\n  skillhub search review --source work --order recent\n  skillhub search --source work --featured --json",
-		"install": "  skillhub install work/team/review@1.0.0 --tool codex --dry-run\n  skillhub install work/team/review@1.0.0 --tool codex --yes\n  skillhub install work/team/review@1.0.0 --tool claude-code --scope global --yes",
-		"publish": "  skillhub publish ./my-skill --source work --namespace team --version 1.0.0",
-		"review":  "  skillhub governance review-tasks --source work\n  skillhub review inspect RELEASE_ID --source work\n  skillhub review approve RELEASE_ID --source work --reason \"Reviewed package contents\"",
-		"project": "  skillhub project init\n  skillhub project add work/team/review@1.0.0 --tool codex\n  skillhub project lock\n  skillhub project restore --dry-run",
-		"login":   "  skillhub login work\n  skillhub login work --username reader --password-stdin",
+		"eval":     "  skillhub eval validate ./cases.json --cases\n  skillhub eval import RELEASE_ID ./report.json --source work\n  skillhub eval list RELEASE_ID --source work --json",
+		"init":     "  skillhub init ./my-skill --description \"Use when reviewing a proposed API change\"",
+		"validate": "  skillhub validate ./my-skill\n  skillhub validate ./my-skill --json",
+		"source":   "  skillhub source add work https://skills.example.com\n  skillhub source list",
+		"search":   "  skillhub search review\n  skillhub search review --source work --order recent\n  skillhub search --source work --featured --json",
+		"install":  "  skillhub install work/team/review@1.0.0 --tool codex --dry-run\n  skillhub install work/team/review@1.0.0 --tool codex --yes\n  skillhub install work/team/review@1.0.0 --tool claude-code --scope global --yes",
+		"publish":  "  skillhub publish ./my-skill --source work --namespace team --version 1.0.0",
+		"review":   "  skillhub governance review-tasks --source work\n  skillhub review inspect RELEASE_ID --source work\n  skillhub review approve RELEASE_ID --source work --reason \"Reviewed package contents\"",
+		"project":  "  skillhub project init\n  skillhub project add work/team/review@1.0.0 --tool codex\n  skillhub project lock\n  skillhub project restore --dry-run",
+		"login":    "  skillhub login work\n  skillhub login work --username reader --password-stdin",
 	}
 	for _, c := range root.Commands() {
 		if example := examples[c.Name()]; example != "" {

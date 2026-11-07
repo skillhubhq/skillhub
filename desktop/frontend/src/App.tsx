@@ -32,43 +32,31 @@ const remotePages = new Set([
 const pages = [
   {
     id: "downloads",
-    label: "Downloads",
-    icon: "",
     title: "Downloads",
     description: "",
   },
   {
     id: "settings",
-    label: "Settings",
-    icon: "",
     title: "Settings",
     description: "",
   },
   {
     id: "profile",
-    label: "My profile",
-    icon: "",
     title: "Profile",
     description: "A little about the person behind the work.",
   },
   {
     id: "discover",
-    label: "Explore",
-    icon: "⌕",
     title: "Skill library",
     description: "Find the skills that fit your work.",
   },
   {
     id: "teams",
-    label: "Teams",
-    icon: "",
     title: "Teams",
     description: "Meet the people behind the skills.",
   },
   {
     id: "bookmarks",
-    label: "Saved",
-    icon: "",
     title: "Saved",
     description: "Your private collection, ready when you need it.",
   },
@@ -76,15 +64,11 @@ const pages = [
     ? [
         {
           id: "installed",
-          label: "Installed",
-          icon: "↓",
           title: "Installed",
           description: "Your skills, across tools and projects.",
         },
         {
           id: "projects",
-          label: "Projects",
-          icon: "□",
           title: "Projects",
           description: "",
         },
@@ -92,22 +76,16 @@ const pages = [
     : []),
   {
     id: "publish",
-    label: "Publish",
-    icon: "＋",
     title: "Publish",
     description: "Share what works. Start with a skill package.",
   },
   {
     id: "submissions",
-    label: "My releases",
-    icon: "↥",
     title: "My releases",
     description: "Your releases and feedback, in one place.",
   },
   {
     id: "review",
-    label: "Reviews",
-    icon: "✓",
     title: "Reviews",
     description: "A closer look before a skill reaches your team.",
   },
@@ -115,8 +93,6 @@ const pages = [
     ? [
         {
           id: "sources",
-          label: "Connections",
-          icon: "◉",
           title: "Connections",
           description: "",
         },
@@ -124,8 +100,6 @@ const pages = [
     : []),
   {
     id: "management",
-    label: "Hub settings",
-    icon: "⚙",
     title: "Hub settings",
     description: "Manage spaces, categories, access and audit history.",
   },
@@ -288,6 +262,7 @@ export default function App() {
     access,
     run,
     changed,
+    refresh: () => setRevision((value) => value + 1),
     navigate: (next) => {
       const [nextPage, query = ""] = next.split("?");
       if (remotePages.has(nextPage) && activeSource) {
@@ -551,6 +526,7 @@ export default function App() {
       )}
       {preview && (
         <Modal
+          stable
           title={t("Package preview")}
           onClose={() => setPreview(null)}
           wide

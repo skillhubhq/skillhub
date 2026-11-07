@@ -8,6 +8,7 @@ import {
   type Release,
   type PlatformRole,
   type ScanReport,
+  type Evidence,
 } from "../../../sdk/typescript/src/index";
 import { parseDocument } from "yaml";
 import { unzipSync } from "fflate";
@@ -78,6 +79,34 @@ const scanInfo = (r?: ScanReport) => ({
     ? new Date(Number(r.scannedAt.seconds) * 1000).toISOString()
     : "",
 });
+const evaluationInfo = (e?: Evidence) => {
+  if (!e) throw new Error("Evaluation evidence unavailable");
+  return {
+    id: e.id,
+    release_id: e.releaseId,
+    digest: e.digest,
+    suite_name: e.suiteName,
+    suite_version: e.suiteVersion,
+    suite_digest: e.suiteDigest,
+    runner: e.runner,
+    agent: e.agent,
+    model: e.model,
+    executed_at: e.executedAt,
+    imported_at: e.importedAt,
+    passed: e.passed,
+    failed: e.failed,
+    errors: e.errors,
+    skipped: e.skipped,
+    baseline_passed: e.baselinePassed,
+    baseline_total: e.baselineTotal,
+    retracted: e.retracted,
+    document_json: e.documentJson,
+  };
+};
+const evaluationSupported = async () =>
+  (await clients.registry.getRegistry({})).capabilities.includes(
+    "evaluation.v1",
+  );
 const coordinate = (value: string) => {
   const [path, version = ""] = value.split("@");
   const [source, namespace, name] = path.split("/");
@@ -287,6 +316,32 @@ const supported: Partial<PlatformAPI> = {
       userId: id,
       role: role as unknown as PlatformRole,
       granted,
+      mutation: { idempotencyKey: key },
+    });
+  },
+  Evaluations: async (_source, id) => {
+    if (!(await evaluationSupported()))
+      return { supported: false, evidence: [], can_manage: false };
+    const r = await clients.evaluation.listEvidence({ releaseId: id });
+    return {
+      supported: true,
+      evidence: r.evidence.map(evaluationInfo),
+      can_manage: r.canManage,
+    };
+  },
+  Evaluation: async (_source, id) =>
+    evaluationInfo((await clients.evaluation.getEvidence({ id })).evidence),
+  ImportEvaluation: async (_source, id, document, key) =>
+    (
+      await clients.evaluation.importEvidence({
+        releaseId: id,
+        document: new TextEncoder().encode(document),
+        mutation: { idempotencyKey: key },
+      })
+    ).id,
+  RetractEvaluation: async (_source, id, key) => {
+    await clients.evaluation.retractEvidence({
+      id,
       mutation: { idempotencyKey: key },
     });
   },

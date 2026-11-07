@@ -1,4 +1,7 @@
+import { runModalSmoke } from "./modalSmoke";
+import { runEvaluationSmoke } from "./evaluationSmoke";
 import { runUpgradeSmoke } from "./nativeUpgrade";
+import { runAccessSmoke } from "./accessSmoke";
 import { runSelectSmoke } from "./selectSmoke";
 import { skillTitle } from "./SkillIdentity";
 import { setLanguage, type Language } from "./i18n";
@@ -44,6 +47,8 @@ export async function runNativeSmoke() {
       "task navigation and persistent preference shortcuts rendered",
     );
     await runSelectSmoke(check);
+    await runModalSmoke(check);
+    await runAccessSmoke(check);
     // 模拟无类型调用方：偏好存储只接受枚举字面量，不持久化任意输入。
     setLanguage("fixture-untrusted-value" as Language);
     check(
@@ -462,6 +467,7 @@ export async function runNativeSmoke() {
       !!document.querySelector(".scan-panel"),
       "compact scan panel rendered beside review content",
     );
+    await runEvaluationSmoke(pending.id, pending.digest, check, waitForUI);
     const duties = await API.PlatformAccess("company", "");
     check(
       duties.supported &&
@@ -504,7 +510,7 @@ export async function runNativeSmoke() {
       .getBoundingClientRect().top;
     check(
       proseTop - releaseTop < 240,
-      "release status and feedback leave document near the top",
+      `release status and feedback leave document near the top (${Math.round(proseTop - releaseTop)}px)`,
     );
     const feedback =
       document.querySelector<HTMLDetailsElement>(".release-feedback")!;
@@ -1041,12 +1047,45 @@ export async function runNativeSmoke() {
     location.hash = "submissions?source=limited";
     await waitForUI(() =>
       Array.from(document.querySelectorAll("button")).some((b) =>
-        b.textContent?.startsWith("Inbox"),
+        b.getAttribute("aria-label")?.startsWith("Inbox"),
       ),
     );
     Array.from(document.querySelectorAll("button"))
-      .find((b) => b.textContent?.startsWith("Inbox"))!
+      .find((b) => b.getAttribute("aria-label")?.startsWith("Inbox"))!
       .click();
+    await waitForUI(() => !!document.querySelector(".review-outcomes button"));
+    const inboxTrigger =
+      document.querySelector<HTMLButtonElement>(".utility-inbox")!;
+    check(
+      inboxTrigger.getBoundingClientRect().width === 44 &&
+        inboxTrigger.getAttribute("aria-expanded") === "true",
+      "inbox uses a compact accessible header control",
+    );
+    const inboxTabs = Array.from(
+      document.querySelectorAll<HTMLButtonElement>(".inbox-tabs button"),
+    );
+    check(
+      inboxTabs.length === 2 &&
+        inboxTabs[1].getAttribute("aria-pressed") === "true",
+      "submission outcomes open for an author without pending reviews",
+    );
+    const inboxBounds = document
+      .querySelector("dialog[open]")!
+      .getBoundingClientRect();
+    inboxTabs[0].click();
+    await waitForUI(() => !!document.querySelector(".review-tasks"));
+    check(
+      !document.querySelector(".review-outcomes"),
+      "inbox separates review tasks from submission outcomes",
+    );
+    check(
+      Math.abs(
+        document.querySelector("dialog[open]")!.getBoundingClientRect().height -
+          inboxBounds.height,
+      ) < 1,
+      "inbox keeps a stable height across task and outcome tabs",
+    );
+    inboxTabs[1].click();
     await waitForUI(() => !!document.querySelector(".review-outcomes button"));
     check(
       document.querySelector("dialog[open]")!.getBoundingClientRect().right <=

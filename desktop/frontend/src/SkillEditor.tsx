@@ -50,6 +50,7 @@ export function SkillEditor({
   return (
     <Modal
       wide
+      stable
       title={t("Edit skill draft", "编辑技能草稿")}
       onClose={() => (dirty ? setDiscard(true) : onClose())}
     >

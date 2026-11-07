@@ -4,7 +4,7 @@ import re
 from pathlib import Path
 import subprocess
 from urllib.parse import unquote, urlsplit
-from project_identity import check_project_references
+from project_identity import check_project_references, check_application_references
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -23,6 +23,7 @@ def main():
             continue
         try:
             check_project_references(path.read_bytes(), name)
+            check_application_references(path.read_bytes(), name)
         except ValueError as error:
             errors.append(str(error))
         private_suffixes = (".db", ".db-wal", ".db-shm", ".sqlite", ".sqlite3", ".sqlite-wal", ".sqlite-shm", ".sqlite3-wal", ".sqlite3-shm", ".pem", ".key", ".p12", ".pfx", ".local.yaml", ".local.yml")

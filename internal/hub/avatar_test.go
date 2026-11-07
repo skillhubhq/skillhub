@@ -105,7 +105,7 @@ func TestAvatarMigrationPreservesExistingProfile(t *testing.T) {
 	if _, err = s.UpdateProfile(ctx, actor, "before-migration", c.ProfileChange{DisplayName: "Existing name", Bio: "Existing bio"}); err != nil {
 		t.Fatal(err)
 	}
-	if _, err = s.db.Exec("DROP TABLE featured_skills; DROP INDEX releases_review_queue; DROP TABLE review_notifications; DROP TABLE release_scans; DROP TABLE platform_roles; DROP TABLE access_requests; ALTER TABLE releases DROP COLUMN display_name_en; ALTER TABLE releases DROP COLUMN display_name_zh; ALTER TABLE releases DROP COLUMN icon; DROP TABLE external_identities; ALTER TABLE profiles DROP COLUMN avatar; PRAGMA user_version=3;"); err != nil {
+	if _, err = s.db.Exec("DROP TABLE evaluation_evidence; DROP TABLE featured_skills; DROP INDEX releases_review_queue; DROP TABLE review_notifications; DROP TABLE release_scans; DROP TABLE platform_roles; DROP TABLE access_requests; ALTER TABLE releases DROP COLUMN display_name_en; ALTER TABLE releases DROP COLUMN display_name_zh; ALTER TABLE releases DROP COLUMN icon; DROP TABLE external_identities; ALTER TABLE profiles DROP COLUMN avatar; PRAGMA user_version=3;"); err != nil {
 		t.Fatal(err)
 	}
 	if err = s.Close(); err != nil {

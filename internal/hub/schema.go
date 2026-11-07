@@ -65,3 +65,9 @@ const discoverySchema = `
 CREATE TABLE featured_skills (namespace TEXT NOT NULL REFERENCES namespaces(name), name TEXT NOT NULL, PRIMARY KEY(namespace,name));
 CREATE INDEX releases_review_queue ON releases(status,sequence);
 PRAGMA user_version=9;`
+
+// 外部证据与版本绑定，正文包含在数据库备份中，撤回保留摘要。
+const evaluationSchema = `
+CREATE TABLE evaluation_evidence (sequence INTEGER PRIMARY KEY AUTOINCREMENT, id TEXT NOT NULL UNIQUE, release_id TEXT NOT NULL REFERENCES releases(id), digest TEXT NOT NULL, metadata TEXT NOT NULL, document TEXT NOT NULL, retracted INTEGER NOT NULL, UNIQUE(release_id,digest));
+CREATE INDEX evaluation_release ON evaluation_evidence(release_id,sequence);
+PRAGMA user_version=10;`

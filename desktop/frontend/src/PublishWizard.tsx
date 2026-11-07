@@ -349,6 +349,7 @@ export function PublishWizard({ source }: { source: string }) {
       )}
       {savedDrafts !== null && (
         <Modal
+          stable
           title={t("Saved drafts", "已保存草稿")}
           onClose={() => setSavedDrafts(null)}
         >

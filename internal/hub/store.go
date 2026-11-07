@@ -18,7 +18,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-const currentSchema = 9
+const currentSchema = 10
 
 var (
 	ErrUnauthenticated = errors.New("authentication required")
@@ -182,6 +182,11 @@ PRAGMA user_version=1;`)
 	}
 	if version < 9 {
 		if _, err = tx.ExecContext(ctx, discoverySchema); err != nil {
+			return err
+		}
+	}
+	if version < 10 {
+		if _, err = tx.ExecContext(ctx, evaluationSchema); err != nil {
 			return err
 		}
 	}

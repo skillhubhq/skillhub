@@ -199,7 +199,7 @@ func TestGovernanceSchema7MigrationPreservesData(t *testing.T) {
 	s, session, _, r := backupFixture(t)
 	ctx := context.Background()
 	root := s.root
-	_, e := s.db.Exec("DROP TABLE featured_skills; DROP INDEX releases_review_queue; DROP TABLE review_notifications; DROP TABLE release_scans; DROP TABLE platform_roles; PRAGMA user_version=7")
+	_, e := s.db.Exec("DROP TABLE evaluation_evidence; DROP TABLE featured_skills; DROP INDEX releases_review_queue; DROP TABLE review_notifications; DROP TABLE release_scans; DROP TABLE platform_roles; PRAGMA user_version=7")
 	mustGovernance(t, e)
 	registry := s.RegistryID()
 	mustGovernance(t, s.Close())

@@ -80,6 +80,15 @@ export function Settings() {
       <section className="preference-section">
         <h2>{t("About SkillHub", "关于 SkillHub")}</h2>
         <div className="actions">
+          <ProjectLink
+            href={
+              isWeb
+                ? `${location.origin}/docs/`
+                : `${projectURL}/tree/main/docs`
+            }
+          >
+            {t("Documentation", "使用文档")}
+          </ProjectLink>
           <ProjectLink href={projectURL}>GitHub</ProjectLink>
           <ProjectLink href={`${projectURL}/blob/main/LICENSE`}>
             Apache-2.0

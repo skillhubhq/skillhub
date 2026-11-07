@@ -1,6 +1,6 @@
 # SkillHub documentation
 
-[Project overview](../README.md) · [中文介绍](../README.zh-CN.md) · [Contributing](../CONTRIBUTING.md)
+[Project overview](../README.md) · [Contributing](../CONTRIBUTING.md)
 
 Choose a starting point for the work you want to do.
 
@@ -9,6 +9,8 @@ Choose a starting point for the work you want to do.
 | Guide | What you will find |
 | --- | --- |
 | [Hub and CLI](usage.md) | Connect, sign in, discover, install and restore a project |
+| [Create and test a skill](authoring.md) | Write instructions, validate locally and test behavior in an agent |
+| [Evaluation evidence](evaluations.md) | Define cases, import external results and review version-bound evidence |
 | [Desktop app](../desktop/README.md) | Native app setup and local workflows |
 | [App updates](client-updates.md) | Check for releases and replace the application safely |
 
@@ -32,6 +34,7 @@ Choose a starting point for the work you want to do.
 | [Architecture](architecture.md) | Hub, protocol, client core and storage |
 | [TypeScript SDK](../sdk/typescript/README.md) | Generated clients and RPC examples |
 | [Testing](testing.md) | Reproducible checks with isolated fixtures |
+| [Documentation website](documentation.md) | Maintain and preview the official guides |
 | [Distribution](distribution.md) | Packages, checksums and the release workflow |
 
 Security issues belong in [private security reporting](../SECURITY.md), not public issues. Local credentials, deployment addresses and test reports do not belong in source contributions.

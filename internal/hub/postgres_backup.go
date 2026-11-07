@@ -169,7 +169,7 @@ func BackupPostgres(ctx context.Context, c hubdb.Config, root, destination strin
 
 // 专用 schema 禁止混入其他应用表，避免维护工具误带非 Hub 数据。
 func checkPostgresTables(ctx context.Context, db *hubdb.DB) error {
-	allowed := strings.Fields("hub_schema instance users sessions devices audit groups group_members namespaces namespace_grants categories releases release_groups release_tags mutations profiles team_profiles comments reactions external_identities access_requests platform_roles release_scans review_notifications featured_skills")
+	allowed := strings.Fields("hub_schema instance users sessions devices audit groups group_members namespaces namespace_grants categories releases release_groups release_tags mutations profiles team_profiles comments reactions external_identities access_requests platform_roles release_scans review_notifications featured_skills evaluation_evidence")
 	rows, err := db.QueryContext(ctx, "SELECT relname,relkind FROM pg_class WHERE relnamespace=current_schema()::regnamespace AND relkind IN ('r','p','v','m','f')")
 	if err != nil {
 		return err

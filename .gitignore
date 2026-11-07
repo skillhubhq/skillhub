@@ -36,3 +36,11 @@ __pycache__/
 *.pfx
 /backups/
 /secrets/
+
+/website/.next/
+/website/.source/
+/website/out/
+/website/content/
+/website/public/*.svg
+/website/next-env.d.ts
+/website/tsconfig.tsbuildinfo

@@ -1,3 +1,4 @@
+import { EvaluationPanel } from "./EvaluationPanel";
 import { CatalogOrder as Order } from "../bindings/github.com/skillhubhq/skillhub/gen/common/registry/v1/models";
 import { FeaturedControl } from "./Governance";
 import { Select } from "./Select";
@@ -755,6 +756,12 @@ export function Discover() {
                   )}
                 </button>
                 <button
+                  aria-pressed={detailTab === "evaluation"}
+                  onClick={() => setDetailTab("evaluation")}
+                >
+                  {t("Evaluations", "评测")}
+                </button>
+                <button
                   aria-pressed={detailTab === "files"}
                   onClick={() => setDetailTab("files")}
                 >
@@ -765,12 +772,24 @@ export function Discover() {
               <div className="detail-content">
                 {preview ? (
                   <>
-                    <div hidden={detailTab === "discussion"}>
+                    <div
+                      hidden={
+                        detailTab === "discussion" || detailTab === "evaluation"
+                      }
+                    >
                       <PreviewBody
                         preview={preview}
                         view={detailTab === "files" ? "files" : "readme"}
                       />
                     </div>
+                    {detailTab === "evaluation" && (
+                      <EvaluationPanel
+                        key={preview.release.id}
+                        source={selected.coordinate.split("/")[0]}
+                        release={preview.release.id}
+                        digest={preview.release.digest}
+                      />
+                    )}
                     <div
                       ref={discussionRef}
                       className="discussion-anchor"
@@ -802,6 +821,7 @@ export function Discover() {
       ) : null}
       {install && selected && (
         <Modal
+          stable
           title={`${t("Install skill")} · ${skillTitle(preview?.release || selected.skill)}`}
           onClose={() => setInstall(false)}
         >

@@ -1,50 +1,50 @@
-# 企业身份与权限边界
+# Identity and permissions
 
-当前产品优先服务企业内部技能共享。默认私有 Hub、关闭自主注册、企业首次登录需审批；公开浏览是部署者主动选择的模式。官方客户端不内置公共账号中心，不跨 Hub 合并用户或同步权限。
+SkillHub prioritizes internal skill sharing. Hubs are private by default, with no public registration and administrator approval for first-time enterprise sign-in. Anonymous browsing is an explicit deployment choice. Clients do not provide a central account service, merge users across Hubs or synchronize their permissions.
 
-## 身份、资料与权限分别管理
+## Separate identity, profile and authorization
 
-| 层次 | 当前边界 |
+| Layer | Boundary |
 | --- | --- |
-| 登录身份 | 本地密码或一个 OIDC 提供方；企业身份绑定已验证的 issuer/subject，不按邮箱合并 |
-| Hub 成员 | 每个 Hub 独立用户 ID、停用状态和会话；跨 Hub 同名不代表同一个授权主体 |
-| 展示资料 | 显示名、简介和头像随可读贡献或共同团队展示；登录用户名只向本人和 Hub 管理员返回 |
-| 权限分组 | 用于分配资源受众和命名空间角色，不自动成为公开团队，也不自动同步企业目录 |
-| 团队 | 命名空间的展示资料；团队成员列表仅对该空间成员与 Hub 管理员开放 |
-| 内容受众 | 单个不可变发布版本的 Public、Members 或 Groups，与登录方式无关 |
+| Sign-in identity | Local password or one OIDC provider. Enterprise identities bind to verified issuer/subject values, never an email match. |
+| Hub membership | Each Hub owns user IDs, account status and sessions. Matching names across Hubs do not identify the same authorization principal. |
+| Community profile | Display name, bio and avatar are visible through readable contributions or shared teams. Login usernames are returned only to their owner and Hub administrators. |
+| Access groups | Grant content audience membership and namespace roles. Groups are not public teams and are not synchronized from an enterprise directory. |
+| Teams | Presentation profiles for namespaces. Member lists are visible only to namespace members and Hub administrators. |
+| Content audience | Each immutable release has a Public, Members or Groups audience, independent of the author's sign-in method. |
 
-查看某人的资料需要本人/管理员身份，或者可读的已发布贡献、未删除评论、共同命名空间成员关系。仅登录不能按用户 ID 浏览全站人员档案。未知用户和无权查看统一返回不存在。共享资料不会回退显示他人的登录名；公开作者仍有用于导航的 Hub 内不透明用户 ID。
+A profile is readable by its owner, a Hub administrator, or someone with a readable published contribution, an undeleted comment or shared namespace membership connecting them to that person. Being signed in does not permit browsing every profile by user ID. Unknown and inaccessible users both return not found. Shared profiles never fall back to another person's login username; public author links use opaque Hub-local user IDs.
 
-公开与私有不是两套账号。当前也没有分别编辑“企业档案”和“公开档案”的能力；公开发布会使展示资料随内容可见。企业部署应保持私有模式。对公网开放前，需要另行确认公开展示资料、匿名浏览范围和内容对外发布制度。
+Public and private access do not use separate account systems. There are no separately editable enterprise and public profiles. Publishing public content can make the author's community profile visible with that content. Internal deployments should stay private. Before enabling public access, review profile exposure, anonymous browsing and external publication policy.
 
-## 有效权限矩阵
+## Effective permissions
 
-下表描述服务端当前授权，不以菜单显隐作为安全边界。
+The server enforces this matrix. Hidden menus are not an authorization boundary.
 
-| 主体 | 可读内容 | 发布/撤下 | 审核 | 人员与权限管理 |
+| Principal | Read | Publish / withdraw | Review | People and permissions |
 | --- | --- | --- | --- | --- |
-| 匿名访客 | 仅公开模式 Hub 的 Public 已发布版本 | 不可 | 不可 | 不可 |
-| 普通成员 | Public、Members，以及已授权内容 | 默认不可 | 默认不可 | 修改本人资料与本地密码；不能创建用户 |
-| 命名空间 Reader | Public、Members；Groups 仍需属于所选分组 | 不可 | 不可 | 读取本空间成员名单 |
-| 命名空间 Maintainer | 本空间内容及提交 | 本空间提交和撤下 | 不可，除非另有 Reviewer/Admin 角色 | 不可创建全站用户 |
-| 命名空间 Reviewer | 本空间内容及提交 | 不可，除非另有 Maintainer/Admin 角色 | 本空间审核；不能自审 | 不可创建全站用户 |
-| 命名空间 Admin | 本空间内容及提交 | 可以 | 可以；不能自审 | 管理本空间角色、团队资料与审核策略；不能管理全站用户 |
-| 人员管理员 | 与普通成员相同，不增加内容权限 | 不可，除非另有空间角色 | 不可，除非另有空间角色 | 创建普通账号、审批企业准入、停启普通账号；不可重置密码或授权 |
-| 审计员 | 与普通成员相同，不增加内容权限 | 不可，除非另有空间角色 | 不可，除非另有空间角色 | 只读审计日志 |
-| Hub 管理员 | 全部 Hub 内容及提交 | 可以 | 可以；不能自审 | 用户、分组、全站权限、分类标签与审计 |
+| Anonymous visitor | Published Public releases on public Hubs only | No | No | No |
+| Ordinary member | Public, Members and otherwise authorized content | No by default | No by default | Edit own profile and local password; cannot create users |
+| Namespace Reader | Public and Members; Groups still requires audience membership | No | No | Read namespace membership |
+| Namespace Maintainer | Namespace content and submissions | Submit and withdraw in the namespace | Only with an additional Reviewer or Admin role | Cannot create Hub-wide users |
+| Namespace Reviewer | Namespace content and submissions | Only with an additional Maintainer or Admin role | Review in the namespace; no self-approval | Cannot create Hub-wide users |
+| Namespace Admin | Namespace content and submissions | Yes | Yes; no self-approval | Manage namespace roles, team profile and review policy; not Hub-wide users |
+| People administrator | Same as an ordinary member; no additional content access | Requires a namespace role | Requires a namespace role | Create ordinary accounts, approve enterprise admission, enable/disable ordinary users; no password resets or role grants |
+| Auditor | Same as an ordinary member; no additional content access | Requires a namespace role | Requires a namespace role | Read-only audit access |
+| Hub administrator | All Hub content and submissions | Yes | Yes; no self-approval | Users, groups, Hub-wide grants, taxonomy and audit |
 
-授权是并集，没有显式拒绝规则。普通 Reader 不绕过 Groups 受众，必须属于所选分组；撤销分组成员后立即失去相应读取权。Maintainer、Reviewer 和命名空间 Admin 为履行维护/审核职责可读取本空间 Groups 内容；Hub 管理员可读取全部内容。仅授予履职所需角色，不提供对这些高信任角色保密的存储。
+Grants are additive; there is no explicit deny rule. Reader grants do not bypass Groups audiences: a Reader must belong to one of the selected groups. Removing group membership removes that read access immediately. Maintainers, Reviewers and namespace Admins can read Groups content in their namespace to perform their duties. Hub administrators can read all content. Grant only the roles needed for the person's responsibilities; this is not storage designed to hide content from these trusted roles.
 
-Members 指本 Hub 的所有有效登录成员，不是某个团队的成员。Public 在私有 Hub 内仍要求登录；如果将 Hub 改成公开模式，已有 Public 版本就可能允许匿名访问，因此此配置变更必须先盘点资源和展示资料。默认发布受众是 Members。
+**Members** means all active signed-in members of the Hub, not members of one team. **Public** content still requires sign-in on a private Hub. Switching a Hub to public mode can expose existing Public releases to anonymous visitors, so inventory content and profiles first. The default publication audience is Members.
 
-撤销权限或撤下版本后，目录、详情、评论、下载和缓存复用均重新鉴权。已经安装到用户磁盘的文件不会被远程收回。收藏只归本人，发布审核绑定内容与受众；修改内容或扩大受众需重新走发布流程。
+Catalog, detail, comments, downloads and cache reuse recheck authorization after permission revocation or withdrawal. Files already installed on a user's disk cannot be recalled remotely. Bookmarks belong only to their owner. Review binds content and audience; modifying content or widening its audience requires another publication workflow.
 
-## 企业账号准入
+## Enterprise admission
 
-建议由企业身份提供方控制应用准入，Hub 保留一个本地应急管理员。默认首次已验证企业登录进入待审批，由 Hub 管理员核对稳定身份后批准；部署者仍可显式选择自动准入。新企业成员没有发布、审核或管理权限，需由 Hub/空间管理员授予。默认没有公开注册表单和匿名注册 API，也不优先建设面向互联网的自主注册运营能力。
+Use the identity provider's application assignment to control eligibility, and retain a local emergency administrator. By default, a newly verified enterprise identity enters the approval queue. A Hub or people administrator verifies its stable identity and approves access. Operators may explicitly enable automatic admission. New enterprise members have no publishing, review or administration roles until granted separately.
 
-现有本地账号不会自动转为企业账号。邀请认领、身份预绑定、SCIM、目录群组映射、即时离职同步和账号迁移尚未实现。当前企业会话有效期为 8 小时；停用 Hub 用户会立即撤销 Hub 会话，但单独在身份提供方停用用户不会主动通知 Hub。企业部署的入离职流程必须明确包含 Hub 停用操作。详见 [企业登录配置](enterprise-login.md)。
+Local accounts do not automatically become enterprise accounts. Invitation claiming, identity prebinding, SCIM, directory group mapping, immediate offboarding synchronization and account migration are not implemented. Enterprise Hub sessions last eight hours. Disabling a Hub user immediately revokes Hub sessions, but disabling that user only in the identity provider does not notify the Hub. Offboarding procedures must include Hub account disablement. See [enterprise login](enterprise-login.md).
 
-## 验证权限
+## Verify authorization
 
-使用非管理员账号验证角色组合、分组撤销、不能自审和不可见资源隔离。管理员演示不能替代权限测试。测试与操作步骤见 [测试指南](testing.md) 和 [部署清单](deployment-checklist.md)。
+Use non-administrator accounts to verify role combinations, group revocation, independent review and inaccessible-resource isolation. An administrator demonstration is not a permission test. See [testing](testing.md) and the [deployment checklist](deployment-checklist.md).

@@ -1,0 +1,12 @@
+{
+  "schema_version": "skillhub.cases.v1",
+  "name": "summary-check",
+  "version": "1",
+  "cases": [
+    {
+      "id": "missing-owner",
+      "input": "The team agreed to review the document next week. No owner was assigned.",
+      "expected": "Summarize the decision and explicitly state that the owner is unknown."
+    }
+  ]
+}

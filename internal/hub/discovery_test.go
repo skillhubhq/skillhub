@@ -17,7 +17,7 @@ func TestDiscoverySchema8Upgrade(t *testing.T) {
 	ctx := context.Background()
 	root := s.root
 	identity := s.RegistryID()
-	_, e := s.db.Exec("DROP TABLE featured_skills; DROP INDEX releases_review_queue; PRAGMA user_version=8;")
+	_, e := s.db.Exec("DROP TABLE evaluation_evidence; DROP TABLE featured_skills; DROP INDEX releases_review_queue; PRAGMA user_version=8;")
 	mustGovernance(t, e)
 	mustGovernance(t, s.Close())
 	s, e = Open(root)
@@ -30,7 +30,7 @@ func TestDiscoverySchema8Upgrade(t *testing.T) {
 	backup := filepath.Join(t.TempDir(), "schema9")
 	info, e := s.Backup(ctx, backup)
 	mustGovernance(t, e)
-	if info.Schema != 9 {
+	if info.Schema != currentSchema {
 		t.Fatal(info)
 	}
 	dest := filepath.Join(t.TempDir(), "restored")

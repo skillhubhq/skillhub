@@ -48,7 +48,7 @@ func nativeSmokeServices() ([]application.Service, error) {
 }
 
 func (r *NativeSmokeReporter) Finish(report NativeSmokeReport) error {
-	if len(report.Checks) > 128 || len(report.Error) > 4096 || len(report.UserAgent) > 4096 || len(report.Location) > 1024 {
+	if len(report.Checks) > 256 || len(report.Error) > 4096 || len(report.UserAgent) > 4096 || len(report.Location) > 1024 {
 		return errors.New("invalid native smoke report")
 	}
 	report.Platform = runtime.GOOS
