@@ -58,6 +58,8 @@ jobs:
       EXE_SUFFIX: ${{ matrix.os == 'windows-latest' && '.exe' || '' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: go.mod
@@ -72,6 +74,29 @@ jobs:
           go build -trimpath -o "bin/skillhub${EXE_SUFFIX}" ./cmd/skillhub
           python scripts/smoke.py --server "bin/skillhub-server${EXE_SUFFIX}" --cli "bin/skillhub${EXE_SUFFIX}"
         shell: bash
+      - name: Exercise baseline compatibility, upgrade and rollback
+        if: matrix.os == 'ubuntu-latest'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        shell: bash
+        run: |
+          if [[ -z "$BASE_SHA" || "$BASE_SHA" =~ ^0+$ ]]; then exit 0; fi
+          [[ "$BASE_SHA" =~ ^[a-f0-9]{40}$ ]]
+          baseline="$GITHUB_WORKSPACE/.local/compatibility-baseline"
+          mkdir -p .local
+          git worktree add --detach "$baseline" "$BASE_SHA"
+          trap 'git worktree remove --force "$baseline"' EXIT
+          make -C "$baseline" web
+          (cd "$baseline" && go build -o bin/skillhub-server ./cmd/skillhub-server && go build -o bin/skillhub ./cmd/skillhub)
+          printf 'candidate=%s\nbaseline=%s\n' "$(git rev-parse HEAD)" "$BASE_SHA" > .local/compatibility.txt
+          python scripts/compatibility.py --server bin/skillhub-server --cli bin/skillhub \
+            --baseline-server "$baseline/bin/skillhub-server" --baseline-cli "$baseline/bin/skillhub" | tee -a .local/compatibility.txt
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always() && matrix.os == 'ubuntu-latest'
+        with:
+          name: compatibility
+          path: .local/compatibility.txt
+          if-no-files-found: ignore
       - run: python scripts/collect_licenses.py --output bin/third-party
       - name: Record exact binary revision and architecture
         shell: bash

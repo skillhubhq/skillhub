@@ -52,3 +52,7 @@ GitHub attestations are produced by the preparation workflow for public reposito
 The Web's download page is independent of community login. An installed App can manage multiple Hubs; updating the App is different from updating a skill. Existing installations continue to retain their origin. Back up the Hub before server upgrades and keep the exact previous binary and configuration; schema rollback uses a compatible backup.
 
 If an organization needs offline distribution later, mirror the unmodified GitHub release archives, hashes and provenance through its deployment system. Do not make a private mirror a mandatory product dependency.
+
+## Security evidence for release preparation
+
+Draft preparation requires successful CI for the exact main-branch revision, complete CodeQL analyses for Go, JavaScript/TypeScript, Python and Actions at that same revision, and no open code-scanning alerts. Analysis errors, warnings, incomplete evidence or API failures stop preparation. A dismissed alert still requires an individual data-flow review; a successful scanner job alone is not a security clearance. The evidence lookup is bounded to the latest 100 analyses, so older candidates may require a fresh scan. These checks do not replace target-environment acceptance or a review of newly disclosed dependency vulnerabilities.

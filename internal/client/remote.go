@@ -187,6 +187,13 @@ func ResolveTarget(tool, scope, project, home, name string) (string, string, err
 		return "", "", err
 	}
 	target, err := canonicalTarget(filepath.Join(base, directory, "skills", name))
+	if err == nil && scope == "project" {
+		// 工具目录可以在项目内复用，但不能由仓库中的符号链接导向项目外。
+		relative, relativeErr := filepath.Rel(canonicalProject, target)
+		if relativeErr != nil || !filepath.IsLocal(relative) {
+			return "", "", errors.New("skill target resolves outside the selected project")
+		}
+	}
 	return target, canonicalProject, err
 }
 

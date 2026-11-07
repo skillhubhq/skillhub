@@ -47,7 +47,7 @@ Web and App share English-default and Simplified Chinese presentation, with syst
 
 App and CLI share sources, credential references, installation inventory, project shortcuts and the Go client core. Each source has a local alias, canonical URL, immutable registry ID and independent credentials. Updating a skill uses its saved source rather than the currently selected community. Missing or ambiguous source identity requires explicit recovery.
 
-Codex and Claude Code support global and project installation. Installation checks authorization and digest, previews changes, locks target directories, stages files and uses atomic replacement with recovery journals. Unmanaged or locally changed files are never silently overwritten. Withdrawal prevents future downloads but does not remove previously installed files.
+Codex and Claude Code support global and project installation. Project tool-directory aliases must remain inside the selected project; aliases of the project root itself are supported. Installation checks authorization and digest, previews changes, locks target directories, stages files and uses atomic replacement with recovery journals. Unmanaged or locally changed files are never silently overwritten. Withdrawal prevents future downloads but does not remove previously installed files.
 
 A project manifest describes desired exact versions and tools. Its lock records source identity, URL, coordinate, digest and relative target without credentials. Restoration rechecks authorization and reports each target independently; updating an installation does not silently change the project lock.
 

@@ -213,7 +213,7 @@ func TestTrustedProxySeparatesAuthBucketsAndRejectsSpoofing(t *testing.T) {
 }
 
 func TestSignInReturnsToExactSafeRoute(t *testing.T) {
-	for _, raw := range []string{"https://evil.example/", "//evil.example/", "/logout", "/\\evil.example", "/%2fexample", "/\n"} {
+	for _, raw := range []string{"https://evil.example/", "//evil.example/", "/logout", "/\\evil.example", "/%2fexample", "/\n", "/%5cevil.example", "/%2f%2fevil.example", "/%252f%252fevil.example", "/authorize/../logout", "/authorize%2f..%2flogout", "/\\/evil.example", "/\r\nLocation: https://evil.example", "https:evil.example", "//user@evil.example"} {
 		if returnPath(raw) != "/" {
 			t.Fatalf("unsafe redirect %q", raw)
 		}

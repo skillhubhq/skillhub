@@ -22,6 +22,9 @@ def main():
         if alternate:
             command += ["--alternate-cli", alternate]
         subprocess.run(command, check=True, timeout=300)
+    print("baseline Hub → candidate Hub → snapshot rollback", flush=True)
+    subprocess.run([sys.executable, str(smoke), "--server", args.baseline_server,
+                    "--cli", args.cli, "--upgrade-server", args.server], check=True, timeout=300)
     print("PASS: compatibility matrix (baseline identity must be recorded separately)")
 
 

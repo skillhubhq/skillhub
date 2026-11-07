@@ -124,3 +124,89 @@ func TestPackRejectsExternalSymlink(t *testing.T) {
 		t.Fatal("packed symlink")
 	}
 }
+
+func TestPackageReadRejectsFileReplacedAfterInspection(t *testing.T) {
+	for _, replacement := range []string{"external-link", "different-file"} {
+		t.Run(replacement, func(t *testing.T) {
+			directory := t.TempDir()
+			name := filepath.Join(directory, "SKILL.md")
+			if err := os.WriteFile(name, []byte(validSkill), 0600); err != nil {
+				t.Fatal(err)
+			}
+			expected, err := os.Lstat(name)
+			if err != nil {
+				t.Fatal(err)
+			}
+			root, err := openDirectory(directory)
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer root.Close()
+			// 保留旧文件，保证替换后的 inode 不会被文件系统立即复用。
+			if err = os.Rename(name, name+".previous"); err != nil {
+				t.Fatal(err)
+			}
+			if replacement == "external-link" {
+				outside := filepath.Join(t.TempDir(), "private.txt")
+				if err = os.WriteFile(outside, []byte("must never be packaged"), 0600); err != nil {
+					t.Fatal(err)
+				}
+				if err = os.Symlink(outside, name); err != nil {
+					t.Skip(err)
+				}
+			} else if err = os.WriteFile(name, []byte("changed"), 0600); err != nil {
+				t.Fatal(err)
+			}
+			if content, err := readRegularFile(root, "SKILL.md", expected); err == nil || len(content) != 0 {
+				t.Fatal("read a substituted file")
+			}
+		})
+	}
+}
+
+func TestPackageRootDoesNotFollowReplacementDirectory(t *testing.T) {
+	parent := t.TempDir()
+	directory := filepath.Join(parent, "package")
+	if err := os.Mkdir(directory, 0700); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(directory, "SKILL.md"), []byte(validSkill), 0600); err != nil {
+		t.Fatal(err)
+	}
+	root, err := openDirectory(directory)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer root.Close()
+	if err = os.Rename(directory, directory+".original"); err != nil {
+		t.Skipf("host cannot rename an open directory: %v", err)
+	}
+	outside := t.TempDir()
+	if err = os.Symlink(outside, directory); err != nil {
+		t.Skip(err)
+	}
+	data, err := root.ReadFile("SKILL.md")
+	if err != nil || string(data) != validSkill {
+		t.Fatal("root followed a substituted directory")
+	}
+	if err = root.MkdirAll("scripts", 0700); err != nil {
+		t.Fatal(err)
+	}
+	if err = root.WriteFile("scripts/check.txt", []byte("contained"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	if entries, err := os.ReadDir(outside); err != nil || len(entries) != 0 {
+		t.Fatal("root wrote outside the original directory")
+	}
+}
+
+func TestExtractRejectsUninspectedUnsafePaths(t *testing.T) {
+	for _, name := range []string{"../escape", "/absolute", "a/../../escape", "a\\b", "C:/escape"} {
+		t.Run(name, func(t *testing.T) {
+			bundle := &Bundle{Files: []File{{Path: name, Data: []byte("unsafe")}}}
+			if err := bundle.Extract(t.TempDir()); err == nil {
+				t.Fatal("extracted an unsafe caller-constructed bundle")
+			}
+		})
+	}
+}
