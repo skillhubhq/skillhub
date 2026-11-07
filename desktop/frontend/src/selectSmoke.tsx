@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { flushSync } from "react-dom";
 import { createRoot } from "react-dom/client";
 import { Select } from "./Select";
 
@@ -9,16 +10,16 @@ export async function runSelectSmoke(
   const container = document.createElement("div");
   document.body.append(container);
   const root = createRoot(container);
-  const settle = () => new Promise((resolve) => setTimeout(resolve, 40));
   const key = async (button: HTMLElement, value: string) => {
-    button.dispatchEvent(
-      new KeyboardEvent("keydown", {
-        key: value,
-        bubbles: true,
-        cancelable: true,
-      }),
-    );
-    await settle();
+    flushSync(() => {
+      button.dispatchEvent(
+        new KeyboardEvent("keydown", {
+          key: value,
+          bubbles: true,
+          cancelable: true,
+        }),
+      );
+    });
   };
   function Fixture() {
     const [value, setValue] = useState("");
@@ -71,8 +72,8 @@ export async function runSelectSmoke(
     );
   }
   try {
-    root.render(<Fixture />);
-    await settle();
+    // 测试直接读取 DOM，必须等待 React 提交；固定延时无法保证繁忙运行器上已挂载。
+    flushSync(() => root.render(<Fixture />));
     const dialog = container.querySelector("dialog")!;
     dialog.showModal();
     const form = dialog.querySelector("form")!;
@@ -81,8 +82,7 @@ export async function runSelectSmoke(
       !dialog.querySelector("select"),
       "custom choices render without native select controls",
     );
-    form.requestSubmit();
-    await settle();
+    flushSync(() => form.requestSubmit());
     check(
       buttons[0].getAttribute("aria-invalid") === "true" &&
         document.activeElement === buttons[0],
@@ -150,8 +150,7 @@ export async function runSelectSmoke(
       !dialog.querySelector(".ui-select-menu"),
       "Tab dismisses the choice menu without trapping focus",
     );
-    buttons[2].click();
-    await settle();
+    flushSync(() => buttons[2].click());
     check(
       !dialog.querySelector(".ui-select-menu"),
       "disabled fieldset prevents opening a choice menu",
