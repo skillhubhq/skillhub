@@ -13,8 +13,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/skillhubhq/skillhub/internal/packageformat"
 	"github.com/gofrs/flock"
+	"github.com/skillhubhq/skillhub/internal/packageformat"
 )
 
 const (

@@ -12,9 +12,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/skillhubhq/skillhub/internal/sqliteutil"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/stdlib"
+	"github.com/skillhubhq/skillhub/internal/sqliteutil"
 )
 
 type Config struct {

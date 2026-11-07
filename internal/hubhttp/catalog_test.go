@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"connectrpc.com/connect"
+	"github.com/google/uuid"
 	adminv1 "github.com/skillhubhq/skillhub/gen/api/admin/v1"
 	"github.com/skillhubhq/skillhub/gen/api/admin/v1/adminv1connect"
 	authv1 "github.com/skillhubhq/skillhub/gen/api/auth/v1"
@@ -23,7 +24,6 @@ import (
 	taxonomy "github.com/skillhubhq/skillhub/gen/common/registry/v1"
 	"github.com/skillhubhq/skillhub/internal/hub"
 	"github.com/skillhubhq/skillhub/internal/packageformat"
-	"github.com/google/uuid"
 )
 
 type registryFixture struct {

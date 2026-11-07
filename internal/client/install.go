@@ -14,9 +14,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/skillhubhq/skillhub/internal/packageformat"
 	"github.com/gofrs/flock"
 	"github.com/google/uuid"
+	"github.com/skillhubhq/skillhub/internal/packageformat"
 )
 
 var (

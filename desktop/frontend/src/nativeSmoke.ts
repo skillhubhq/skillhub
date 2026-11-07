@@ -952,6 +952,16 @@ export async function runNativeSmoke() {
       document.activeElement === passwordTrigger,
       "closing a dialog restores the keyboard trigger focus",
     );
+    passwordTrigger.click();
+    await waitForUI(() => !!document.querySelector("dialog[open]"));
+    document
+      .querySelector("dialog[open]")!
+      .dispatchEvent(new Event("cancel", { bubbles: false, cancelable: true }));
+    await waitForUI(() => !document.querySelector("dialog[open]"));
+    check(
+      document.activeElement === passwordTrigger,
+      "canceling a reopened dialog restores the same keyboard trigger focus",
+    );
     location.hash = "sources";
     await waitForUI(() =>
       Array.from(document.querySelectorAll("button")).some(

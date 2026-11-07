@@ -9,10 +9,10 @@ import (
 	"time"
 	"unicode/utf8"
 
+	"github.com/google/uuid"
 	taxonomy "github.com/skillhubhq/skillhub/gen/common/registry/v1"
 	c "github.com/skillhubhq/skillhub/internal/community"
 	"github.com/skillhubhq/skillhub/internal/hubdb"
-	"github.com/google/uuid"
 )
 
 const profileColumns = `u.id,u.username,COALESCE(NULLIF(p.display_name,''),u.username),COALESCE(p.bio,''),COALESCE(p.revision,0),COALESCE(p.avatar,'')`

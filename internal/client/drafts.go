@@ -10,9 +10,9 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/skillhubhq/skillhub/internal/packageformat"
 	"github.com/gofrs/flock"
 	"github.com/google/uuid"
+	"github.com/skillhubhq/skillhub/internal/packageformat"
 )
 
 // DraftWorkspace 是客户端私有副本，编辑不会覆盖来源目录或已安装内容。

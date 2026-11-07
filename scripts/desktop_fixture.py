@@ -1,5 +1,6 @@
 """Run disposable local Hubs and the native desktop for manual acceptance."""
 import argparse
+from contextlib import closing
 import json
 import os
 from pathlib import Path
@@ -53,7 +54,7 @@ def main():
                                input=password + "\n", text=True, encoding="utf-8", capture_output=True, check=True)
                 if args.automated and alias == "public":
                     # 仅在隔离 fixture 中建立已验证身份；完整 JWT/OIDC 校验由服务端测试覆盖。
-                    with sqlite3.connect(data / "hub.db") as db:
+                    with closing(sqlite3.connect(data / "hub.db")) as db, db:
                         for user_id in ("pending-approve", "pending-reject"):
                             db.execute("INSERT INTO users(id,username,password_hash,administrator,disabled) VALUES(?,?,?,0,1)", (user_id, user_id, b""))
                             db.execute("INSERT INTO profiles(user_id,display_name) VALUES(?,?)", (user_id, user_id))
