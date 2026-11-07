@@ -78,6 +78,22 @@ class PackageReleaseTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     package(tag, revision, "123", root, root / "release")
 
+    def test_rejects_stale_repository_in_binaries_notices_and_app_archives(self):
+        stale = b"github.com/" + b"previous-owner" + b"/skillhub"
+        for target in ("binary", "notices", "app-zip"):
+            with self.subTest(target=target), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                tag, revision = self.fixture(root)
+                if target == "binary":
+                    (root / "hub-cli-ubuntu-latest/skillhub").write_bytes(b"\x00" + stale + b"\x00")
+                elif target == "notices":
+                    (root / "desktop-macos-latest/third-party/go-modules.json").write_bytes(stale)
+                else:
+                    with zipfile.ZipFile(root / "desktop-macos-latest/SkillHub-macos.zip", "w") as z:
+                        z.writestr("SkillHub.app/Contents/MacOS/SkillHub", stale)
+                with self.assertRaisesRegex(ValueError, "Noncanonical SkillHub"):
+                    package(tag, revision, "123", root, root / "release")
+
 
 if __name__ == "__main__":
     unittest.main()

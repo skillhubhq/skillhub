@@ -4,6 +4,7 @@ import re
 from pathlib import Path
 import subprocess
 from urllib.parse import unquote, urlsplit
+from project_identity import check_project_references
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -20,6 +21,10 @@ def main():
         path = ROOT / name
         if not path.is_file():
             continue
+        try:
+            check_project_references(path.read_bytes(), name)
+        except ValueError as error:
+            errors.append(str(error))
         private_suffixes = (".db", ".db-wal", ".db-shm", ".sqlite", ".sqlite3", ".sqlite-wal", ".sqlite-shm", ".sqlite3-wal", ".sqlite3-shm", ".pem", ".key", ".p12", ".pfx", ".local.yaml", ".local.yml")
         private_env = path.name == ".env" or (path.name.startswith(".env.") and path.name != ".env.example")
         if any(part in {".local", ".idea", ".agents", "node_modules", "backups", "secrets"} for part in path.relative_to(ROOT).parts) or name.endswith(private_suffixes) or private_env:

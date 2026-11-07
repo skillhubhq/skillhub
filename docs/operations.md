@@ -94,7 +94,7 @@ If all local administrator credentials are lost, stop the service first, make an
 
 From an authorized, clean revision, run `python3 scripts/build_candidate.py --output .local/candidate-<revision> --arch amd64`. It builds embedded Web assets and Linux Hub/CLI, and records the Git SHA, source hash, toolchain, target and binary checksums. `--allow-dirty` explicitly produces **local-only diagnostic artifacts**, never a release candidate. Hashes provide integrity, not authenticity. App builds use `node desktop/build.mjs` on their supported host and must use the same revision. Verify checksums after copying artifacts; keep the prior binaries and verified backup for rollback.
 
-Before admitting this exact candidate to internal use, record on the actual target:
+When an operator prepares a specific installation, record the following on its actual target. These are deployment follow-up checks, not repository-level release prerequisites:
 
 1. Candidate SHA/checksums, OS/architecture, service account, domain, proxy/TLS, data path, permissions, capacity and service restart after reboot.
 2. Real Entra tenant: assigned/unassigned user, first login, repeat identity, disabled user, MFA/guest policy, Web login returning to an exact skill and CLI/App device login. Existing SSO Hub sessions last at most eight hours; disable the Hub account promptly for immediate revocation. SCIM is outside this version.

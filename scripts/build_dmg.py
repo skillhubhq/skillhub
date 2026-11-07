@@ -8,6 +8,7 @@ import plistlib
 import shutil
 import subprocess
 import tempfile
+from project_identity import check_project_references
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -25,6 +26,10 @@ def build(app, output):
     third_party = ROOT / 'desktop/bin/third-party'
     if not third_party.is_dir() or not any(third_party.iterdir()):
         raise ValueError('Run scripts/collect_licenses.py --desktop --output desktop/bin/third-party first')
+    for directory in (app, third_party):
+        for path in directory.rglob('*'):
+            if path.is_file() and not path.is_symlink():
+                check_project_references(path.read_bytes(), path.name)
     output.parent.mkdir(parents=True, exist_ok=True)
     temporary_root = ROOT / '.local/dmg-build'
     temporary_root.mkdir(parents=True, exist_ok=True)

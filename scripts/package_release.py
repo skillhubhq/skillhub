@@ -9,6 +9,7 @@ import shutil
 import tarfile
 import tempfile
 import zipfile
+from project_identity import check_project_references
 
 ROOT = Path(__file__).resolve().parents[1]
 DOCUMENTS = ["LICENSE", "NOTICE", "THIRD_PARTY_NOTICES.md"]
@@ -54,8 +55,15 @@ def package(tag, revision, run_id, artifacts, dest):
                         (stage / binary).chmod(0o755)
                 elif os_name == "windows":
                     shutil.copyfile(source / "SkillHub.exe", stage / "SkillHub.exe")
+                for path in stage.rglob("*"):
+                    if path.is_file():
+                        check_project_references(path.read_bytes(), str(path.relative_to(stage)))
                 if suffix == "zip":
                     if kind == "desktop" and os_name == "macos":
+                        with zipfile.ZipFile(source / "SkillHub-macos.zip") as app_zip:
+                            for entry in app_zip.infolist():
+                                if not entry.is_dir():
+                                    check_project_references(app_zip.read(entry), entry.filename)
                         shutil.copyfile(source / "SkillHub-macos.zip", archive)
                     with zipfile.ZipFile(archive, "a", compression=zipfile.ZIP_DEFLATED) as out:
                         for path in sorted(stage.rglob("*")):

@@ -2,6 +2,8 @@
 
 Use this checklist when installing a private, single-instance Hub. Keep environment addresses, credentials, operators and completed reports outside the source repository. Test the exact candidate revision on the target environment.
 
+This is an operator's environment-integration checklist, not the software release gate. Real Entra, server and managed-device checks may remain pending while repository-level acceptance is completed. The release criteria are the code, security, packaging and supported-platform checks in [testing](testing.md); do not report an untested environment as validated.
+
 ## Real Entra application and identity lifecycle
 
 - [ ] Assign an application owner and Hub access approver; create the single-tenant application through the approved administrative process.
@@ -31,6 +33,7 @@ Use this checklist when installing a private, single-instance Hub. Keep environm
 - [ ] Measure realistic package sizes, browser page behavior and concurrent publication/download latency. Measure against your own latency and capacity requirements.
 - [ ] Fix a clean candidate revision and run the full CI/platform matrix before publishing artifacts. Record hashes/provenance and the exact supported client/Hub versions.
 - [ ] On a clean macOS device, verify browser-downloaded manual DMG installation and replacement with normal security policy, preserving sources, drafts, preferences and installed files. Signing/notarization/automatic installation remain outside the free manual-preview route.
+- [ ] Use the actual distribution App identity and normal browser quarantine path, not the isolated smoke bundle. After replacement and restart, authenticate two connections from saved OS credentials, reopen saved and incomplete drafts, and compare global/project installations and locally edited files. Confirm the manual installation policy is acceptable to the trial cohort's IT administrators.
 - [ ] If Windows is in the first cohort, complete real Windows/WebView2 installation, credential-store and update acceptance; otherwise explicitly scope the deployment to supported verified platforms.
 
 ## Operating responsibilities
