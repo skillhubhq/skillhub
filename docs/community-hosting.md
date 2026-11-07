@@ -34,7 +34,7 @@ OIDC entries additionally set an HTTPS `issuer`; see [Entra setup](enterprise-lo
 
 Adapters verify identity only. The Hub owns account creation, admission, permissions, profile and session issuance. A verified authority and subject identify the account: OIDC uses `issuer`/`sub`; GitHub uses `https://github.com` and its numeric user ID. Login-name changes do not create a new account. Emails and matching nicknames never merge accounts. Account linking and directory group synchronization are not supported.
 
-Initial display names are copied once. The GitHub adapter may fetch an avatar from its fixed avatar CDN without an OAuth token, with a timeout, byte cap and no redirects. The Hub normalizes PNG/JPEG content and fills only an untouched empty avatar. Failure falls back to initials; the next login can retry. User-edited names and avatars are never overwritten. OIDC picture URLs are not fetched. The Hub does not retain identity-provider access/refresh tokens.
+Initial display names are copied once. The GitHub adapter may fetch an avatar from its fixed avatar CDN without an OAuth token, with a timeout, byte cap and no redirects. The Hub normalizes PNG/JPEG content and fills only an untouched empty avatar. Avatar sync runs after sign-in with at most four concurrent users and a 15-second deadline, so a slow CDN does not delay login. Refresh the page to see a completed sync. Failure falls back to initials; the next login can retry. User-edited names and avatars are never overwritten. OIDC picture URLs are not fetched. The Hub does not retain identity-provider access/refresh tokens.
 
 ## Publication, moderation and capacity
 

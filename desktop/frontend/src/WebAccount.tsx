@@ -65,7 +65,7 @@ export function WebAccount() {
             t("Current community", "当前社区")}
           <small>
             {profile.value
-              ? `@${profile.value.username}`
+              ? profile.value.display_name
               : t("Not signed in", "尚未登录")}
           </small>
         </p>
@@ -79,9 +79,7 @@ export function WebAccount() {
           <button onClick={(e) => go(e, "sources")}>{t("Connections")}</button>
         )}
         {isWeb && (
-          <a
-            href={profile.value ? "/logout" : signInURL()}
-          >
+          <a href={profile.value ? "/logout" : signInURL()}>
             {profile.value ? t("Sign out") : t("Sign in")}
           </a>
         )}

@@ -154,15 +154,7 @@ func (s *Server) providerCallback(p *externalLogin, w http.ResponseWriter, r *ht
 		fail()
 		return
 	}
-	current, e := s.store.GetProfile(ctx, session.Identity, session.Identity.ID)
-	if e == nil && current.Revision == 0 && current.Avatar == "" {
-		avatarCtx, stop := context.WithTimeout(ctx, 3*time.Second)
-		raw, e := p.adapter.Avatar(avatarCtx, verified)
-		stop()
-		if e == nil && len(raw) > 0 {
-			_ = s.store.SyncExternalAvatar(ctx, session.Identity, raw)
-		}
-	}
+	s.startAvatarSync(p.adapter, verified, session.Identity)
 	s.completeFederatedLogin(w, r, session, a.destination)
 }
 func (s *Server) completeFederatedLogin(w http.ResponseWriter, r *http.Request, session hub.Session, destination string) {

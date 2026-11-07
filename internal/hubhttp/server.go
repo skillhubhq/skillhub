@@ -48,6 +48,10 @@ type Config struct {
 }
 
 type Server struct {
+	avatarMu      sync.Mutex
+	avatarTasks   map[string]context.CancelFunc
+	avatarWG      sync.WaitGroup
+	avatarStopped bool
 	proxies       []netip.Prefix
 	providers     map[string]*externalLogin
 	providerOrder []string
@@ -80,7 +84,7 @@ func New(store *hub.Store, config Config) (*Server, error) {
 	if err != nil {
 		return nil, err
 	}
-	s := &Server{store: store, config: config, limiter: &rateLimiter{entries: make(map[string]rateEntry)}, uploads: make(chan struct{}, 2)}
+	s := &Server{avatarTasks: make(map[string]context.CancelFunc), store: store, config: config, limiter: &rateLimiter{entries: make(map[string]rateEntry)}, uploads: make(chan struct{}, 2)}
 	for _, raw := range config.TrustedProxies {
 		if strings.TrimSpace(raw) == "" {
 			continue

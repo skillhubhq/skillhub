@@ -159,10 +159,7 @@ export function Person({
       }
     >
       <Avatar name={person.display_name} image={person.avatar} />
-      <span>
-        {person.display_name}
-        {person.username && <small>@{person.username}</small>}
-      </span>
+      <span>{person.display_name}</span>
     </button>
   );
 }

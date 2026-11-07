@@ -34,7 +34,7 @@ OIDC 还需配置 HTTPS `issuer`，参见 [Entra 接入](enterprise-login.md)。
 
 适配器仅验证身份，Hub 负责建号、准入、权限、资料和会话。账号依据经过验证的身份域与 subject 识别：OIDC 为 issuer/sub，GitHub 为 `https://github.com` 与数值用户 ID。改名不会新建账号，相同邮箱或昵称不会合并账号。暂不支持账号关联、目录分组同步。
 
-初始展示名仅复制一次。GitHub 适配器可从固定头像 CDN 读取图片，不携带 OAuth token，并限制超时、体积和跳转；Hub 将 PNG/JPEG 标准化，仅填充未编辑过的空头像。失败显示首字母，下次登录可重试。用户编辑过的名称和头像不会被覆盖。OIDC 的任意 picture URL 不会被抓取。Hub 不保留第三方访问/刷新令牌。
+初始展示名仅复制一次。GitHub 适配器可从固定头像 CDN 读取图片，不携带 OAuth token，并限制超时、体积和跳转；Hub 将 PNG/JPEG 标准化，仅填充未编辑过的空头像。头像在登录后后台同步，最多同时处理四位用户、每次限时 15 秒，不会因为 CDN 缓慢拖延登录；完成后刷新页面即可看到。失败显示首字母，下次登录可重试。用户编辑过的名称和头像不会被覆盖。OIDC 的任意 picture URL 不会被抓取。Hub 不保留第三方访问/刷新令牌。
 
 ## 发布、治理与容量 [#publication-moderation-and-capacity]
 
