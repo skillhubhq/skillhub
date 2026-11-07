@@ -21,7 +21,7 @@ require (
 	github.com/zalando/go-keyring v0.2.8
 	go.yaml.in/yaml/v3 v3.0.4
 	golang.org/x/crypto v0.48.0
-	golang.org/x/mod v0.38.0
+	golang.org/x/mod v0.42.0
 	golang.org/x/oauth2 v0.28.0
 	google.golang.org/protobuf v1.36.11
 	modernc.org/sqlite v1.45.0
