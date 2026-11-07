@@ -1,0 +1,181 @@
+syntax = "proto3";
+
+package api.catalog.v1;
+
+import "api/common/v1/types.proto";
+import "buf/validate/validate.proto";
+import "common/registry/v1/taxonomy.proto";
+import "google/protobuf/timestamp.proto";
+
+// CatalogService 提供权限感知的目录和精确版本下载。
+service CatalogService {
+  // SearchSkills 只返回主体有权发现的技能。
+  rpc SearchSkills(SearchSkillsRequest) returns (SearchSkillsResponse);
+  // GetSkill 查询完整坐标对应的技能。
+  rpc GetSkill(GetSkillRequest) returns (GetSkillResponse);
+  // ListReleases 列举有权查看的版本。
+  rpc ListReleases(ListReleasesRequest) returns (ListReleasesResponse);
+  // DownloadRelease 重新验证当前权限并返回精确包。
+  rpc DownloadRelease(DownloadReleaseRequest) returns (DownloadReleaseResponse);
+}
+
+// Skill 为目录资源投影，不作为领域聚合。
+message Skill {
+  // 所属命名空间。
+  string namespace = 1;
+  // 稳定技能名称。
+  string name = 2;
+  // 已发布内容摘要。
+  string description = 3;
+  // 当前 Hub 的分类。
+  string category = 4;
+  // 当前 Hub 的业务标签。
+  repeated string tags = 5;
+  // 最新可分发版本，可能为空。
+  string latest_version = 6;
+  // 英文展示名称；为空时使用另一语言或稳定名称。
+  string display_name_en = 7;
+  // 简体中文展示名称。
+  string display_name_zh = 8;
+  // 内置技能图标；零值使用默认图标。
+  .common.registry.v1.SkillIcon icon = 9;
+  // 管理员精选，仍遵守当前受众。
+  bool featured = 10;
+}
+
+// Release 是内容不可变的版本资源。
+message Release {
+  // 版本标识。
+  string release_id = 1;
+  // 所属命名空间。
+  string namespace = 2;
+  // 技能名称。
+  string name = 3;
+  // 精确版本。
+  string version = 4;
+  // 压缩包 SHA256。
+  string digest = 5;
+  // 发布状态。
+  .common.registry.v1.ReleaseStatus status = 6;
+  // 该版本批准的受众。
+  .common.registry.v1.Visibility visibility = 7;
+  // 受限受众群组。
+  repeated string group_ids = 8;
+  // 提交主体。
+  string submitted_by = 9;
+  // 提交时间。
+  google.protobuf.Timestamp created_at = 10;
+  // 审核或撤下说明。
+  string review_reason = 11;
+  // 技能说明，用于审核预览。
+  string skill_markdown = 12;
+  // 英文展示名称；为空时使用另一语言或稳定名称。
+  string display_name_en = 13;
+  // 简体中文展示名称。
+  string display_name_zh = 14;
+  // 内置技能图标；零值使用默认图标。
+  .common.registry.v1.SkillIcon icon = 15;
+}
+
+// SearchSkillsRequest 中的过滤只能收窄访问范围。
+message SearchSkillsRequest {
+  // 搜索词。
+  string query = 1 [(buf.validate.field).string.max_len = 200];
+  // 可选空间筛选。
+  string namespace = 2;
+  // 可选分类筛选。
+  string category = 3;
+  // 必须同时匹配的标签。
+  repeated string tags = 4;
+  // 分页条件。
+  api.common.v1.PageRequest page = 5;
+  // 零值保持名称排序。
+  .common.registry.v1.CatalogOrder order = 6;
+  // 仅返回管理员精选。
+  bool featured_only = 7;
+}
+
+// SearchSkillsResponse 返回当前页。
+message SearchSkillsResponse {
+  // 可见技能。
+  repeated Skill skills = 1;
+  // 后续页信息。
+  api.common.v1.PageResult page = 2;
+}
+
+// GetSkillRequest 按空间与名称定位。
+message GetSkillRequest {
+  // 空间名称。
+  string namespace = 1 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 128
+  }];
+  // 技能名称。
+  string name = 2 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 128
+  }];
+}
+
+// GetSkillResponse 返回可见技能。
+message GetSkillResponse {
+  // 技能详情。
+  Skill skill = 1;
+}
+
+// ListReleasesRequest 不允许越权枚举版本。
+message ListReleasesRequest {
+  // 空间名称。
+  string namespace = 1 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 128
+  }];
+  // 技能名称。
+  string name = 2 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 128
+  }];
+  // 分页条件。
+  api.common.v1.PageRequest page = 3;
+}
+
+// ListReleasesResponse 返回可见版本。
+message ListReleasesResponse {
+  // 版本记录。
+  repeated Release releases = 1;
+  // 后续页信息。
+  api.common.v1.PageResult page = 2;
+}
+
+// DownloadReleaseRequest 只接受精确版本。
+message DownloadReleaseRequest {
+  // 空间名称。
+  string namespace = 1 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 128
+  }];
+  // 技能名称。
+  string name = 2 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 128
+  }];
+  // 精确版本。
+  string version = 3 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 128
+  }];
+  // 可选的本地包摘要；匹配时仍验证当前下载权限，不返回重复包字节。
+  string known_digest = 4 [(buf.validate.field).string.pattern = "^(sha256:[0-9a-f]{64})?$"];
+}
+
+// DownloadReleaseResponse 必须经客户端摘要校验。
+message DownloadReleaseResponse {
+  // 受大小限制的 ZIP 字节。
+  bytes archive = 1;
+  // ZIP 的 SHA256。
+  string digest = 2;
+  // 对应版本元数据。
+  Release release = 3;
+  // 当前主体获准下载且包摘要匹配 known_digest；此时 archive 为空。
+  bool not_modified = 4;
+}

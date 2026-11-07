@@ -1,0 +1,25 @@
+[Unit]
+Description=SkillHub
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=skillhub
+Group=skillhub
+StateDirectory=skillhub
+StateDirectoryMode=0700
+WorkingDirectory=/var/lib/skillhub
+# Edit the external URL and display name before installing this unit.
+ExecStart=/opt/skillhub/skillhub-server serve --data /var/lib/skillhub/data --listen 127.0.0.1:8080 --public-url https://skills.example.com --name "Company Skills" --private=true --trusted-proxies 127.0.0.1/32
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=30
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+
+[Install]
+WantedBy=multi-user.target

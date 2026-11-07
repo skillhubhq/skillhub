@@ -1,0 +1,24 @@
+version: v2
+clean: true
+managed:
+  enabled: true
+  override:
+    - file_option: go_package_prefix
+      value: github.com/skillhubhq/skillhub/gen
+  disable:
+    - file_option: go_package
+      module: buf.build/bufbuild/protovalidate
+plugins:
+  - local: [go, tool, protoc-gen-go]
+    out: gen
+    opt: paths=source_relative
+    strategy: all
+  - local: [go, tool, protoc-gen-connect-go]
+    out: gen
+    opt: paths=source_relative
+    strategy: all
+  - local: [node, sdk/typescript/node_modules/@bufbuild/protoc-gen-es/bin/protoc-gen-es]
+    out: sdk/typescript/gen
+    opt: [target=ts, import_extension=js]
+    include_imports: true
+    strategy: all

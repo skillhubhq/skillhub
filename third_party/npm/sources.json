@@ -1,0 +1,33 @@
+{
+  "@bufbuild/protobuf": {
+    "version": "2.17.0",
+    "file": "bufbuild-protobuf-es.LICENSE",
+    "source": "https://raw.githubusercontent.com/bufbuild/protobuf-es/01a8c3b7c95d17758c641b2b9e8ee2f14a3ee9d7/LICENSE",
+    "sha256": "c04b4216f1cd4c5a4f7fb2f2a1b0ae70d847e9e0cac7c9dee9bf8cc03177c449",
+    "notices": [
+      {
+        "file": "bufbuild-protobuf-es.BSD-NOTICE",
+        "source": "npm:@bufbuild/protobuf@2.17.0/dist/esm/wire/varint.js",
+        "sha256": "182a1bc8985a586e8e0ca3b5a3af1ff3c28bd3475833a07f50b42b53dd7ac889"
+      }
+    ]
+  },
+  "@connectrpc/connect": {
+    "version": "2.3.0",
+    "file": "connectrpc-connect-es.LICENSE",
+    "source": "https://raw.githubusercontent.com/connectrpc/connect-es/6b7c593d1a26db0be3c2c35500f50e9925354444/LICENSE",
+    "sha256": "445e3398edab2a40d8d5e5c1a1d533af6464fbae8378ecc0caaf2668e9bbea73"
+  },
+  "@connectrpc/connect-web": {
+    "version": "2.3.0",
+    "file": "connectrpc-connect-es.LICENSE",
+    "source": "https://raw.githubusercontent.com/connectrpc/connect-es/6b7c593d1a26db0be3c2c35500f50e9925354444/LICENSE",
+    "sha256": "445e3398edab2a40d8d5e5c1a1d533af6464fbae8378ecc0caaf2668e9bbea73"
+  },
+  "@wailsio/runtime": {
+    "version": "3.0.0",
+    "file": "wailsapp-wails.LICENSE",
+    "source": "https://raw.githubusercontent.com/wailsapp/wails/7b11001b92b712210b27d8cb53430e83f67ad8e4/LICENSE",
+    "sha256": "cede95c28e6e9d67d1c1e49e8ba3c20250c7d4080c3faca1579b6732327ae40d"
+  }
+}

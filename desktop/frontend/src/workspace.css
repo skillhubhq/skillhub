@@ -1,0 +1,298 @@
+.review-workspace {
+  display: grid;
+  grid-template-columns: 215px minmax(0, 1fr) 205px;
+  height: calc(100vh - 215px);
+  min-height: 540px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+}
+.review-queue {
+  background: var(--surface-soft);
+  border-right: 1px solid var(--line);
+  padding: 20px 15px;
+  overflow: auto;
+}
+.review-queue > h2,
+.review-properties > h2 {
+  font-size: 13px;
+  letter-spacing: 0;
+  margin-bottom: 16px;
+}
+.review-queue > .ui-select {
+  margin-bottom: 12px;
+  font-size: 12px;
+  min-height: 35px;
+}
+.queue-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  white-space: normal;
+  gap: 7px;
+  width: 100%;
+  padding: 14px;
+  margin-top: 10px;
+  font-size: 13px;
+  background: var(--surface);
+  border-radius: 8px;
+}
+.queue-item.active {
+  border-color: var(--line-strong);
+  background: var(--surface-soft);
+}
+.queue-item > span {
+  font-size: 12px;
+  color: var(--muted);
+}
+.review-document {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+}
+.review-heading {
+  border-bottom: 1px solid var(--line);
+  padding: 20px 24px;
+}
+.review-heading > span {
+  font-size: 12px;
+}
+.review-heading h2 {
+  font-size: 22px;
+  margin: 6px 0 0;
+}
+.review-content {
+  padding: 22px 24px;
+  overflow: auto;
+  flex: 1;
+  min-height: 0;
+}
+.review-content > .path {
+  font-size: 12px;
+}
+.review-properties {
+  padding: 20px 18px;
+  border-left: 1px solid var(--line);
+  overflow: auto;
+}
+.review-properties .properties {
+  display: block;
+}
+.review-properties dt {
+  font-size: 12px;
+  margin: 17px 0 5px;
+}
+.review-properties dd {
+  font-size: 12px;
+  line-height: 1.7;
+}
+.review-properties > p {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 24px;
+}
+.review-decision {
+  padding: 15px 24px;
+  border-top: 1px solid var(--line);
+  background: var(--surface-soft);
+  flex-shrink: 0;
+  max-height: 44%;
+  overflow: auto;
+}
+.review-decision textarea {
+  height: 64px;
+  min-height: 64px;
+  font-size: 13px;
+}
+.review-decision .actions {
+  margin-top: 10px;
+}
+.review-decision > p {
+  font-size: 13px;
+  margin-bottom: 0;
+}
+.review-workspace > .empty {
+  grid-column: span 2;
+  border: 0;
+}
+.withdraw-release {
+  padding-top: 14px;
+  margin-top: 15px;
+  border-top: 1px solid var(--line);
+}
+.withdraw-release button {
+  margin-top: 10px;
+  font-size: 12px;
+}
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 28px;
+  background: var(--surface);
+  color: var(--ink);
+  width: 520px;
+  max-width: calc(100vw - 36px);
+  max-height: 88vh;
+  box-shadow: 0 28px 100px var(--shadow-color);
+}
+dialog.wide {
+  width: 820px;
+}
+dialog::backdrop {
+  background: var(--overlay);
+  backdrop-filter: blur(4px);
+}
+.modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 24px;
+}
+.modal-head h2 {
+  margin: 0;
+  font-size: 22px;
+}
+.modal-head > button {
+  border: 0;
+  font-size: 22px;
+  min-height: 32px;
+  background: none;
+  padding: 0 8px;
+}
+.plan-list article {
+  border-top: 1px solid var(--line);
+  padding: 20px 0;
+}
+.plan-list article h3 {
+  margin: 10px 0;
+}
+.device-code {
+  text-align: center;
+  font:
+    32px ui-monospace,
+    monospace;
+  letter-spacing: 5px;
+  padding: 26px;
+  background: var(--surface-soft);
+  border-radius: 10px;
+  margin: 22px 0;
+}
+.web-shell {
+  display: block;
+}
+.web-shell .app-navigation {
+  position: sticky;
+  top: 0;
+  inset: auto;
+  width: 100%;
+  height: 74px;
+  overflow: visible;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 40px;
+  padding: 0 max(28px, calc((100% - 1240px) / 2));
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: var(--shadow-color);
+  backdrop-filter: blur(12px);
+}
+.web-shell .brand {
+  padding: 0;
+  flex: none;
+  font-size: 21px;
+}
+.web-shell .nav-label,
+.web-shell .sidebar-bottom {
+  display: none;
+}
+.web-shell nav {
+  flex-direction: row;
+  gap: 8px;
+  align-items: center;
+  white-space: nowrap;
+}
+.web-shell .app-navigation nav button {
+  margin: 0 !important;
+  padding: 9px 12px;
+  min-height: 36px;
+  font-size: 13px;
+  display: block;
+}
+.web-shell nav .icon {
+  display: none;
+}
+.web-shell .app-navigation nav button.selected {
+  background: var(--surface-soft);
+}
+.web-shell > main {
+  max-width: 1240px;
+  width: calc(100% - 56px);
+  margin: auto;
+  padding: 30px 0 45px;
+}
+.web-shell .page-header {
+  margin-bottom: 25px;
+}
+.web-shell .page-header h1 {
+  font-size: 20px;
+}
+.web-shell .page-discover .page-header h1 {
+  font-size: 14px;
+  letter-spacing: 0;
+  color: var(--muted);
+  font-weight: 500;
+}
+.web-shell .page-discover .page-header .subtitle {
+  display: none;
+}
+.web-shell .discovery-hero {
+  padding: 28px 36px;
+  min-height: 230px;
+  margin-bottom: 0;
+}
+.web-shell .discovery-hero h2 {
+  font-size: 42px;
+}
+.web-shell .hero-orbit {
+  width: 200px;
+  height: 200px;
+  right: 100px;
+  top: 24px;
+}
+.web-shell .discovery.browse-mode {
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 24px;
+}
+.web-shell .catalog-items {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.web-shell .has-detail .discovery-catalog {
+  display: none;
+}
+.web-shell .discovery.has-detail {
+  display: block;
+  height: auto;
+  min-height: 0;
+  max-width: 940px;
+  margin: auto;
+  overflow: visible;
+}
+.web-shell .skill-detail {
+  padding: 30px 42px;
+  overflow: visible;
+}
+.web-shell .review-workspace {
+  height: calc(100vh - 290px);
+  min-height: 530px;
+}
+.web-shell .page-header .subtitle {
+  max-width: 620px;
+}
+.web-shell .header-actions {
+  flex-shrink: 0;
+}

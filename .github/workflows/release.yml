@@ -1,0 +1,92 @@
+name: Prepare release
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: New version tag matching the candidate package version (vX.Y.Z)
+        required: true
+        type: string
+      ci_run:
+        description: Successful CI run ID for the exact main-branch push
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: prepare-release
+  cancel-in-progress: false
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
+      id-token: write
+      attestations: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      RELEASE_TAG: ${{ inputs.tag }}
+      CI_RUN: ${{ inputs.ci_run }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+      - name: Resolve and verify the candidate
+        id: candidate
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json, os, re, subprocess
+          tag, run_id, repo = os.environ['RELEASE_TAG'], os.environ['CI_RUN'], os.environ['GH_REPO']
+          if not re.fullmatch(r'v\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?', tag) or not run_id.isdigit():
+              raise SystemExit('Invalid tag or CI run ID')
+          def api(path):
+              return json.loads(subprocess.check_output(['gh', 'api', f'repos/{repo}/{path}']))
+          run = api(f'actions/runs/{run_id}')
+          if (run['status'], run['conclusion'], run['event'], run['head_branch']) != ('completed', 'success', 'push', 'main'):
+              raise SystemExit('Candidate must be a successful completed main-branch CI push')
+          if run['head_repository']['full_name'] != repo or run['path'] != '.github/workflows/ci.yml':
+              raise SystemExit('Unexpected candidate repository or workflow')
+          for ref in [f'git/ref/tags/{tag}', f'releases/tags/{tag}']:
+              result = subprocess.run(['gh', 'api', f'repos/{repo}/{ref}'], capture_output=True, text=True)
+              if result.returncode == 0:
+                  raise SystemExit('Tag/release already exists; existing releases are never replaced')
+              if 'HTTP 404' not in result.stderr:
+                  raise SystemExit('Could not verify tag/release absence')
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              output.write(f"revision={run['head_sha']}\n")
+          PY
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ steps.candidate.outputs.revision }}
+          fetch-depth: 0
+      - name: Download and package verified CI artifacts
+        env:
+          REVISION: ${{ steps.candidate.outputs.revision }}
+        run: |
+          gh run download "$CI_RUN" --dir .local/release-artifacts
+          python3 scripts/package_release.py --tag "$RELEASE_TAG" --revision "$REVISION" --run-id "$CI_RUN" --artifacts .local/release-artifacts --output dist/release
+      - name: Attest public release archives
+        if: ${{ !github.event.repository.private }}
+        uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a # v3
+        with:
+          subject-path: |
+            dist/release/*.zip
+            dist/release/*.tar.gz
+            dist/release/*.dmg
+      - name: Create a draft for review
+        env:
+          REVISION: ${{ steps.candidate.outputs.revision }}
+        run: |
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          Path('.local/release-notes.md').write_text(
+              f"Preview candidate {os.environ['RELEASE_TAG']} from `{os.environ['REVISION']}`.\n\n"
+              f"CI: https://github.com/{os.environ['GH_REPO']}/actions/runs/{os.environ['CI_RUN']}\n\n"
+              "Review feature notes and target-environment acceptance before publishing this draft.\n\n"
+              "Desktop packages are unsigned previews, without automatic updates. macOS requires 13+ and Apple silicon; Windows requires x64 and WebView2. Linux desktop is not included.\n\n"
+              "Verify SHA256SUMS and PROVENANCE.json. Back up existing Hubs before upgrading. Third-party notices are included in each archive.\n")
+          PY
+          gh release create "$RELEASE_TAG" dist/release/* --target "$REVISION" --draft --prerelease --title "SkillHub $RELEASE_TAG Preview" --notes-file .local/release-notes.md

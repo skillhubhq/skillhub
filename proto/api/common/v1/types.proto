@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package api.common.v1;
+
+import "buf/validate/validate.proto";
+
+// PageRequest 为持续增长集合提供不透明游标。
+message PageRequest {
+  // 每页条数，零使用服务端默认值。
+  uint32 page_size = 1 [(buf.validate.field).uint32.lte = 100];
+  // 服务端返回的游标，不可由客户端构造。
+  string page_token = 2 [(buf.validate.field).string.max_len = 2048];
+}
+
+// PageResult 表示本次查询是否还有下一页。
+message PageResult {
+  // 空值表示本次查询结束。
+  string next_page_token = 1;
+}
+
+// Mutation 标识可重试写操作，摘要冲突不得重放。
+message Mutation {
+  // 当前主体和方法范围内唯一的操作标识。
+  string idempotency_key = 1 [(buf.validate.field).string = {
+    min_len: 8
+    max_len: 128
+  }];
+}
+
+// ErrorDetail 仅包含可安全展示的公共错误。
+message ErrorDetail {
+  // 可供客户端稳定分支的错误代码。
+  string error_code = 1;
+  // 不包含内部诊断或请求秘密的说明。
+  string safe_message = 2;
+}

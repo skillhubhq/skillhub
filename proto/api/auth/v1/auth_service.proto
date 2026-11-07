@@ -1,0 +1,123 @@
+syntax = "proto3";
+
+package api.auth.v1;
+
+import "buf/validate/validate.proto";
+import "google/protobuf/timestamp.proto";
+
+// AuthService 管理当前 Hub 的独立身份和凭据。
+service AuthService {
+  // ChangePassword 校验旧密码后更改本地密码并撤销全部会话。
+  rpc ChangePassword(ChangePasswordRequest) returns (ChangePasswordResponse);
+  // Login 使用本地账号获取可撤销凭据。
+  rpc Login(LoginRequest) returns (LoginResponse);
+  // GetIdentity 验证凭据并返回当前主体。
+  rpc GetIdentity(GetIdentityRequest) returns (GetIdentityResponse);
+  // Logout 撤销当前凭据。
+  rpc Logout(LogoutRequest) returns (LogoutResponse);
+  // StartDeviceLogin 为 CLI 或 App 建立浏览器授权请求。
+  rpc StartDeviceLogin(StartDeviceLoginRequest) returns (StartDeviceLoginResponse);
+  // CompleteDeviceLogin 领取已批准的单次设备授权。
+  rpc CompleteDeviceLogin(CompleteDeviceLoginRequest) returns (CompleteDeviceLoginResponse);
+}
+
+// Identity 是当前用户可见的账号摘要。
+message Identity {
+  // 当前 Hub 内的用户标识。
+  string user_id = 1;
+  // 账号名称。
+  string username = 2;
+  // 是否可管理当前 Hub。
+  bool administrator = 3;
+  // 是否由企业身份提供者管理密码。
+  bool federated = 4;
+}
+
+// LoginRequest 中的密码仅用于校验，不写入日志。
+message LoginRequest {
+  // 本地账号名。
+  string username = 1 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 128
+  }];
+  // 本地密码。
+  string password = 2 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 1024
+  }];
+}
+
+// LoginResponse 的凭据仅返回给本次调用方。
+message LoginResponse {
+  // 可撤销的随机访问凭据。
+  string access_token = 1;
+  // 当前主体。
+  Identity identity = 2;
+  // 凭据到期时间。
+  google.protobuf.Timestamp expires_at = 3;
+}
+
+// GetIdentityRequest 从认证头解析主体。
+message GetIdentityRequest {}
+
+// GetIdentityResponse 返回当前有效主体。
+message GetIdentityResponse {
+  // 当前主体。
+  Identity identity = 1;
+}
+
+// LogoutRequest 撤销认证头中的凭据。
+message LogoutRequest {}
+
+// LogoutResponse 表示凭据已撤销。
+message LogoutResponse {}
+
+// StartDeviceLoginRequest 为独立本地客户端申请授权。
+message StartDeviceLoginRequest {}
+
+// StartDeviceLoginResponse 返回浏览器入口与轮询凭据。
+message StartDeviceLoginResponse {
+  // 仅由客户端保存的高熵秘密。
+  string device_code = 1;
+  // 用户在浏览器确认的短代码。
+  string user_code = 2;
+  // 由实例公开地址生成的授权页面。
+  string verification_uri = 3;
+  // 授权请求到期时间。
+  google.protobuf.Timestamp expires_at = 4;
+  // 最小轮询间隔秒数。
+  uint32 interval_seconds = 5;
+}
+
+// CompleteDeviceLoginRequest 不能以短代码领取凭据。
+message CompleteDeviceLoginRequest {
+  // StartDeviceLogin 返回的秘密。
+  string device_code = 1 [(buf.validate.field).string = {
+    min_len: 32
+    max_len: 256
+  }];
+}
+
+// CompleteDeviceLoginResponse 仅在用户批准后包含凭据。
+message CompleteDeviceLoginResponse {
+  // 尚未完成浏览器批准。
+  bool pending = 1;
+  // 已批准的登录凭据，成功领取后失效。
+  LoginResponse login = 2;
+}
+
+// ChangePasswordRequest 仅用于本地账号，企业账号由身份提供者管理。
+message ChangePasswordRequest {
+  // 当前密码。
+  string current_password = 1 [(buf.validate.field).string = {
+    min_bytes: 1
+    max_bytes: 72
+  }];
+  // 新密码。
+  string new_password = 2 [(buf.validate.field).string = {
+    min_bytes: 12
+    max_bytes: 72
+  }];
+}
+// ChangePasswordResponse 表示所有客户端都需要重新登录。
+message ChangePasswordResponse {}

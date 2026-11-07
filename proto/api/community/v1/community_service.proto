@@ -1,0 +1,320 @@
+syntax = "proto3";
+package api.community.v1;
+
+import "api/common/v1/types.proto";
+import "buf/validate/validate.proto";
+import "common/registry/v1/taxonomy.proto";
+import "google/protobuf/timestamp.proto";
+// CommunityService 提供受发布受众约束的身份、团队与社区互动。
+service CommunityService {
+  // UpdateAvatar 上传或移除当前用户的头像，由 Hub 规范化图片。
+  rpc UpdateAvatar(UpdateAvatarRequest) returns (UpdateAvatarResponse);
+  // GetProfile 按当前主体权限执行社区操作。
+  rpc GetProfile(GetProfileRequest) returns (GetProfileResponse);
+  // UpdateProfile 按当前主体权限执行社区操作。
+  rpc UpdateProfile(UpdateProfileRequest) returns (UpdateProfileResponse);
+  // GetTeam 按当前主体权限执行社区操作。
+  rpc GetTeam(GetTeamRequest) returns (GetTeamResponse);
+  // UpdateTeam 按当前主体权限执行社区操作。
+  rpc UpdateTeam(UpdateTeamRequest) returns (UpdateTeamResponse);
+  // ListTeams 按当前主体权限执行社区操作。
+  rpc ListTeams(ListTeamsRequest) returns (ListTeamsResponse);
+  // ListMembers 按当前主体权限执行社区操作。
+  rpc ListMembers(ListMembersRequest) returns (ListMembersResponse);
+  // ListContributions 按当前主体权限执行社区操作。
+  rpc ListContributions(ListContributionsRequest) returns (ListContributionsResponse);
+  // GetDiscussion 按当前主体权限执行社区操作。
+  rpc GetDiscussion(GetDiscussionRequest) returns (GetDiscussionResponse);
+  // ListComments 按当前主体权限执行社区操作。
+  rpc ListComments(ListCommentsRequest) returns (ListCommentsResponse);
+  // CreateComment 按当前主体权限执行社区操作。
+  rpc CreateComment(CreateCommentRequest) returns (CreateCommentResponse);
+  // DeleteComment 按当前主体权限执行社区操作。
+  rpc DeleteComment(DeleteCommentRequest) returns (DeleteCommentResponse);
+  // SetReaction 按当前主体权限执行社区操作。
+  rpc SetReaction(SetReactionRequest) returns (SetReactionResponse);
+  // ListBookmarks 按当前主体权限执行社区操作。
+  rpc ListBookmarks(ListBookmarksRequest) returns (ListBookmarksResponse);
+}
+// Profile 为社区资源的传输投影。
+message Profile {
+  // user_id 表示本次操作的对应属性。
+  string user_id = 1;
+  // username 表示本次操作的对应属性。
+  string username = 2;
+  // display_name 表示本次操作的对应属性。
+  string display_name = 3;
+  // bio 表示本次操作的对应属性。
+  string bio = 4;
+  // revision 表示本次操作的对应属性。
+  uint64 revision = 5;
+  // can_edit 表示本次操作的对应属性。
+  bool can_edit = 6;
+  // avatar 为 Hub 规范化后的 PNG data URL；空值使用首字母。
+  string avatar = 7;
+}
+// Team 为社区资源的传输投影。
+message Team {
+  // namespace 表示本次操作的对应属性。
+  string namespace = 1;
+  // display_name 表示本次操作的对应属性。
+  string display_name = 2;
+  // bio 表示本次操作的对应属性。
+  string bio = 3;
+  // revision 表示本次操作的对应属性。
+  uint64 revision = 4;
+  // can_edit 表示本次操作的对应属性。
+  bool can_edit = 5;
+  // can_view_members 表示本次操作的对应属性。
+  bool can_view_members = 6;
+}
+// Member 为社区资源的传输投影。
+message Member {
+  // profile 表示本次操作的对应属性。
+  Profile profile = 1;
+  // roles 表示本次操作的对应属性。
+  repeated .common.registry.v1.NamespaceRole roles = 2;
+}
+// Contribution 为社区资源的传输投影。
+message Contribution {
+  // release_id 表示本次操作的对应属性。
+  string release_id = 1;
+  // namespace 表示本次操作的对应属性。
+  string namespace = 2;
+  // name 表示本次操作的对应属性。
+  string name = 3;
+  // version 表示本次操作的对应属性。
+  string version = 4;
+  // description 表示本次操作的对应属性。
+  string description = 5;
+  // author 表示本次操作的对应属性。
+  Profile author = 6;
+  // 英文展示名称；为空时使用另一语言或稳定名称。
+  string display_name_en = 7;
+  // 简体中文展示名称。
+  string display_name_zh = 8;
+  // 内置技能图标；零值使用默认图标。
+  .common.registry.v1.SkillIcon icon = 9;
+}
+// Comment 为社区资源的传输投影。
+message Comment {
+  // comment_id 表示本次操作的对应属性。
+  string comment_id = 1;
+  // release_id 表示本次操作的对应属性。
+  string release_id = 2;
+  // parent_id 表示本次操作的对应属性。
+  string parent_id = 3;
+  // author 表示本次操作的对应属性。
+  Profile author = 4;
+  // body 表示本次操作的对应属性。
+  string body = 5;
+  // created_at 表示本次操作的对应属性。
+  google.protobuf.Timestamp created_at = 6;
+  // deleted 表示本次操作的对应属性。
+  bool deleted = 7;
+  // can_delete 表示本次操作的对应属性。
+  bool can_delete = 8;
+}
+// Discussion 为社区资源的传输投影。
+message Discussion {
+  // like_count 表示本次操作的对应属性。
+  uint64 like_count = 1;
+  // comment_count 表示本次操作的对应属性。
+  uint64 comment_count = 2;
+  // liked 表示本次操作的对应属性。
+  bool liked = 3;
+  // bookmarked 表示本次操作的对应属性。
+  bool bookmarked = 4;
+  // can_interact 表示本次操作的对应属性。
+  bool can_interact = 5;
+}
+// GetProfileRequest 为社区资源的传输投影。
+message GetProfileRequest {
+  // user_id 表示本次操作的对应属性。
+  string user_id = 1 [(buf.validate.field).string.max_len = 128];
+}
+// GetProfileResponse 为社区资源的传输投影。
+message GetProfileResponse {
+  // profile 表示本次操作的对应属性。
+  Profile profile = 1;
+}
+// UpdateProfileRequest 为社区资源的传输投影。
+message UpdateProfileRequest {
+  // mutation 表示本次操作的对应属性。
+  api.common.v1.Mutation mutation = 1 [(buf.validate.field).required = true];
+  // display_name 表示本次操作的对应属性。
+  string display_name = 2 [(buf.validate.field).string.max_len = 80];
+  // bio 表示本次操作的对应属性。
+  string bio = 3 [(buf.validate.field).string.max_len = 600];
+  // expected_revision 表示本次操作的对应属性。
+  uint64 expected_revision = 4;
+}
+// UpdateProfileResponse 为社区资源的传输投影。
+message UpdateProfileResponse {
+  // profile 表示本次操作的对应属性。
+  Profile profile = 1;
+}
+// GetTeamRequest 为社区资源的传输投影。
+message GetTeamRequest {
+  // namespace 表示本次操作的对应属性。
+  string namespace = 1 [(buf.validate.field).string.max_len = 128];
+}
+// GetTeamResponse 为社区资源的传输投影。
+message GetTeamResponse {
+  // team 表示本次操作的对应属性。
+  Team team = 1;
+}
+// UpdateTeamRequest 为社区资源的传输投影。
+message UpdateTeamRequest {
+  // mutation 表示本次操作的对应属性。
+  api.common.v1.Mutation mutation = 1 [(buf.validate.field).required = true];
+  // namespace 表示本次操作的对应属性。
+  string namespace = 2 [(buf.validate.field).string.max_len = 128];
+  // display_name 表示本次操作的对应属性。
+  string display_name = 3 [(buf.validate.field).string.max_len = 80];
+  // bio 表示本次操作的对应属性。
+  string bio = 4 [(buf.validate.field).string.max_len = 600];
+  // expected_revision 表示本次操作的对应属性。
+  uint64 expected_revision = 5;
+}
+// UpdateTeamResponse 为社区资源的传输投影。
+message UpdateTeamResponse {
+  // team 表示本次操作的对应属性。
+  Team team = 1;
+}
+// ListTeamsRequest 为社区资源的传输投影。
+message ListTeamsRequest {
+  // page 表示本次操作的对应属性。
+  api.common.v1.PageRequest page = 1;
+}
+// ListTeamsResponse 为社区资源的传输投影。
+message ListTeamsResponse {
+  // teams 表示本次操作的对应属性。
+  repeated Team teams = 1;
+  // page 表示本次操作的对应属性。
+  api.common.v1.PageResult page = 2;
+}
+// ListMembersRequest 为社区资源的传输投影。
+message ListMembersRequest {
+  // namespace 表示本次操作的对应属性。
+  string namespace = 1 [(buf.validate.field).string.max_len = 128];
+  // page 表示本次操作的对应属性。
+  api.common.v1.PageRequest page = 2;
+}
+// ListMembersResponse 为社区资源的传输投影。
+message ListMembersResponse {
+  // members 表示本次操作的对应属性。
+  repeated Member members = 1;
+  // page 表示本次操作的对应属性。
+  api.common.v1.PageResult page = 2;
+}
+// ListContributionsRequest 为社区资源的传输投影。
+message ListContributionsRequest {
+  // user_id 表示本次操作的对应属性。
+  string user_id = 1 [(buf.validate.field).string.max_len = 128];
+  // namespace 表示本次操作的对应属性。
+  string namespace = 2 [(buf.validate.field).string.max_len = 128];
+  // page 表示本次操作的对应属性。
+  api.common.v1.PageRequest page = 3;
+}
+// ListContributionsResponse 为社区资源的传输投影。
+message ListContributionsResponse {
+  // contributions 表示本次操作的对应属性。
+  repeated Contribution contributions = 1;
+  // page 表示本次操作的对应属性。
+  api.common.v1.PageResult page = 2;
+}
+// GetDiscussionRequest 为社区资源的传输投影。
+message GetDiscussionRequest {
+  // release_id 表示本次操作的对应属性。
+  string release_id = 1 [(buf.validate.field).string.max_len = 128];
+}
+// GetDiscussionResponse 为社区资源的传输投影。
+message GetDiscussionResponse {
+  // discussion 表示本次操作的对应属性。
+  Discussion discussion = 1;
+}
+// ListCommentsRequest 为社区资源的传输投影。
+message ListCommentsRequest {
+  // release_id 表示本次操作的对应属性。
+  string release_id = 1 [(buf.validate.field).string.max_len = 128];
+  // parent_id 表示本次操作的对应属性。
+  string parent_id = 2 [(buf.validate.field).string.max_len = 128];
+  // page 表示本次操作的对应属性。
+  api.common.v1.PageRequest page = 3;
+}
+// ListCommentsResponse 为社区资源的传输投影。
+message ListCommentsResponse {
+  // comments 表示本次操作的对应属性。
+  repeated Comment comments = 1;
+  // page 表示本次操作的对应属性。
+  api.common.v1.PageResult page = 2;
+}
+// CreateCommentRequest 为社区资源的传输投影。
+message CreateCommentRequest {
+  // mutation 表示本次操作的对应属性。
+  api.common.v1.Mutation mutation = 1 [(buf.validate.field).required = true];
+  // release_id 表示本次操作的对应属性。
+  string release_id = 2 [(buf.validate.field).string.max_len = 128];
+  // parent_id 表示本次操作的对应属性。
+  string parent_id = 3 [(buf.validate.field).string.max_len = 128];
+  // body 表示本次操作的对应属性。
+  string body = 4 [(buf.validate.field).string.max_len = 4000];
+}
+// CreateCommentResponse 为社区资源的传输投影。
+message CreateCommentResponse {
+  // comment 表示本次操作的对应属性。
+  Comment comment = 1;
+}
+// DeleteCommentRequest 为社区资源的传输投影。
+message DeleteCommentRequest {
+  // mutation 表示本次操作的对应属性。
+  api.common.v1.Mutation mutation = 1 [(buf.validate.field).required = true];
+  // comment_id 表示本次操作的对应属性。
+  string comment_id = 2 [(buf.validate.field).string.max_len = 128];
+}
+// DeleteCommentResponse 为社区资源的传输投影。
+message DeleteCommentResponse {}
+// SetReactionRequest 为社区资源的传输投影。
+message SetReactionRequest {
+  // mutation 表示本次操作的对应属性。
+  api.common.v1.Mutation mutation = 1 [(buf.validate.field).required = true];
+  // release_id 表示本次操作的对应属性。
+  string release_id = 2 [(buf.validate.field).string.max_len = 128];
+  // bookmark 表示本次操作的对应属性。
+  bool bookmark = 3;
+  // active 表示本次操作的对应属性。
+  bool active = 4;
+}
+// SetReactionResponse 为社区资源的传输投影。
+message SetReactionResponse {
+  // discussion 表示本次操作的对应属性。
+  Discussion discussion = 1;
+}
+// ListBookmarksRequest 为社区资源的传输投影。
+message ListBookmarksRequest {
+  // page 表示本次操作的对应属性。
+  api.common.v1.PageRequest page = 1;
+}
+// ListBookmarksResponse 为社区资源的传输投影。
+message ListBookmarksResponse {
+  // contributions 表示本次操作的对应属性。
+  repeated Contribution contributions = 1;
+  // page 表示本次操作的对应属性。
+  api.common.v1.PageResult page = 2;
+}
+
+// UpdateAvatarRequest 更新当前用户头像；空图片移除头像。
+message UpdateAvatarRequest {
+  // mutation 绑定重试请求。
+  api.common.v1.Mutation mutation = 1 [(buf.validate.field).required = true];
+  // image 为最多 512 KiB 的 PNG 或 JPEG 图片。
+  bytes image = 2 [(buf.validate.field).bytes.max_len = 524288];
+  // expected_revision 防止覆盖并发资料修改。
+  uint64 expected_revision = 3;
+}
+// UpdateAvatarResponse 返回规范化的个人资料。
+message UpdateAvatarResponse {
+  // profile 包含更新后的头像和修订号。
+  Profile profile = 1;
+}

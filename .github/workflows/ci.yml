@@ -1,0 +1,215 @@
+name: CI
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  protocol:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+        with:
+          go-version-file: go.mod
+      - uses: bufbuild/buf-setup-action@a47c93e0b1648d5651a065437926377d060baa99 # v1.50.0
+        with:
+          version: 1.72.0
+          github_token: ${{ github.token }}
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24.21.0
+          cache: npm
+          cache-dependency-path: sdk/typescript/package-lock.json
+      - run: make proto-check
+      - run: npm --prefix sdk/typescript test
+      - run: make sdk-smoke
+      - run: buf build
+      - name: Check protocol compatibility against the base revision
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          if [[ -z "$BASE_SHA" || "$BASE_SHA" =~ ^0+$ ]]; then exit 0; fi
+          git cat-file -e "$BASE_SHA:buf.yaml"
+          buf breaking --against ".git#ref=$BASE_SHA"
+        shell: bash
+      - run: go mod tidy && git diff --exit-code -- go.mod go.sum
+      - run: test -z "$(gofmt -l cmd internal)"
+  go:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    env:
+      EXE_SUFFIX: ${{ matrix.os == 'windows-latest' && '.exe' || '' }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+        with:
+          go-version-file: go.mod
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24.21.0
+      - run: make web
+      - run: go vet ./...
+      - run: go test -race ./...
+      - run: |
+          go build -trimpath -o "bin/skillhub-server${EXE_SUFFIX}" ./cmd/skillhub-server
+          go build -trimpath -o "bin/skillhub${EXE_SUFFIX}" ./cmd/skillhub
+          python scripts/smoke.py --server "bin/skillhub-server${EXE_SUFFIX}" --cli "bin/skillhub${EXE_SUFFIX}"
+        shell: bash
+      - run: python scripts/collect_licenses.py --output bin/third-party
+      - name: Record exact binary revision and architecture
+        shell: bash
+        run: python scripts/build_metadata.py --binary "bin/skillhub-server${EXE_SUFFIX}" --output bin/build.json
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: hub-cli-${{ matrix.os }}
+          path: bin/
+          if-no-files-found: error
+  postgres:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        version: [15, 16, 18]
+    services:
+      postgres:
+        image: postgres:${{ matrix.version }}-alpine
+        env:
+          POSTGRES_PASSWORD: fixture-only-password
+          POSTGRES_DB: skillhub_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s
+          --health-timeout 5s --health-retries 10
+    env:
+      SKILLHUB_TEST_POSTGRES_DSN: postgres://postgres:fixture-only-password@localhost:5432/skillhub_test?sslmode=disable
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+        with:
+          go-version-file: go.mod
+      - run: go test -race -count=1 ./internal/hubhttp
+      - name: Verify paired recovery and migrations with matching PostgreSQL tools
+        env:
+          PG_CONTAINER: ${{ job.services.postgres.id }}
+        run: |
+          CGO_ENABLED=0 go test -c -o /tmp/hub-tests ./internal/hub
+          docker cp /tmp/hub-tests "$PG_CONTAINER:/tmp/hub-tests"
+          docker exec -e SKILLHUB_TEST_POSTGRES_DSN="$SKILLHUB_TEST_POSTGRES_DSN" "$PG_CONTAINER" /tmp/hub-tests -test.v -test.run TestPostgres -test.timeout 180s
+  desktop:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    env:
+      EXE_SUFFIX: ${{ matrix.os == 'windows-latest' && '.exe' || '' }}
+      NATIVE_APP: ${{ matrix.os == 'windows-latest' && 'bin/SkillHub-smoke.exe' || 'bin/SkillHub-smoke.app/Contents/MacOS/SkillHub' }}
+    defaults:
+      run:
+        working-directory: desktop
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+        with:
+          go-version-file: desktop/go.mod
+          cache-dependency-path: |
+            go.sum
+            desktop/go.sum
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24.21.0
+          cache: npm
+          cache-dependency-path: desktop/frontend/package-lock.json
+      - run: npm ci --ignore-scripts
+        working-directory: desktop/frontend
+      - run: npm --prefix ../sdk/typescript ci --ignore-scripts
+      - run: npm --prefix frontend test
+      - run: node build.mjs
+      - run: git diff --exit-code -- frontend/bindings
+      - run: test -z "$(git ls-files --others --exclude-standard frontend/bindings)"
+        shell: bash
+      - run: go run golang.org/x/vuln/cmd/govulncheck@v1.7.0 ./...
+      - run: go test -race ./...
+      - name: Build native runtime fixture dependencies
+        working-directory: .
+        shell: bash
+        run: |
+          go build -trimpath -o "bin/skillhub-server${EXE_SUFFIX}" ./cmd/skillhub-server
+          go build -trimpath -o "bin/skillhub${EXE_SUFFIX}" ./cmd/skillhub
+      - name: Build separate native runtime test App
+        run: node build.mjs --native-smoke
+      - name: Verify real system credentials shared with the independent CLI
+        timeout-minutes: 3
+        env:
+          SKILLHUB_TEST_OS_CREDENTIALS: "1"
+        run: go test -race -count=1 -run '^TestDesktopUsesSystemCredentialStore$' -v .
+      - name: Exercise native WebView and Go bridge against two Hubs
+        timeout-minutes: 5
+        shell: bash
+        run: python ../scripts/desktop_fixture.py --app "$NATIVE_APP" --automated --report bin/native-smoke.json
+      - name: Preserve native runtime report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: native-runtime-${{ matrix.os }}
+          path: desktop/bin/native-smoke.json
+          if-no-files-found: warn
+      - run: python ../scripts/collect_licenses.py --desktop --output bin/third-party
+      - name: Package manual macOS disk image
+        if: runner.os == 'macOS'
+        run: python ../scripts/build_dmg.py --output bin/SkillHub-macos.dmg
+      - name: Record exact desktop revision and architecture
+        shell: bash
+        env:
+          APP_BINARY: ${{ matrix.os == 'windows-latest' && 'bin/SkillHub.exe' || 'bin/SkillHub.app/Contents/MacOS/SkillHub' }}
+        run: python ../scripts/build_metadata.py --binary "$APP_BINARY" --output bin/build.json
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: desktop-${{ matrix.os }}
+          path: |
+            desktop/bin/SkillHub-macos.zip
+            desktop/bin/SkillHub-macos.dmg
+            desktop/bin/SkillHub-macos.dmg.json
+            desktop/bin/SkillHub.exe
+            desktop/bin/build.json
+            desktop/bin/third-party/
+          if-no-files-found: error
+
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+        with:
+          go-version-file: go.mod
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24.21.0
+      - run: go install golang.org/x/vuln/cmd/govulncheck@v1.7.0
+      - run: govulncheck ./...
+      - run: npm ci --ignore-scripts && npm audit --audit-level=moderate
+        working-directory: desktop/frontend
+      - run: npm ci --ignore-scripts && npm audit --audit-level=moderate
+        working-directory: sdk/typescript
+
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+        with:
+          go-version-file: go.mod
+      - run: make quality
+      - run: go run github.com/zricethezav/gitleaks/v8@v8.30.1 git --redact --no-banner
+      - run: go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.11

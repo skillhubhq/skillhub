@@ -1,0 +1,148 @@
+syntax = "proto3";
+
+package api.publishing.v1;
+
+import "api/catalog/v1/catalog_service.proto";
+import "api/common/v1/types.proto";
+import "buf/validate/validate.proto";
+import "common/registry/v1/taxonomy.proto";
+
+// PublishingService 管理内容提交及独立审核。
+service PublishingService {
+  // SubmitRelease 对固定内容创建一次幂等提交。
+  rpc SubmitRelease(SubmitReleaseRequest) returns (SubmitReleaseResponse);
+  // ListSubmissions 返回可维护或可审核的提交。
+  rpc ListSubmissions(ListSubmissionsRequest) returns (ListSubmissionsResponse);
+  // GetSubmission 为有维护或审核权限的主体提供固定内容预览。
+  rpc GetSubmission(GetSubmissionRequest) returns (GetSubmissionResponse);
+  // ReviewRelease 对固定提交执行批准或拒绝。
+  rpc ReviewRelease(ReviewReleaseRequest) returns (ReviewReleaseResponse);
+  // YankRelease 禁止版本继续分发并保留证据。
+  rpc YankRelease(YankReleaseRequest) returns (YankReleaseResponse);
+}
+
+// GetSubmissionRequest 按不可变版本标识查询。
+message GetSubmissionRequest {
+  // 提交的版本标识。
+  string release_id = 1 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 128
+  }];
+}
+
+// GetSubmissionResponse 包含未经执行的审核材料。
+message GetSubmissionResponse {
+  // 包含说明全文的版本详情。
+  api.catalog.v1.Release release = 1;
+  // 固定摘要对应的 ZIP 内容，客户端仅作预览。
+  bytes archive = 2;
+}
+
+// SubmitReleaseRequest 固定内容和受众。
+message SubmitReleaseRequest {
+  // 幂等身份。
+  api.common.v1.Mutation mutation = 1 [(buf.validate.field).required = true];
+  // 目标空间。
+  string namespace = 2 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 128
+  }];
+  // 语义化版本。
+  string version = 3 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 128
+  }];
+  // ZIP 包。
+  bytes archive = 4 [(buf.validate.field).bytes = {
+    min_len: 1
+    max_len: 20971520
+  }];
+  // 目标受众。
+  .common.registry.v1.Visibility visibility = 5 [(buf.validate.field).enum = {
+    defined_only: true
+    not_in: [0]
+  }];
+  // 指定群组受众。
+  repeated string group_ids = 6;
+  // 分类。
+  string category = 7;
+  // 业务标签。
+  repeated string tags = 8;
+  // 英文展示名称；为空时使用另一语言或稳定名称。
+  string display_name_en = 9 [(buf.validate.field).string.max_len = 80];
+  // 简体中文展示名称。
+  string display_name_zh = 10 [(buf.validate.field).string.max_len = 80];
+  // 内置技能图标；零值使用默认图标。
+  .common.registry.v1.SkillIcon icon = 11 [(buf.validate.field).enum.defined_only = true];
+}
+
+// SubmitReleaseResponse 不将待审核视为发布成功。
+message SubmitReleaseResponse {
+  // 实际提交状态。
+  api.catalog.v1.Release release = 1;
+}
+
+// ListSubmissionsRequest 列举当前主体有关的提交。
+message ListSubmissionsRequest {
+  // 可选空间。
+  string namespace = 1;
+  // 分页条件。
+  api.common.v1.PageRequest page = 2;
+  // 仅列举自己的提交。
+  bool mine = 3;
+  // 零表示所有状态。
+  .common.registry.v1.ReleaseStatus status = 4 [(buf.validate.field).enum.defined_only = true];
+  // 匹配名称、空间或版本。
+  string query = 5 [(buf.validate.field).string.max_len = 800];
+}
+
+// ListSubmissionsResponse 返回权限过滤后的提交。
+message ListSubmissionsResponse {
+  // 可见提交。
+  repeated api.catalog.v1.Release releases = 1;
+  // 后续页信息。
+  api.common.v1.PageResult page = 2;
+}
+
+// ReviewReleaseRequest 绑定不可变版本标识。
+message ReviewReleaseRequest {
+  // 幂等身份。
+  api.common.v1.Mutation mutation = 1 [(buf.validate.field).required = true];
+  // 待审核版本。
+  string release_id = 2 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 128
+  }];
+  // 批准为 true，拒绝为 false。
+  bool approve = 3;
+  // 审核说明。
+  string reason = 4 [(buf.validate.field).string.max_len = 1024];
+}
+
+// ReviewReleaseResponse 返回提交最终状态。
+message ReviewReleaseResponse {
+  // 版本状态。
+  api.catalog.v1.Release release = 1;
+}
+
+// YankReleaseRequest 只改变分发状态。
+message YankReleaseRequest {
+  // 幂等身份。
+  api.common.v1.Mutation mutation = 1 [(buf.validate.field).required = true];
+  // 待撤下版本。
+  string release_id = 2 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 128
+  }];
+  // 撤下原因。
+  string reason = 3 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 1024
+  }];
+}
+
+// YankReleaseResponse 返回撤下后的版本。
+message YankReleaseResponse {
+  // 版本状态。
+  api.catalog.v1.Release release = 1;
+}

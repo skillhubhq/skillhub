@@ -1,0 +1,122 @@
+/* 控件和浮层共用主题色；不依赖系统原生弹出菜单。 */
+button.ui-select {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  text-align: left;
+  font-weight: 400;
+  line-height: 1.4;
+  background-image: none;
+  padding-right: 12px;
+}
+.ui-select-value {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+.ui-select-chevron {
+  flex: 0 0 16px;
+  color: var(--muted);
+}
+button.ui-select[aria-expanded="true"] {
+  border-color: var(--accent);
+}
+button.ui-select:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+button.ui-select[aria-invalid="true"] {
+  border-color: var(--danger);
+}
+.ui-select-menu {
+  position: fixed;
+  z-index: 2000;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 5px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 8px 28px rgb(0 0 0 / 16%);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.4;
+  text-align: left;
+  scrollbar-width: thin;
+}
+.ui-select-option {
+  min-height: 36px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  cursor: pointer;
+}
+.ui-select-option > span:first-child {
+  overflow-wrap: anywhere;
+}
+.ui-select-option.highlighted {
+  background: var(--surface-soft);
+}
+.ui-select-option[aria-selected="true"] {
+  color: var(--link);
+  background: var(--accent-light);
+}
+.ui-select-option.highlighted[aria-selected="true"] {
+  outline: 1px solid var(--focus);
+  outline-offset: -1px;
+}
+.ui-select-option[aria-disabled="true"] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.ui-select-check {
+  flex: 0 0 16px;
+  text-align: center;
+  font-size: 13px;
+  line-height: 16px;
+}
+.ui-select-check.multiple {
+  height: 16px;
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+}
+[aria-selected="true"] > .ui-select-check.multiple {
+  color: var(--on-accent);
+  border-color: var(--accent);
+  background: var(--accent);
+}
+.ui-select-empty {
+  padding: 10px;
+  color: var(--muted);
+}
+input.ui-select-validation {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  width: 1px;
+  height: 1px;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+}
+.ui-select-error {
+  color: var(--danger);
+}
+.quick-language button.ui-select {
+  padding-right: 2px;
+  gap: 4px;
+}
+@media (forced-colors: active) {
+  .ui-select-option.highlighted {
+    outline: 1px solid Highlight;
+  }
+  .ui-select-option[aria-selected="true"] {
+    border: 1px solid Highlight;
+  }
+}

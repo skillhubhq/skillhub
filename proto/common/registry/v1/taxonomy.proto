@@ -1,0 +1,95 @@
+syntax = "proto3";
+
+package common.registry.v1;
+
+// Visibility 表示技能的读取受众，不授予维护权限。
+enum Visibility {
+  // 未指定受众，写入时拒绝。
+  VISIBILITY_UNSPECIFIED = 0;
+  // 可匿名读取，但仍受 Hub 私有模式约束。
+  VISIBILITY_PUBLIC = 1;
+  // 当前 Hub 的全部有效账号。
+  VISIBILITY_MEMBERS = 2;
+  // 仅明确授权的群组与资源维护者。
+  VISIBILITY_GROUPS = 3;
+}
+
+// ReleaseStatus 表示不可变包对应版本的发布状态。
+enum ReleaseStatus {
+  // 未指定状态。
+  RELEASE_STATUS_UNSPECIFIED = 0;
+  // 已通过结构校验，等待独立审核。
+  RELEASE_STATUS_PENDING = 1;
+  // 已批准，允许按受众分发。
+  RELEASE_STATUS_PUBLISHED = 2;
+  // 审核拒绝，保留提交证据。
+  RELEASE_STATUS_REJECTED = 3;
+  // 已撤下，不再允许普通下载。
+  RELEASE_STATUS_YANKED = 4;
+}
+
+// NamespaceRole 是命名空间内的权限集合。
+enum NamespaceRole {
+  // 不授予任何权限。
+  NAMESPACE_ROLE_UNSPECIFIED = 0;
+  // 读取受限技能。
+  NAMESPACE_ROLE_READER = 1;
+  // 上传和维护技能。
+  NAMESPACE_ROLE_MAINTAINER = 2;
+  // 审核他人的提交。
+  NAMESPACE_ROLE_REVIEWER = 3;
+  // 管理命名空间和授权，但仍禁止自审。
+  NAMESPACE_ROLE_ADMIN = 4;
+}
+
+// PrincipalKind 明确区分账号与群组，避免标识相撞产生授权。
+enum PrincipalKind {
+  // 未指定主体类型，拒绝授权。
+  PRINCIPAL_KIND_UNSPECIFIED = 0;
+  // 当前 Hub 的账号。
+  PRINCIPAL_KIND_USER = 1;
+  // 当前 Hub 的群组。
+  PRINCIPAL_KIND_GROUP = 2;
+}
+
+// SkillIcon 是客户端内置图标标识，不接受路径或外部 URL。
+enum SkillIcon {
+  // 默认技能图标。
+  SKILL_ICON_UNSPECIFIED = 0;
+  // 文档。
+  SKILL_ICON_DOCUMENT = 1;
+  // 代码。
+  SKILL_ICON_CODE = 2;
+  // 数据分析。
+  SKILL_ICON_CHART = 3;
+  // 写作。
+  SKILL_ICON_WRITING = 4;
+  // 研究。
+  SKILL_ICON_RESEARCH = 5;
+  // 设计。
+  SKILL_ICON_DESIGN = 6;
+  // 工作流程。
+  SKILL_ICON_WORKFLOW = 7;
+  // 命令行。
+  SKILL_ICON_TERMINAL = 8;
+}
+
+// PlatformRole 是可分离的平台职责，不授予技能内容权限。
+enum PlatformRole {
+  // 未指定，拒绝写入。
+  PLATFORM_ROLE_UNSPECIFIED = 0;
+  // 管理普通账号准入、停用和密码，不可管理特权账号或授予权限。
+  PLATFORM_ROLE_USER_ADMIN = 1;
+  // 只读访问治理审计。
+  PLATFORM_ROLE_AUDITOR = 2;
+}
+
+// CatalogOrder 是权限过滤后的目录顺序。
+enum CatalogOrder {
+  // 保持兼容的名称顺序。
+  CATALOG_ORDER_UNSPECIFIED = 0;
+  // 命名空间和稳定名称升序。
+  CATALOG_ORDER_NAME = 1;
+  // 最近发布优先，不按语义版本大小。
+  CATALOG_ORDER_RECENT = 2;
+}

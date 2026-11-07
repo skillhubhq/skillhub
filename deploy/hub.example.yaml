@@ -1,0 +1,24 @@
+# Explicit paths are relative to the process working directory, not this file.
+data: /var/lib/skillhub/data
+listen: 127.0.0.1:8080
+public_url: https://skills.example.com
+name: Company Skills
+private: true
+database:
+  driver: sqlite
+# PostgreSQL alternative (use a new database and dedicated data directory):
+# database:
+#   driver: postgres
+#   dsn_file: /run/secrets/skillhub-database
+# Or inject SKILLHUB_DATABASE_DSN instead of dsn_file.
+# Only for a directly connected, same-host reverse proxy.
+trusted_proxies:
+  - 127.0.0.1/32
+# Enable only after configuring application assignment at your identity provider.
+# oidc:
+#   issuer: https://login.microsoftonline.com/TENANT_ID/v2.0
+#   client_id: APPLICATION_CLIENT_ID
+#   name: Microsoft
+#   allow_signup: false
+#   client_secret_file: /run/secrets/skillhub-oidc
+# Alternatively inject SKILLHUB_OIDC_CLIENT_SECRET; never configure both sources.

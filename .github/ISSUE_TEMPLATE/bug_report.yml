@@ -1,0 +1,23 @@
+name: Bug report
+description: Report a reproducible defect using synthetic data.
+body:
+  - type: markdown
+    attributes:
+      value: "For vulnerabilities, follow SECURITY.md. Do not include tokens, passwords or private skills."
+  - type: input
+    id: version
+    attributes:
+      label: Version and platform
+      placeholder: "Release/commit, OS, Web/App/CLI"
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps, expected behavior and actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Sanitized logs or screenshots

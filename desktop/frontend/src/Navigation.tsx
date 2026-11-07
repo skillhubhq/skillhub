@@ -1,0 +1,323 @@
+import { ReviewInbox } from "./Governance";
+import { Select } from "./Select";
+import { useEffect, useRef } from "react";
+import { useUI } from "./ui";
+import { isWeb } from "./platform";
+import { Icon } from "./Icon";
+import { WebAccount } from "./WebAccount";
+import { t, setLanguage, useLanguage } from "./i18n";
+import { setTheme, useTheme, type Theme } from "./preferences";
+
+const community = ["discover", "teams", "bookmarks", "profile"];
+const studio = ["publish", "submissions", "review", "management"];
+const library = ["installed", "projects"];
+export function Navigation({ page }: { page: string }) {
+  const ui = useUI();
+  const privateGate =
+    isWeb &&
+    !!ui.sources.find((s) => s.alias === ui.activeSource)?.private &&
+    ui.access !== "member";
+  const group =
+    page === "downloads"
+      ? "downloads"
+      : community.includes(page)
+        ? "community"
+        : studio.includes(page)
+          ? "studio"
+          : library.includes(page)
+            ? "library"
+            : "settings";
+  const links =
+    group === "downloads"
+      ? []
+      : group === "community"
+        ? [
+            ["discover", t("Explore")],
+            ["teams", t("Teams")],
+            ["bookmarks", t("Saved")],
+          ]
+        : group === "studio"
+          ? [
+              ["submissions", t("My releases")],
+              ["review", t("Reviews")],
+              ["management", t("Hub settings")],
+            ]
+          : group === "library"
+            ? [
+                ["installed", t("Installed")],
+                ["projects", t("Projects")],
+              ]
+            : [
+                ["settings", t("Preferences", "偏好设置")],
+                ...(!isWeb ? [["sources", t("Connections")]] : []),
+              ];
+  const remote = group === "community" || group === "studio";
+  const siteName =
+    ui.sources.find((s) => s.alias === ui.activeSource)?.display_name ||
+    "SkillHub";
+  return (
+    <header className="navigation-shell">
+      <div className="global-navigation">
+        <button
+          className={`brand home-link ${isWeb ? "site-home" : "app-home"}`}
+          aria-label={
+            isWeb
+              ? `${siteName} · ${t("Home", "首页")}`
+              : t("SkillHub home", "SkillHub 首页")
+          }
+          title={isWeb ? siteName : "SkillHub"}
+          onClick={() => ui.navigate("discover")}
+        >
+          <img
+            className={`${isWeb ? "site-mark" : "brand-logo"} brand-light`}
+            src={`./assets/brand/${isWeb ? "mark" : "logo"}-color.svg`}
+            alt=""
+            width={isWeb ? 30 : 126}
+            height="33"
+          />
+          <img
+            className={`${isWeb ? "site-mark" : "brand-logo"} brand-dark`}
+            src={`./assets/brand/${isWeb ? "mark" : "logo"}-white.svg`}
+            alt=""
+            width={isWeb ? 30 : 126}
+            height="33"
+          />
+          {isWeb && <span className="site-name">{siteName}</span>}
+        </button>
+        <nav
+          className="primary-navigation"
+          aria-label={t("Main navigation", "主导航")}
+        >
+          <button
+            aria-current={group === "community" ? "page" : undefined}
+            onClick={() => ui.navigate("discover")}
+          >
+            {t("Community", "社区")}
+          </button>
+          {!isWeb && (
+            <button
+              aria-current={group === "library" ? "page" : undefined}
+              onClick={() => ui.navigate("installed")}
+            >
+              {t("My library", "本地技能")}
+            </button>
+          )}
+          {!privateGate && (
+            <button
+              aria-current={group === "studio" ? "page" : undefined}
+              onClick={() => ui.navigate("submissions")}
+            >
+              {t("Studio", "创作")}
+            </button>
+          )}
+          {isWeb && (
+            <button
+              aria-current={page === "downloads" ? "page" : undefined}
+              onClick={() => ui.navigate("downloads")}
+            >
+              {t("Downloads", "下载")}
+            </button>
+          )}
+        </nav>
+        <div className="global-utilities">
+          {ui.access === "member" && ui.activeSource && group !== "library" && (
+            <ReviewInbox key={ui.activeSource} source={ui.activeSource} />
+          )}
+          <QuickPreferences />
+          <button
+            className="utility-settings"
+            title={t("Settings", "设置")}
+            aria-label={t("Settings", "设置")}
+            aria-current={group === "settings" ? "page" : undefined}
+            onClick={() => ui.navigate("settings")}
+          >
+            <Icon name="management" />
+          </button>
+          <WebAccount />
+        </div>
+      </div>
+      {links.length > 1 && !privateGate && (
+        <div className="context-navigation">
+          <nav aria-label={t("Section navigation", "区域导航")}>
+            {links.map(([id, label]) => (
+              <button
+                key={id}
+                aria-current={page === id ? "page" : undefined}
+                onClick={() => ui.navigate(id)}
+              >
+                {label}
+              </button>
+            ))}
+          </nav>
+          <div className="context-actions">
+            {remote && !isWeb && <HubContext page={page} />}
+            {remote && page !== "publish" && (
+              <button
+                className="publish-shortcut"
+                aria-current={page === "publish" ? "page" : undefined}
+                onClick={() => ui.navigate("publish")}
+              >
+                <Icon name="publish" />
+                {t("Publish", "发布")}
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+    </header>
+  );
+}
+function QuickPreferences() {
+  const language = useLanguage(),
+    theme = useTheme(),
+    menu = useRef<HTMLDetailsElement>(null);
+  useEffect(() => {
+    const dismiss = (e: PointerEvent) => {
+      if (!menu.current?.contains(e.target as Node))
+        menu.current?.removeAttribute("open");
+    };
+    document.addEventListener("pointerdown", dismiss);
+    return () => document.removeEventListener("pointerdown", dismiss);
+  }, []);
+  const options: [Theme, string, string][] = [
+    ["light", t("Light", "浅色"), "sun"],
+    ["dark", t("Dark", "深色"), "moon"],
+    ["system", t("Follow system", "跟随系统"), "device"],
+  ];
+  return (
+    <>
+      <label className="quick-language" title={t("Language", "语言")}>
+        <Icon name="language" />
+        <Select
+          aria-label={t("Language", "语言")}
+          value={language}
+          onChange={(e) => setLanguage(e.target.value as "en" | "zh")}
+        >
+          <option value="en">English</option>
+          <option value="zh">简体中文</option>
+        </Select>
+      </label>
+      <details
+        ref={menu}
+        className="quick-theme"
+        name="navigation-menu"
+        onKeyDown={(e) => {
+          if (e.key === "Escape") {
+            menu.current?.removeAttribute("open");
+            menu.current?.querySelector("summary")?.focus();
+          }
+        }}
+      >
+        <summary
+          title={t("Appearance", "外观")}
+          aria-label={t("Appearance", "外观")}
+        >
+          <Icon
+            name={
+              theme === "system" ? "device" : theme === "dark" ? "moon" : "sun"
+            }
+          />
+        </summary>
+        <div className="theme-popover">
+          <p>{t("Appearance", "外观")}</p>
+          {options.map(([value, label, icon]) => (
+            <button
+              key={value}
+              aria-pressed={theme === value}
+              onClick={() => {
+                setTheme(value);
+                menu.current?.removeAttribute("open");
+                menu.current?.querySelector("summary")?.focus();
+              }}
+            >
+              <Icon name={icon} />
+              <span>{label}</span>
+              {theme === value && <Icon name="review" />}
+            </button>
+          ))}
+        </div>
+      </details>
+    </>
+  );
+}
+
+function HubContext({ page }: { page: string }) {
+  const ui = useUI(),
+    menu = useRef<HTMLDetailsElement>(null);
+  const current = ui.sources.find((s) => s.alias === ui.activeSource);
+  useEffect(() => {
+    const dismiss = (e: PointerEvent) => {
+      if (!menu.current?.contains(e.target as Node))
+        menu.current?.removeAttribute("open");
+    };
+    document.addEventListener("pointerdown", dismiss);
+    return () => document.removeEventListener("pointerdown", dismiss);
+  }, []);
+  return (
+    <details
+      className="hub-context"
+      ref={menu}
+      name="navigation-menu"
+      onKeyDown={(e) => {
+        if (e.key === "Escape") {
+          menu.current?.removeAttribute("open");
+          menu.current?.querySelector("summary")?.focus();
+        }
+      }}
+    >
+      <summary
+        aria-label={t("Switch Hub", "切换 Hub")}
+        title={
+          current
+            ? `${t("Switch Hub", "切换 Hub")} · ${current.display_name} · ${current.alias}`
+            : t("Connect a hub", "连接 Hub")
+        }
+      >
+        <span className="hub-switch-label">Hub</span>
+        <span className="hub-switch-name">
+          {current?.display_name || t("Connect a hub", "连接 Hub")}
+        </span>
+        <span className="menu-chevron" aria-hidden="true">
+          ⌄
+        </span>
+      </summary>
+      <div className="hub-popover">
+        <p>{t("Hubs and accounts", "Hub 与账号")}</p>
+        {ui.sources.map((s) => (
+          <button
+            key={s.alias}
+            aria-pressed={s.alias === ui.activeSource}
+            disabled={ui.busy}
+            onClick={() => {
+              menu.current?.removeAttribute("open");
+              ui.navigate(`${page}?source=${encodeURIComponent(s.alias)}`);
+            }}
+          >
+            <span>
+              <strong>{s.display_name || s.alias}</strong>
+              <small>{s.alias}</small>
+            </span>
+            {s.alias === ui.activeSource && <Icon name="review" />}
+          </button>
+        ))}
+        <div className="hub-menu-footer">
+          <small>
+            {t(
+              "Each connection keeps its own account and access.",
+              "每个连接保留独立的账号与权限。",
+            )}
+          </small>
+          <button
+            onClick={() => {
+              menu.current?.removeAttribute("open");
+              ui.navigate("sources");
+            }}
+          >
+            <Icon name="publish" />
+            {t("Manage connections", "管理连接")}
+          </button>
+        </div>
+      </div>
+    </details>
+  );
+}

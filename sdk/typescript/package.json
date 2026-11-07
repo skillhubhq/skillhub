@@ -1,0 +1,39 @@
+{
+  "name": "@skillhubhq/skillhub-protocol",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Generated SkillHub Protobuf messages and Connect clients",
+  "exports": {
+    ".": {
+      "types": "./dist/src/index.d.ts",
+      "import": "./dist/src/index.js"
+    },
+    "./gen/*": {
+      "types": "./dist/gen/*.d.ts",
+      "import": "./dist/gen/*.js"
+    }
+  },
+  "files": [
+    "dist",
+    "THIRD_PARTY_NOTICES.md",
+    "LICENSE.protovalidate"
+  ],
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "npm run build && node --test test/*.test.mjs",
+    "smoke": "npm run build && node test/rpc-smoke.mjs"
+  },
+  "dependencies": {
+    "@bufbuild/protobuf": "2.17.0",
+    "@connectrpc/connect": "2.3.0"
+  },
+  "devDependencies": {
+    "@bufbuild/protoc-gen-es": "2.17.0",
+    "@connectrpc/connect-node": "2.3.0",
+    "typescript": "5.9.3"
+  }
+}

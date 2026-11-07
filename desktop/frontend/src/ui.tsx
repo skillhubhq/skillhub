@@ -1,0 +1,339 @@
+import { Select } from "./Select";
+import { t } from "./i18n";
+import {
+  NamespaceRole as Role,
+  ReleaseStatus as Status,
+  Visibility,
+} from "../bindings/github.com/skillhubhq/skillhub/gen/common/registry/v1/models";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
+import { API } from "./platform";
+import { SkillDocument } from "./SkillDocument";
+import type { ChangePlan } from "../bindings/github.com/skillhubhq/skillhub/desktop/models";
+import type {
+  PreviewContent,
+  ReleasePreview,
+  Source,
+} from "../bindings/github.com/skillhubhq/skillhub/internal/client/models";
+export { API };
+export type { Source };
+export type UI = {
+  busy: boolean;
+  error: string;
+  revision: number;
+  sources: Source[];
+  activeSource: string;
+  access?: "checking" | "member" | "guest" | "unavailable";
+  run: <T>(task: () => Promise<T>) => Promise<T | undefined>;
+  changed: (message: string) => void;
+  plan: (task: () => Promise<ChangePlan>) => void;
+  preview: (task: () => Promise<ReleasePreview>) => void;
+  confirm: (
+    title: string,
+    detail: string,
+    action: () => Promise<unknown>,
+    tone?: "primary" | "danger",
+  ) => void;
+  navigate: (page: string) => void;
+};
+export const UIContext = createContext<UI>(null!);
+export const useUI = () => useContext(UIContext);
+export const splitList = (value: string) =>
+  value
+    .split(/[,，]/)
+    .map((v) => v.trim())
+    .filter(Boolean);
+const statusLabels: Partial<Record<Status, string>> = {
+  [Status.ReleaseStatus_RELEASE_STATUS_PENDING]: "In review",
+  [Status.ReleaseStatus_RELEASE_STATUS_PUBLISHED]: "Published",
+  [Status.ReleaseStatus_RELEASE_STATUS_REJECTED]: "Changes requested",
+  [Status.ReleaseStatus_RELEASE_STATUS_YANKED]: "Withdrawn",
+};
+const visibilityLabels: Partial<Record<Visibility, string>> = {
+  [Visibility.Visibility_VISIBILITY_PUBLIC]: "Public",
+  [Visibility.Visibility_VISIBILITY_MEMBERS]: "Hub members",
+  [Visibility.Visibility_VISIBILITY_GROUPS]: "Access groups",
+};
+const roleLabels: Partial<Record<Role, string>> = {
+  [Role.NamespaceRole_NAMESPACE_ROLE_READER]: "Reader",
+  [Role.NamespaceRole_NAMESPACE_ROLE_MAINTAINER]: "Maintainer",
+  [Role.NamespaceRole_NAMESPACE_ROLE_REVIEWER]: "Reviewer",
+  [Role.NamespaceRole_NAMESPACE_ROLE_ADMIN]: "Admin",
+};
+export const statusLabel = (value: Status) =>
+  t(statusLabels[value] ?? "Unknown status");
+export const visibilityLabel = (value: Visibility) =>
+  t(visibilityLabels[value] ?? "Unknown audience");
+export const roleLabel = (value: Role) =>
+  t(roleLabels[value] ?? "Unknown role");
+export const toolLabel = (value: string) =>
+  value === "codex" ? "Codex" : "Claude Code";
+export function Field({
+  label,
+  children,
+  hint,
+}: {
+  label: string;
+  children: ReactNode;
+  hint?: string;
+}) {
+  return (
+    <label className="field">
+      <span>{label}</span>
+      {children}
+      {hint && <small>{hint}</small>}
+    </label>
+  );
+}
+export function Empty({
+  title,
+  children,
+}: {
+  title: string;
+  children?: ReactNode;
+}) {
+  return (
+    <div className="empty">
+      <div className="empty-icon">◇</div>
+      <h2>{title}</h2>
+      <p>{children}</p>
+    </div>
+  );
+}
+export function SourceSelect({
+  value,
+  onChange,
+  all = false,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  all?: boolean;
+}) {
+  const { sources } = useUI();
+  return (
+    <Select
+      aria-label={t("Choose hub")}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+    >
+      <option value="">
+        {all ? t("All connected hubs") : t("Choose a hub")}
+      </option>
+      {sources.map((s) => (
+        <option key={s.alias} value={s.alias}>
+          {s.alias} · {s.display_name}
+        </option>
+      ))}
+    </Select>
+  );
+}
+export function ToolSelect({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  return (
+    <Select
+      aria-label={t("Tool")}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+    >
+      <option value="codex">Codex</option>
+      <option value="claude-code">Claude Code</option>
+    </Select>
+  );
+}
+export function DirectoryField({
+  value,
+  onChange,
+  label = t("Project folder"),
+  required = false,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  label?: string;
+  required?: boolean;
+}) {
+  const ui = useUI();
+  return (
+    <Field label={label}>
+      <div className="input-action">
+        <input
+          aria-label={label}
+          value={value}
+          required={required}
+          placeholder={t("Choose or enter a folder path")}
+          onChange={(e) => onChange(e.target.value)}
+        />
+        <button
+          type="button"
+          aria-label={`${t("Browse", "浏览")} ${label}`}
+          disabled={ui.busy}
+          onClick={() =>
+            void ui.run(async () => {
+              const path = await API.ChooseDirectory();
+              if (path) onChange(path);
+            })
+          }
+        >
+          {t("Browse…")}
+        </button>
+      </div>
+    </Field>
+  );
+}
+export function Modal({
+  title,
+  children,
+  onClose,
+  wide = false,
+}: {
+  title: string;
+  children: ReactNode;
+  onClose: () => void;
+  wide?: boolean;
+}) {
+  const ref = useRef<HTMLDialogElement>(null);
+  const id = useId();
+  const { busy, error } = useUI();
+  useEffect(() => {
+    const dialog = ref.current!;
+    dialog.showModal();
+    return () => dialog.close();
+  }, []);
+  return (
+    <dialog
+      ref={ref}
+      className={wide ? "wide" : ""}
+      aria-labelledby={id}
+      onCancel={(e) => {
+        e.preventDefault();
+        if (!busy) onClose();
+      }}
+    >
+      <div className="modal-head">
+        <h2 id={id}>{title}</h2>
+        <button
+          type="button"
+          aria-label={t("Close dialog")}
+          disabled={busy}
+          onClick={onClose}
+        >
+          ×
+        </button>
+      </div>
+      {error && (
+        <div className="notice error" role="alert">
+          {error}
+        </div>
+      )}
+      <fieldset disabled={busy}>{children}</fieldset>
+    </dialog>
+  );
+}
+export function PreviewBody({
+  preview,
+  view = "all",
+}: {
+  preview: ReleasePreview;
+  view?: "all" | "readme" | "files";
+}) {
+  const ui = useUI();
+  const [file, setFile] = useState<PreviewContent | null>(null);
+  const content = useRef<HTMLDivElement>(null);
+  useEffect(
+    () => setFile(null),
+    [preview.target.source, preview.release.id, preview.release.digest],
+  );
+  useEffect(() => {
+    if (file) content.current?.scrollIntoView({ block: "nearest" });
+  }, [file]);
+  const r = preview.release;
+  return (
+    <>
+      {view === "all" && (
+        <div className="chips">
+          <span>
+            {r.namespace}/{r.name}
+          </span>
+          <span>v{r.version}</span>
+          <span>{statusLabel(r.status)}</span>
+          <span>{visibilityLabel(r.visibility)}</span>
+        </div>
+      )}
+      {view !== "readme" && (
+        <details className="integrity-details">
+          <summary>{t("Package identity", "包身份信息")}</summary>
+          <p className="path">{r.digest}</p>
+        </details>
+      )}
+      {view === "all" && (r.groups ?? []).length > 0 && (
+        <p className="muted">
+          {t("Audience groups:")} {(r.groups ?? []).join(", ")}
+        </p>
+      )}
+      {view !== "files" && <SkillDocument key={r.id} text={r.markdown} />}
+      {view !== "readme" && (
+        <details open={view === "files" ? true : undefined}>
+          <summary>
+            {t("Package files ·")} {(preview.files ?? []).length}
+          </summary>
+          <ul className="file-list">
+            {(preview.files ?? []).map((f) => (
+              <li key={f.path}>
+                <button
+                  type="button"
+                  disabled={ui.busy}
+                  onClick={() =>
+                    void ui.run(async () => {
+                      setFile(
+                        await API.ReadPreviewFile(preview.target, f.path),
+                      );
+                    })
+                  }
+                >
+                  <code>{f.path}</code>
+                </button>
+                <span>
+                  {f.size.toLocaleString()} B
+                  {f.executable ? t(" · Executable (not run)") : ""}
+                </span>
+              </li>
+            ))}
+          </ul>
+          {file && (
+            <div ref={content}>
+              <h3>{file.path}</h3>
+              {file.text ? (
+                <pre className="markdown">
+                  {file.content || t("(empty file)")}
+                </pre>
+              ) : (
+                <p className="notice">
+                  {t(
+                    "This is a binary or non-UTF-8 file and cannot be previewed as text.",
+                  )}
+                </p>
+              )}
+            </div>
+          )}
+        </details>
+      )}
+      {view !== "readme" && r.reason && (
+        <p className="notice release-note">
+          {t("Review / withdrawal note:")}
+          {r.reason}
+        </p>
+      )}
+    </>
+  );
+}

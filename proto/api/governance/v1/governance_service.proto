@@ -1,0 +1,180 @@
+syntax = "proto3";
+package api.governance.v1;
+
+import "api/common/v1/types.proto";
+import "common/registry/v1/taxonomy.proto";
+import "google/protobuf/timestamp.proto";
+
+// GovernanceService 管理分离职责、版本扫描与个人审核通知。
+service GovernanceService {
+  // ListReviewTasks 实时读取可独立审核的待办，排除本人提交。
+  rpc ListReviewTasks(ListReviewTasksRequest) returns (ListReviewTasksResponse);
+  // SetFeaturedSkill 由 Hub 管理员维护精选，不改变内容或受众。
+  rpc SetFeaturedSkill(SetFeaturedSkillRequest) returns (SetFeaturedSkillResponse);
+  // GetPlatformAccess 查询本人能力，或由 Hub 管理员查询目标职责。
+  rpc GetPlatformAccess(GetPlatformAccessRequest) returns (GetPlatformAccessResponse);
+  // SetPlatformRole 仅由 Hub 管理员变更平台职责。
+  rpc SetPlatformRole(SetPlatformRoleRequest) returns (SetPlatformRoleResponse);
+  // GetScanReport 读取有权管理的确切版本报告。
+  rpc GetScanReport(GetScanReportRequest) returns (GetScanReportResponse);
+  // ScanRelease 重新检查有权管理的版本，保留历史扫描证据。
+  rpc ScanRelease(ScanReleaseRequest) returns (ScanReleaseResponse);
+  // ListNotifications 按当前权限读取本人的审核反馈。
+  rpc ListNotifications(ListNotificationsRequest) returns (ListNotificationsResponse);
+  // MarkNotificationRead 将本人的通知标记已读。
+  rpc MarkNotificationRead(MarkNotificationReadRequest) returns (MarkNotificationReadResponse);
+}
+// GetPlatformAccessRequest 的空目标表示本人。
+message GetPlatformAccessRequest {
+  // 目标用户。
+  string user_id = 1;
+}
+// GetPlatformAccessResponse 的能力来自服务端当前授权。
+message GetPlatformAccessResponse {
+  // 目标用户。
+  string user_id = 1;
+  // 独立授予的角色。
+  repeated .common.registry.v1.PlatformRole roles = 2;
+  // 是否能管理普通账号。
+  bool can_manage_users = 3;
+  // 是否能读取审计日志。
+  bool can_read_audit = 4;
+  // 是否为 Hub 管理员。
+  bool administrator = 5;
+}
+// SetPlatformRoleRequest 不允许通过此接口授予 Hub 管理员。
+message SetPlatformRoleRequest {
+  // 幂等写入标识。
+  .api.common.v1.Mutation mutation = 1;
+  // 目标用户。
+  string user_id = 2;
+  // 职责。
+  .common.registry.v1.PlatformRole role = 3;
+  // 授予或撤销。
+  bool granted = 4;
+}
+// SetPlatformRoleResponse 表示角色及会话撤销已提交。
+message SetPlatformRoleResponse {}
+// ScanFinding 不包含命中正文或秘密。
+message ScanFinding {
+  // 稳定规则标识。
+  string rule = 1;
+  // 包内相对文件路径。
+  string path = 2;
+  // 行号，二进制文件为零。
+  uint32 line = 3;
+  // 是否阻止批准。
+  bool blocking = 4;
+  // 固定修复建议。
+  string message = 5;
+}
+// ScanReport 是确切包摘要的离线检查证据，不是安全认证。
+message ScanReport {
+  // 引擎及规则版本；空值表示尚未扫描。
+  string engine = 1;
+  // 不可变包摘要。
+  string digest = 2;
+  // 是否检查了所有可支持内容且未达到结果上限。
+  bool complete = 3;
+  // 是否存在阻止批准的发现。
+  bool blocking = 4;
+  // 有界发现列表。
+  repeated ScanFinding findings = 5;
+  // 完成时间。
+  google.protobuf.Timestamp scanned_at = 6;
+}
+// GetScanReportRequest 指定确切版本。
+message GetScanReportRequest {
+  // 版本标识。
+  string release_id = 1;
+}
+// GetScanReportResponse 未扫描时报告为空。
+message GetScanReportResponse {
+  // 最新持久化报告。
+  ScanReport report = 1;
+}
+// ScanReleaseRequest 仅触发离线静态检查。
+message ScanReleaseRequest {
+  // 幂等写入标识。
+  .api.common.v1.Mutation mutation = 1;
+  // 版本标识。
+  string release_id = 2;
+}
+// ScanReleaseResponse 返回已保存报告。
+message ScanReleaseResponse {
+  // 扫描报告。
+  ScanReport report = 1;
+}
+// ReviewNotification 不保存正文副本，读取时重新授权。
+message ReviewNotification {
+  // 通知标识。
+  string notification_id = 1;
+  // 版本标识。
+  string release_id = 2;
+  // 技能坐标。
+  string coordinate = 3;
+  // 审核决定。
+  bool approved = 4;
+  // 已读状态。
+  bool read = 5;
+  // 发生时间。
+  google.protobuf.Timestamp created_at = 6;
+}
+// ListNotificationsRequest 的游标绑定当前身份。
+message ListNotificationsRequest {
+  // 分页请求。
+  .api.common.v1.PageRequest page = 1;
+}
+// ListNotificationsResponse 仅返回当前可管理的通知目标。
+message ListNotificationsResponse {
+  // 通知。
+  repeated ReviewNotification notifications = 1;
+  // 下一页。
+  .api.common.v1.PageResult page = 2;
+}
+// MarkNotificationReadRequest 不能操作他人的通知。
+message MarkNotificationReadRequest {
+  // 通知标识。
+  string notification_id = 1;
+}
+// MarkNotificationReadResponse 表示已读状态已提交。
+message MarkNotificationReadResponse {}
+
+// ReviewTask 是当前权限下可审核的提交。
+message ReviewTask {
+  // 版本标识。
+  string release_id = 1;
+  // 完整坐标。
+  string coordinate = 2;
+  // 提交时间。
+  google.protobuf.Timestamp created_at = 3;
+}
+// ListReviewTasksRequest 的分页绑定当前身份。
+message ListReviewTasksRequest {
+  // 分页条件。
+  .api.common.v1.PageRequest page = 1;
+}
+// ListReviewTasksResponse 先处理最早提交；统计同样经过权限过滤。
+message ListReviewTasksResponse {
+  // 本页待办。
+  repeated ReviewTask tasks = 1;
+  // 当前待办总数。
+  uint32 total = 2;
+  // 最早提交时间，没有待办则为空。
+  google.protobuf.Timestamp oldest_at = 3;
+  // 下一页。
+  .api.common.v1.PageResult page = 4;
+}
+// SetFeaturedSkillRequest 指定稳定技能坐标。
+message SetFeaturedSkillRequest {
+  // 幂等写入标识。
+  .api.common.v1.Mutation mutation = 1;
+  // 命名空间。
+  string namespace = 2;
+  // 技能名称。
+  string name = 3;
+  // 设为精选或取消。
+  bool featured = 4;
+}
+// SetFeaturedSkillResponse 表示精选和审计已提交。
+message SetFeaturedSkillResponse {}

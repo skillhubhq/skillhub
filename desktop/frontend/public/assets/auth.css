@@ -1,0 +1,74 @@
+body {
+  background: #f5f7fb;
+  color: #0b1423;
+}
+main {
+  border-color: #e0e6ef;
+  border-radius: 12px;
+}
+button {
+  background: #063beb;
+  border-color: #063beb;
+}
+a {
+  color: #1445cc;
+}
+.brand-dark {
+  display: none;
+}
+input {
+  background: #fff;
+  color: #0b1423;
+}
+[data-theme="dark"] {
+  color-scheme: dark;
+}
+[data-theme="dark"] body {
+  background: #101722;
+  color: #e8edf7;
+}
+[data-theme="dark"] main {
+  background: #171f2d;
+  border-color: #2c394d;
+}
+[data-theme="dark"] input {
+  background: #101722;
+  color: #e8edf7;
+  border-color: #526684;
+}
+[data-theme="dark"] a {
+  color: #91b0ff;
+}
+[data-theme="dark"] button {
+  background: #315fdd;
+  border-color: #315fdd;
+}
+[data-theme="dark"] .error {
+  color: #ff9aa8;
+}
+[data-theme="dark"] .brand-light {
+  display: none;
+}
+[data-theme="dark"] .brand-dark {
+  display: block;
+}
+
+.sso-button {
+  display: block;
+  text-align: center;
+  padding: 12px 16px;
+  background: var(--accent, #2455d6);
+  color: white !important;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+}
+.local-login {
+  margin: 24px 0;
+}
+.local-login > summary {
+  cursor: pointer;
+  color: var(--muted, #64748b);
+  padding: 8px 0;
+  font-size: 14px;
+}

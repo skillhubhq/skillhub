@@ -1,0 +1,356 @@
+@media (min-width: 1600px) {
+  .desktop-shell .discovery-hero p {
+    max-width: 550px;
+  }
+  .desktop-shell .catalog-items {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .desktop-shell .has-detail .catalog-items {
+    grid-template-columns: 1fr;
+  }
+  .desktop-shell > main {
+    padding-left: 44px;
+    padding-right: 44px;
+  }
+}
+@media (max-width: 1200px) {
+  .shell > main {
+    padding: 24px;
+  }
+  .discovery.browse-mode {
+    grid-template-columns: minmax(0, 1fr) 220px;
+    gap: 20px;
+  }
+  .hero-orbit {
+    right: 25px;
+    width: 130px;
+    height: 130px;
+    top: 65px;
+  }
+  .discovery-hero p {
+    max-width: 350px;
+  }
+  .web-shell .catalog-items {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .web-shell .app-navigation {
+    gap: 25px;
+  }
+  .web-shell .app-navigation nav button {
+    padding: 8px;
+    font-size: 12px;
+  }
+  .review-workspace {
+    grid-template-columns: 185px minmax(0, 1fr) 170px;
+  }
+  .review-heading,
+  .review-content,
+  .review-decision {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+  .publish-layout {
+    grid-template-columns: minmax(0, 1fr) 230px;
+  }
+  .discovery.has-detail {
+    grid-template-columns: 225px minmax(0, 1fr);
+  }
+  .skill-detail {
+    padding: 22px;
+  }
+}
+@media (max-width: 1000px) {
+  .app-navigation {
+    width: 184px;
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+  .shell > main {
+    width: calc(100% - 184px);
+    margin-left: 184px;
+  }
+  .brand {
+    font-size: 20px;
+  }
+  .discovery.browse-mode {
+    grid-template-columns: 1fr;
+  }
+  .discovery-community {
+    display: none;
+  }
+  .hero-orbit {
+    opacity: 0.5;
+    right: -25px;
+  }
+  .discovery-hero h2 {
+    font-size: 36px;
+  }
+  .discovery-hero {
+    padding: 27px;
+  }
+  .review-workspace {
+    grid-template-columns: 180px minmax(0, 1fr);
+  }
+  .review-properties {
+    display: none;
+  }
+  .publish-layout {
+    grid-template-columns: 1fr;
+  }
+  .publish-summary {
+    position: static;
+  }
+  .web-shell > main {
+    width: calc(100% - 40px);
+    margin: auto;
+  }
+  .web-shell .discovery.browse-mode {
+    grid-template-columns: minmax(0, 1fr) 230px;
+    gap: 22px;
+  }
+  .web-shell .discovery-community {
+    display: block;
+  }
+  .web-shell .app-navigation {
+    padding: 0 20px;
+    gap: 20px;
+  }
+  .web-shell .brand {
+    font-size: 19px;
+  }
+  .web-shell .hero-orbit {
+    right: 40px;
+    opacity: 1;
+  }
+  .web-shell .discovery-hero p {
+    max-width: 380px;
+  }
+}
+@media (max-width: 760px) {
+  .shell {
+    display: block;
+  }
+  .app-navigation {
+    position: static;
+    width: 100%;
+    height: auto;
+    padding: 16px;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .brand {
+    padding: 0 0 16px;
+    font-size: 20px;
+  }
+  .nav-label,
+  .sidebar-bottom {
+    display: none;
+  }
+  .app-navigation nav {
+    flex-direction: row;
+    overflow: auto;
+    gap: 4px;
+  }
+  .app-navigation nav button {
+    margin: 0 !important;
+    flex: none;
+    min-height: 40px;
+    font-size: 13px;
+  }
+  .app-navigation nav button .icon {
+    display: none;
+  }
+  .shell > main {
+    width: 100%;
+    margin: 0;
+    padding: 22px 18px;
+  }
+  .page-header {
+    align-items: flex-start;
+    gap: 15px;
+    flex-wrap: wrap;
+  }
+  .page-header h1 {
+    font-size: 22px;
+  }
+  .header-actions {
+    margin-left: auto;
+  }
+  .page-header .subtitle {
+    font-size: 13px;
+  }
+  .language-select {
+    width: 106px;
+  }
+  .discovery-hero {
+    min-height: 240px;
+    padding: 26px;
+  }
+  .discovery-hero h2 {
+    font-size: 36px;
+  }
+  .hero-orbit {
+    display: none;
+  }
+  .discovery-hero p {
+    max-width: 100%;
+  }
+  .catalog-items,
+  .web-shell .catalog-items {
+    grid-template-columns: 1fr;
+  }
+  .catalog-item {
+    min-height: 195px;
+  }
+  .discovery.has-detail {
+    height: auto;
+    min-height: 0;
+    display: block;
+  }
+  .has-detail .discovery-catalog {
+    display: none;
+  }
+  .skill-detail,
+  .web-shell .skill-detail {
+    padding: 22px;
+  }
+  .skill-detail > .section-heading h2 {
+    font-size: 25px;
+  }
+  .skill-detail > .section-heading {
+    flex-wrap: wrap;
+  }
+  .skill-detail > .section-heading .primary {
+    width: 100%;
+  }
+  .skill-people {
+    gap: 22px;
+    flex-wrap: wrap;
+  }
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+  .list article {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .list article .actions {
+    flex-wrap: wrap;
+  }
+  .review-workspace,
+  .web-shell .review-workspace {
+    display: block;
+    height: auto;
+    min-height: 0;
+  }
+  .review-queue {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    max-height: 260px;
+  }
+  .review-document {
+    min-height: 400px;
+  }
+  .review-content {
+    max-height: none;
+    overflow: visible;
+  }
+  .review-decision {
+    max-height: none;
+  }
+  .review-properties {
+    display: block;
+    border-left: 0;
+    border-top: 1px solid var(--line);
+  }
+  .review-properties .properties {
+    display: grid;
+  }
+  .review-properties dt {
+    margin: 0;
+  }
+  .review-workspace > .empty {
+    min-height: 230px;
+  }
+  .toolbar {
+    flex-wrap: wrap;
+  }
+  .toolbar .ui-select {
+    max-width: 100%;
+    width: 100%;
+  }
+  .publish-main {
+    padding: 24px 20px;
+  }
+  .steps {
+    font-size: 12px;
+    gap: 8px;
+  }
+  .steps li {
+    font-size: 12px;
+  }
+  .web-shell .app-navigation {
+    height: auto;
+    position: static;
+    flex-wrap: wrap;
+    padding: 18px 18px 12px;
+    gap: 15px;
+  }
+  .web-shell .app-navigation nav {
+    width: 100%;
+    gap: 4px;
+    overflow: auto;
+  }
+  .web-shell .app-navigation nav button {
+    font-size: 13px;
+    padding: 9px 12px;
+  }
+  .web-shell > main {
+    width: 100%;
+    padding: 22px 18px;
+  }
+  .web-shell .discovery.browse-mode {
+    display: block;
+  }
+  .web-shell .discovery-community {
+    display: none;
+  }
+  .web-shell .discovery-hero {
+    padding: 26px;
+    min-height: 250px;
+  }
+  .web-shell .discovery-hero h2 {
+    font-size: 36px;
+  }
+  .web-shell .web-account > span {
+    display: none;
+  }
+  .web-shell .header-actions {
+    gap: 6px;
+  }
+  .web-shell .page-header {
+    margin-bottom: 22px;
+  }
+  .shell footer {
+    font-size: 12px;
+  }
+  .file-list li {
+    flex-wrap: wrap;
+  }
+  .properties {
+    grid-template-columns: 90px minmax(0, 1fr);
+  }
+  dialog {
+    padding: 22px;
+  }
+  .cache-stats {
+    flex-wrap: wrap;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+    scroll-behavior: auto !important;
+  }
+}

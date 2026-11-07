@@ -1,0 +1,508 @@
+syntax = "proto3";
+package api.admin.v1;
+
+import "api/common/v1/types.proto";
+import "buf/validate/validate.proto";
+import "common/registry/v1/taxonomy.proto";
+import "google/protobuf/timestamp.proto";
+
+// AdminService 管理当前实例的身份、分类和授权边界。
+service AdminService {
+  // LookupNamespaceUsers 查找当前空间可授权的账号，仅返回最少身份字段。
+  rpc LookupNamespaceUsers(LookupNamespaceUsersRequest) returns (LookupNamespaceUsersResponse);
+  // GetNamespaceAccess 返回当前主体的操作能力。
+  rpc GetNamespaceAccess(GetNamespaceAccessRequest) returns (GetNamespaceAccessResponse);
+  // ResetUserPassword 重置本地账号密码并撤销其所有会话。
+  rpc ResetUserPassword(ResetUserPasswordRequest) returns (ResetUserPasswordResponse);
+  // SetUserAdministrator 变更全局管理员并保护最后一个可用管理员。
+  rpc SetUserAdministrator(SetUserAdministratorRequest) returns (SetUserAdministratorResponse);
+  // CreateUser 创建本地账号。
+  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
+  // SetUserDisabled 禁用或恢复账号。
+  rpc SetUserDisabled(SetUserDisabledRequest) returns (SetUserDisabledResponse);
+  // ListUsers 列举本地账号。
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse);
+  // CreateGroup 创建权限群组。
+  rpc CreateGroup(CreateGroupRequest) returns (CreateGroupResponse);
+  // SetGroupMember 修改群组成员。
+  rpc SetGroupMember(SetGroupMemberRequest) returns (SetGroupMemberResponse);
+  // ListGroups 列举群组。
+  rpc ListGroups(ListGroupsRequest) returns (ListGroupsResponse);
+  // ListGroupMembers 列举群组成员。
+  rpc ListGroupMembers(ListGroupMembersRequest) returns (ListGroupMembersResponse);
+  // PutNamespace 创建或更新命名空间策略。
+  rpc PutNamespace(PutNamespaceRequest) returns (PutNamespaceResponse);
+  // SetNamespaceGrant 授予或移除命名空间角色。
+  rpc SetNamespaceGrant(SetNamespaceGrantRequest) returns (SetNamespaceGrantResponse);
+  // ListNamespaces 列举可管理的命名空间。
+  rpc ListNamespaces(ListNamespacesRequest) returns (ListNamespacesResponse);
+  // ListNamespaceGrants 列举命名空间角色。
+  rpc ListNamespaceGrants(ListNamespaceGrantsRequest) returns (ListNamespaceGrantsResponse);
+  // PutCategory 维护当前 Hub 的分类。
+  rpc PutCategory(PutCategoryRequest) returns (PutCategoryResponse);
+  // ListCategories 列举分类。
+  rpc ListCategories(ListCategoriesRequest) returns (ListCategoriesResponse);
+  // ListAudit 列举管理审计。
+  rpc ListAudit(ListAuditRequest) returns (ListAuditResponse);
+}
+
+// User 是不含密码的账号投影。
+message User {
+  // 账号标识。
+  string user_id = 1 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 128
+  }];
+  // 账号名称。
+  string username = 2 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 128
+  }];
+  // 是否为实例管理员。
+  bool administrator = 3;
+  // 是否已禁用。
+  bool disabled = 4;
+  // 是否使用企业联合身份登录。
+  bool federated = 5;
+  // 当前社区个人资料的显示名称。
+  string display_name = 6;
+  // 首次企业登录正在等待管理员批准。
+  bool approval_pending = 7;
+  // 仅账号管理投影包含的已验证身份签发者。
+  string oidc_issuer = 8;
+  // 仅账号管理投影包含的身份提供者主体标识。
+  string oidc_subject = 9;
+  // 仅账号管理投影包含的平台职责；不授予内容访问权。
+  repeated .common.registry.v1.PlatformRole platform_roles = 10;
+}
+
+// Group 是权限群组摘要。
+message Group {
+  // 群组标识。
+  string group_id = 1 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 128
+  }];
+  // 群组名称。
+  string name = 2 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 128
+  }];
+}
+
+// Namespace 是技能归属和策略边界。
+message Namespace {
+  // 命名空间名称。
+  string name = 1 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 128
+  }];
+  // 是否要求独立审核。
+  bool review_required = 2;
+  // 用于并发修改保护的修订号。
+  uint64 revision = 3;
+}
+
+// NamespaceGrant 是明确的主体角色授权。
+message NamespaceGrant {
+  // 命名空间名称。
+  string namespace = 1 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 128
+  }];
+  // 主体类型。
+  .common.registry.v1.PrincipalKind subject_kind = 2;
+  // 主体标识。
+  string subject_id = 3 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 128
+  }];
+  // 授予的角色。
+  .common.registry.v1.NamespaceRole role = 4;
+}
+
+// Category 是独立于权限的分类。
+message Category {
+  // 分类稳定名称。
+  string name = 1 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 128
+  }];
+  // 显示标题。
+  string title = 2 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 128
+  }];
+  // 是否禁止新提交使用。
+  bool archived = 3;
+  // 用于并发修改保护的修订号。
+  uint64 revision = 4;
+}
+
+// AuditEvent 是不包含凭据的管理审计。
+message AuditEvent {
+  // 递增事件序号。
+  uint64 sequence = 1;
+  // 操作主体。
+  string actor_id = 2 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 128
+  }];
+  // 操作类型。
+  string action = 3 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 128
+  }];
+  // 资源标识。
+  string resource = 4 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 128
+  }];
+  // 发生时间。
+  google.protobuf.Timestamp created_at = 5;
+  // 审核或撤下的历史说明，不包含凭据。
+  string detail = 6;
+}
+
+// CreateUserRequest 要求实例管理员权限。
+message CreateUserRequest {
+  // 当前主体范围内的幂等操作身份。
+  api.common.v1.Mutation mutation = 1 [(buf.validate.field).required = true];
+  // 账号名。
+  string username = 2 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 128
+  }];
+  // 初始密码，仅用于密码散列计算。
+  string password = 3 [(buf.validate.field).string = {
+    min_bytes: 12
+    max_bytes: 72
+  }];
+  // 是否授予实例管理员权限。
+  bool administrator = 4;
+}
+
+// CreateUserResponse 返回创建后的账号。
+message CreateUserResponse {
+  // 账号。
+  User user = 1;
+}
+
+// SetUserDisabledRequest 不能禁用当前操作者。
+message SetUserDisabledRequest {
+  // 当前主体范围内的幂等操作身份。
+  api.common.v1.Mutation mutation = 1 [(buf.validate.field).required = true];
+  // 账号标识。
+  string user_id = 2 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 128
+  }];
+  // 目标禁用状态。
+  bool disabled = 3;
+}
+
+// SetUserDisabledResponse 返回最终账号状态。
+message SetUserDisabledResponse {
+  // 账号。
+  User user = 1;
+}
+
+// CreateGroupRequest 要求实例管理员权限。
+message CreateGroupRequest {
+  // 当前主体范围内的幂等操作身份。
+  api.common.v1.Mutation mutation = 1 [(buf.validate.field).required = true];
+  // 群组名。
+  string name = 2 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 128
+  }];
+}
+
+// CreateGroupResponse 返回群组。
+message CreateGroupResponse {
+  // 群组。
+  Group group = 1;
+}
+
+// SetGroupMemberRequest 要求实例管理员权限。
+message SetGroupMemberRequest {
+  // 当前主体范围内的幂等操作身份。
+  api.common.v1.Mutation mutation = 1 [(buf.validate.field).required = true];
+  // 群组标识。
+  string group_id = 2 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 128
+  }];
+  // 账号标识。
+  string user_id = 3 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 128
+  }];
+  // 是否为群组成员。
+  bool member = 4;
+}
+
+// SetGroupMemberResponse 表示成员变更已完成。
+message SetGroupMemberResponse {}
+
+// PutNamespaceRequest 通过修订号保护策略更新。
+message PutNamespaceRequest {
+  // 当前主体范围内的幂等操作身份。
+  api.common.v1.Mutation mutation = 1 [(buf.validate.field).required = true];
+  // 命名空间名称。
+  string name = 2 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 128
+  }];
+  // 是否要求独立审核。
+  bool review_required = 3;
+  // 新建时为零，修改时必须匹配现有修订号。
+  uint64 expected_revision = 4;
+}
+
+// PutNamespaceResponse 返回当前策略。
+message PutNamespaceResponse {
+  // 命名空间。
+  Namespace namespace = 1;
+}
+
+// SetNamespaceGrantRequest 要求空间管理员权限。
+message SetNamespaceGrantRequest {
+  // 当前主体范围内的幂等操作身份。
+  api.common.v1.Mutation mutation = 1 [(buf.validate.field).required = true];
+  // 命名空间名称。
+  string namespace = 2 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 128
+  }];
+  // 主体类型。
+  .common.registry.v1.PrincipalKind subject_kind = 3 [(buf.validate.field).enum = {
+    defined_only: true
+    not_in: [0]
+  }];
+  // 主体标识。
+  string subject_id = 4 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 128
+  }];
+  // 角色。
+  .common.registry.v1.NamespaceRole role = 5 [(buf.validate.field).enum = {
+    defined_only: true
+    not_in: [0]
+  }];
+  // 是否保留此角色授权。
+  bool granted = 6;
+}
+
+// SetNamespaceGrantResponse 表示授权变更已完成。
+message SetNamespaceGrantResponse {}
+
+// PutCategoryRequest 要求实例管理员权限。
+message PutCategoryRequest {
+  // 当前主体范围内的幂等操作身份。
+  api.common.v1.Mutation mutation = 1 [(buf.validate.field).required = true];
+  // 分类稳定名称。
+  string name = 2 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 128
+  }];
+  // 显示名称。
+  string title = 3 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 128
+  }];
+  // 是否禁止新提交使用。
+  bool archived = 4;
+  // 新建时为零，修改时为当前修订号。
+  uint64 expected_revision = 5;
+}
+
+// PutCategoryResponse 返回分类。
+message PutCategoryResponse {
+  // 分类。
+  Category category = 1;
+}
+
+// ListUsersRequest 指定当前可见范围。
+message ListUsersRequest {
+  // 分页条件。
+  api.common.v1.PageRequest page = 1;
+}
+
+// ListUsersResponse 返回权限过滤后的结果。
+message ListUsersResponse {
+  // 当前页结果。
+  repeated User users = 1;
+  // 后续页信息。
+  api.common.v1.PageResult page = 2;
+}
+
+// ListGroupsRequest 指定当前可见范围。
+message ListGroupsRequest {
+  // 分页条件。
+  api.common.v1.PageRequest page = 1;
+}
+
+// ListGroupsResponse 返回权限过滤后的结果。
+message ListGroupsResponse {
+  // 当前页结果。
+  repeated Group groups = 1;
+  // 后续页信息。
+  api.common.v1.PageResult page = 2;
+}
+
+// ListGroupMembersRequest 指定当前可见范围。
+message ListGroupMembersRequest {
+  // 群组标识。
+  string group_id = 1 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 128
+  }];
+  // 分页条件。
+  api.common.v1.PageRequest page = 2;
+}
+
+// ListGroupMembersResponse 返回权限过滤后的结果。
+message ListGroupMembersResponse {
+  // 当前页结果。
+  repeated User users = 1;
+  // 后续页信息。
+  api.common.v1.PageResult page = 2;
+}
+
+// ListNamespacesRequest 指定当前可见范围。
+message ListNamespacesRequest {
+  // 分页条件。
+  api.common.v1.PageRequest page = 1;
+  // 仅返回当前身份可提交版本的命名空间；提交时仍重新校验权限。
+  bool for_submission = 2;
+}
+
+// ListNamespacesResponse 返回权限过滤后的结果。
+message ListNamespacesResponse {
+  // 当前页结果。
+  repeated Namespace namespaces = 1;
+  // 后续页信息。
+  api.common.v1.PageResult page = 2;
+}
+
+// ListNamespaceGrantsRequest 指定当前可见范围。
+message ListNamespaceGrantsRequest {
+  // 命名空间名称。
+  string namespace = 1 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 128
+  }];
+  // 分页条件。
+  api.common.v1.PageRequest page = 2;
+}
+
+// ListNamespaceGrantsResponse 返回权限过滤后的结果。
+message ListNamespaceGrantsResponse {
+  // 当前页结果。
+  repeated NamespaceGrant grants = 1;
+  // 后续页信息。
+  api.common.v1.PageResult page = 2;
+}
+
+// ListCategoriesRequest 指定当前可见范围。
+message ListCategoriesRequest {
+  // 分页条件。
+  api.common.v1.PageRequest page = 1;
+}
+
+// ListCategoriesResponse 返回权限过滤后的结果。
+message ListCategoriesResponse {
+  // 当前页结果。
+  repeated Category categories = 1;
+  // 后续页信息。
+  api.common.v1.PageResult page = 2;
+}
+
+// ListAuditRequest 指定当前可见范围。
+message ListAuditRequest {
+  // 分页条件。
+  api.common.v1.PageRequest page = 1;
+}
+
+// ListAuditResponse 返回权限过滤后的结果。
+message ListAuditResponse {
+  // 当前页结果。
+  repeated AuditEvent events = 1;
+  // 后续页信息。
+  api.common.v1.PageResult page = 2;
+}
+
+// LookupNamespaceUsersRequest 限定授权上下文与搜索词。
+message LookupNamespaceUsersRequest {
+  // 需要管理员权限的空间。
+  string namespace = 1 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 63
+  }];
+  // 至少两个字符的用户名、显示名或精确标识。
+  string query = 2 [(buf.validate.field).string = {
+    min_len: 2
+    max_len: 128
+  }];
+  // 分页条件。
+  api.common.v1.PageRequest page = 3;
+}
+// LookupNamespaceUsersResponse 不包含全局权限或外部身份信息。
+message LookupNamespaceUsersResponse {
+  // 最小身份字段。
+  repeated User users = 1;
+  // 后续页。
+  api.common.v1.PageResult page = 2;
+}
+// GetNamespaceAccessRequest 指定空间。
+message GetNamespaceAccessRequest {
+  // 空间名称。
+  string namespace = 1 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 63
+  }];
+}
+// GetNamespaceAccessResponse 仅用于界面提示，写操作仍独立鉴权。
+message GetNamespaceAccessResponse {
+  // 可配置空间与授权。
+  bool can_manage = 1;
+  // 可发布与撤下。
+  bool can_publish = 2;
+  // 可独立审核，仍禁止自审。
+  bool can_review = 3;
+}
+// ResetUserPasswordRequest 不保存明文密码。
+message ResetUserPasswordRequest {
+  // 幂等身份。
+  api.common.v1.Mutation mutation = 1 [(buf.validate.field).required = true];
+  // 本地账号标识。
+  string user_id = 2 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 128
+  }];
+  // 新密码。
+  string password = 3 [(buf.validate.field).string = {
+    min_bytes: 12
+    max_bytes: 72
+  }];
+}
+// ResetUserPasswordResponse 表示会话已撤销。
+message ResetUserPasswordResponse {}
+// SetUserAdministratorRequest 指定全局权限目标。
+message SetUserAdministratorRequest {
+  // 幂等身份。
+  api.common.v1.Mutation mutation = 1 [(buf.validate.field).required = true];
+  // 账号标识。
+  string user_id = 2 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 128
+  }];
+  // 目标权限。
+  bool administrator = 3;
+}
+// SetUserAdministratorResponse 返回更新后的账号。
+message SetUserAdministratorResponse {
+  // 账号状态。
+  User user = 1;
+}

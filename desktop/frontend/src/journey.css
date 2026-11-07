@@ -1,0 +1,1495 @@
+/* 首屏动作、版本反馈与下一步沿用户任务排序，两端共用。 */
+.community-shell .detail-hero {
+  border-bottom: 0;
+  padding-bottom: 0;
+  margin-bottom: 24px;
+}
+.detail-action-bar {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.detail-action-bar button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+}
+.detail-action-bar .icon {
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
+.install-primary {
+  padding: 10px 20px;
+}
+.install-primary > span {
+  opacity: 0.8;
+  font-size: 12px;
+  margin-left: 5px;
+}
+.skill-social-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.skill-social-actions button {
+  background: transparent;
+  border-color: var(--line);
+  font-size: 13px;
+}
+.skill-social-actions button > span {
+  font-size: 12px;
+  color: var(--muted);
+}
+.skill-social-actions button[aria-pressed="true"] {
+  color: var(--link);
+  border-color: var(--accent);
+  background: var(--accent-light);
+}
+.skill-social-actions button[aria-pressed="true"] .icon {
+  fill: var(--accent-light);
+  stroke-width: 2;
+}
+.detail-action-note {
+  color: var(--muted);
+  font-size: 12px;
+  padding: 12px 0 24px;
+  margin-bottom: 28px;
+  border-bottom: 1px solid var(--line);
+}
+.community-shell .skill-install-aside {
+  top: 145px;
+}
+.skill-install-aside .version-selector label,
+.skill-install-aside .small-label,
+.detail-facts {
+  font-size: 12px;
+}
+.discussion-anchor {
+  scroll-margin-top: 150px;
+}
+.install-coordinate {
+  font-family: ui-monospace, monospace;
+  overflow-wrap: anywhere;
+  font-size: 13px;
+  color: var(--muted);
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--line);
+}
+.install-guide > p {
+  font-size: 14px;
+}
+.install-guide h3 {
+  font-size: 16px;
+  margin-top: 24px;
+}
+.install-guide .content-tabs {
+  margin-bottom: 22px;
+}
+.copy-value {
+  margin: 16px 0;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-soft);
+}
+.copy-value > div {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--muted);
+}
+.copy-value button {
+  min-height: 36px;
+  padding: 5px 12px;
+  font-size: 12px;
+}
+.copy-value pre {
+  font-size: 12px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  margin: 10px 0 0;
+  color: var(--ink);
+  user-select: text;
+}
+.copy-value > [role="status"] {
+  font-size: 12px;
+}
+.copy-value > [role="status"]:empty {
+  display: none;
+}
+.scope-hint {
+  color: var(--muted);
+  font-size: 13px;
+  margin: -5px 0 0;
+}
+.install-guide .form-grid {
+  margin-top: 18px;
+}
+.publishing-journey {
+  max-width: 1080px;
+  margin: auto;
+}
+.publishing-journey .steps li {
+  padding: 0;
+}
+.publishing-journey .steps button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  border: 0;
+  border-radius: 0;
+  padding: 12px 0;
+  min-height: 44px;
+  color: inherit;
+  background: transparent;
+}
+.publishing-journey .steps button > span,
+.publishing-journey .steps .icon {
+  display: grid;
+  place-items: center;
+  width: 23px;
+  height: 23px;
+  border-radius: 50%;
+  font-size: 12px;
+  background: var(--surface-soft);
+}
+.publishing-journey .steps .active button > span {
+  color: var(--on-accent);
+  background: var(--accent);
+}
+.publishing-journey .publish-summary {
+  align-self: start;
+  position: sticky;
+  top: 144px;
+}
+.revision-context {
+  margin: 0 0 24px;
+  padding: 22px 26px;
+  background: var(--accent-light);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.revision-context h2 {
+  font-size: 20px;
+  margin: 0 0 8px;
+}
+.revision-context p {
+  font-size: 14px;
+}
+.release-progress {
+  padding: 22px 24px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-soft);
+}
+.release-progress > div:first-child {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 12px;
+}
+.release-progress h3 {
+  font-size: 18px;
+  margin: 14px 0 8px;
+}
+.release-progress h4 {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+  margin: 16px 0 8px;
+}
+.release-progress p {
+  font-size: 14px;
+  color: var(--muted);
+  margin: 0;
+}
+.release-progress blockquote,
+.revision-context blockquote {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  margin: 8px 0 16px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: 8px;
+  padding: 14px 16px;
+  font-size: 14px;
+}
+.release-progress .actions:empty,
+.review-decision:empty {
+  display: none;
+}
+.queue-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.queue-heading h2 {
+  font-size: 14px;
+  margin: 0;
+}
+.queue-heading > button {
+  font-size: 12px;
+  min-height: 36px;
+  padding: 6px 9px;
+}
+.review-decision .withdraw-release {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+.withdraw-release > summary {
+  min-height: 44px;
+  color: var(--muted);
+}
+.publish-result > .icon {
+  height: 40px;
+  width: 40px;
+  padding: 8px;
+  background: var(--accent-light);
+  color: var(--link);
+  border-radius: 50%;
+}
+.publish-result .actions {
+  flex-wrap: wrap;
+}
+@media (max-width: 800px) {
+  .community-shell .skill-install-aside {
+    position: static;
+  }
+  .detail-action-bar {
+    gap: 12px;
+  }
+  .detail-action-note {
+    margin-bottom: 20px;
+  }
+  .publishing-journey .publish-summary {
+    position: static;
+  }
+}
+@media (max-width: 760px) {
+  .detail-action-bar .install-primary {
+    width: 100%;
+  }
+  .skill-social-actions {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .skill-social-actions button {
+    padding: 8px 6px;
+    gap: 5px;
+  }
+  .discussion-anchor {
+    scroll-margin-top: 230px;
+  }
+  .release-progress {
+    padding: 18px;
+  }
+  .copy-value pre {
+    font-size: 13px;
+  }
+}
+
+.installed-confirmation {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  margin-top: 14px;
+  color: var(--link);
+}
+.installed-confirmation .icon {
+  width: 18px;
+  height: 18px;
+}
+.installed-confirmation button {
+  font-size: 12px;
+  min-height: 36px;
+  padding: 6px 10px;
+}
+
+.review-content > .release-note {
+  display: none;
+}
+
+/* 阅读优先：缩短全局 chrome 与详情导语，把空间交给技能内容。 */
+.community-shell .global-navigation {
+  min-height: 56px;
+  gap: 22px;
+}
+.community-shell .context-navigation {
+  min-height: 44px;
+}
+.community-shell .context-navigation > nav button {
+  padding: 7px 0;
+}
+.community-shell .navigation-shell .brand-logo {
+  width: 114px;
+  height: 30px;
+}
+.community-shell .primary-navigation button {
+  min-height: 36px;
+  padding: 6px 11px;
+  font-size: 13px;
+}
+.community-shell main:has(.community-detail) {
+  padding-top: 16px;
+}
+.community-shell .skill-detail > .section-heading:first-child {
+  margin: 0 0 14px;
+  padding: 0;
+  border: 0;
+  min-height: 28px;
+}
+.community-shell .skill-detail > .section-heading > button {
+  min-height: 28px;
+  padding: 3px 0 3px 12px;
+  font-size: 12px;
+}
+.community-shell .detail-hero {
+  margin: 0 0 16px;
+  gap: 12px;
+  max-width: none;
+}
+.community-shell .detail-symbol {
+  flex-basis: 40px;
+  height: 40px;
+  border-radius: 9px;
+}
+.community-shell .detail-symbol .icon {
+  width: 22px;
+  height: 22px;
+}
+.community-shell .detail-hero .eyebrow {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+}
+.community-shell .detail-hero h1 {
+  font-size: clamp(25px, 2.5vw, 32px);
+  margin: 2px 0 6px;
+  line-height: 1.2;
+}
+.community-shell .detail-hero p {
+  font-size: 14px;
+  line-height: 1.6;
+  max-width: 850px;
+}
+.community-shell .detail-action-bar {
+  gap: 14px;
+  padding-bottom: 16px;
+}
+.community-shell .detail-action-bar button {
+  min-height: 40px;
+  padding: 8px 13px;
+}
+.community-shell .installed-confirmation {
+  margin: -6px 0 12px;
+  font-size: 12px;
+}
+.community-shell .installed-confirmation button {
+  min-height: 30px;
+  padding: 3px 8px;
+}
+.community-shell .skill-detail-layout {
+  gap: 24px;
+  grid-template-columns: minmax(0, 1fr) 240px;
+}
+.community-shell .skill-install-aside {
+  top: 116px;
+  padding: 16px;
+  border-radius: 8px;
+}
+.community-shell .skill-install-aside .version-context {
+  font-size: 11px;
+  line-height: 1.6;
+  margin: 6px 0 12px;
+}
+.community-shell .skill-install-aside .version-selector {
+  margin: 12px 0;
+}
+.community-shell .detail-content {
+  padding: 12px 0 0;
+}
+.community-shell .detail-tabs {
+  gap: 22px;
+}
+.community-shell .detail-tabs button {
+  min-height: 40px;
+  padding: 8px 0;
+  font-size: 13px;
+}
+.community-shell .detail-content .document-modes {
+  margin: 0 0 10px;
+  border: 0;
+  justify-content: flex-end;
+  gap: 3px;
+}
+.community-shell .detail-content .document-modes button {
+  min-height: 28px;
+  padding: 3px 9px;
+  border: 0;
+  border-radius: 5px;
+  font-size: 11px;
+}
+.community-shell .detail-content .document-modes button[aria-pressed="true"] {
+  background: var(--surface-soft);
+}
+.community-shell .detail-content .document-prose > :first-child {
+  margin-top: 0;
+}
+.community-shell .detail-content .document-prose {
+  line-height: 1.75;
+  color: var(--ink);
+}
+.community-shell .discussion-anchor {
+  scroll-margin-top: 116px;
+}
+.community-shell .review-queue,
+.publishing-journey .publish-summary {
+  top: 116px;
+}
+.community-shell .review-document {
+  scroll-margin-top: 116px;
+}
+/* 搜索范围保留原生键盘操作，焦点边框收在控件内部，避免被容器裁切。 */
+.community-shell .discovery-search .search-row {
+  padding: 5px;
+  gap: 4px;
+  min-height: 52px;
+  border-radius: 10px;
+}
+.community-shell .discovery-search .search-row > .icon {
+  margin-left: 8px;
+  margin-right: 4px;
+  width: 18px;
+}
+.community-shell .discovery-search .search-row > .search-scope {
+  flex-basis: 142px;
+  width: 142px;
+  min-height: 36px;
+  padding: 7px 26px 7px 10px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background-color: var(--surface-soft);
+  font-size: 13px;
+}
+.community-shell .discovery-search .search-row > .search-scope:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+  box-shadow: none;
+}
+.community-shell .discovery-search .search-row input {
+  min-height: 40px;
+  padding: 8px 10px;
+  font-size: 14px;
+  border-radius: 6px;
+}
+.community-shell .discovery-search .search-row input:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+}
+.community-shell .discovery-search .search-row button {
+  min-height: 40px;
+  padding: 8px 16px;
+  border-radius: 6px;
+}
+.community-shell .search-context {
+  margin-top: 7px;
+  font-size: 11px;
+}
+@media (max-width: 800px) {
+  .community-shell .skill-detail-layout {
+    display: flex;
+    flex-direction: column;
+  }
+  .community-shell .detail-reading {
+    order: 0;
+    width: 100%;
+  }
+  .community-shell .skill-install-aside {
+    order: 1;
+    position: static;
+    width: 100%;
+    box-sizing: border-box;
+  }
+}
+@media (max-width: 760px) {
+  .community-shell .global-navigation {
+    gap: 6px;
+    padding-top: 4px;
+  }
+  .community-shell .detail-hero {
+    gap: 10px;
+  }
+  .community-shell .detail-hero h1 {
+    font-size: 25px;
+  }
+  .community-shell .detail-action-bar {
+    gap: 8px;
+  }
+  .community-shell .detail-action-bar button {
+    min-height: 44px;
+  }
+  .community-shell .discovery-search .search-row > .search-scope {
+    flex: 1 1 calc(100% - 44px);
+    min-height: 40px;
+  }
+  .community-shell .discussion-anchor {
+    scroll-margin-top: 200px;
+  }
+}
+
+.account-guide {
+  padding: 16px 20px;
+  margin: 0 0 20px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-soft);
+}
+.account-guide h3 {
+  margin: 0 0 6px;
+  font-size: 15px;
+}
+.account-guide p {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.community-shell .editor {
+  scroll-margin-top: 116px;
+}
+@media (max-width: 760px) {
+  .community-shell > .navigation-shell {
+    position: static;
+  }
+  .community-shell .primary-navigation {
+    margin-top: 4px;
+  }
+  .community-shell .primary-navigation button {
+    min-height: 44px;
+    background: transparent;
+    border-radius: 0;
+  }
+  .community-shell .hub-context {
+    margin-top: 0;
+  }
+  .community-shell .hub-context > summary {
+    min-height: 36px;
+  }
+  .community-shell .discussion-anchor,
+  .community-shell .editor {
+    scroll-margin-top: 16px;
+  }
+}
+@media (max-width: 400px) {
+  .community-shell .navigation-shell .brand-logo {
+    width: 100px;
+  }
+  .community-shell .global-navigation {
+    gap: 0;
+  }
+}
+/* 管理表单使用同一套可搜索的目录选项，内部标识不占据任务界面。 */
+.entity-picker {
+  position: relative;
+  min-width: 0;
+}
+.entity-picker > label {
+  display: block;
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 7px;
+}
+.directory-input {
+  position: relative;
+}
+.directory-input input {
+  width: 100%;
+  padding-right: 36px;
+}
+.directory-input .picker-clear {
+  position: absolute;
+  right: 2px;
+  top: 2px;
+  bottom: 2px;
+  border: 0;
+  background: transparent;
+  padding: 0 10px;
+  min-height: 0;
+  font-size: 20px;
+}
+.directory-menu {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  max-height: 280px;
+  overflow-y: auto;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 5px;
+  background: var(--surface);
+  box-shadow: 0 8px 28px var(--shadow-color);
+}
+.directory-menu [role="option"] {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: space-between;
+  min-height: 40px;
+  width: 100%;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  padding: 9px 10px;
+  border-radius: 5px;
+  white-space: normal;
+}
+.directory-menu [role="option"] strong {
+  font-size: 13px;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+.directory-menu [role="option"] small {
+  font-size: 12px;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+.directory-menu [role="option"].highlighted,
+.directory-menu [role="option"][aria-selected="true"] {
+  background: var(--accent-light);
+  color: var(--link);
+}
+.directory-menu p {
+  margin: 10px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.grant-scope {
+  max-width: 400px;
+  margin-bottom: 22px;
+}
+.community-shell .account-guide {
+  padding: 0;
+  background: transparent;
+  border: 0;
+  margin-bottom: 18px;
+}
+.community-shell .account-guide > summary {
+  padding: 6px 0;
+  font-size: 13px;
+  color: var(--muted);
+  cursor: pointer;
+}
+.community-shell .page-submissions > .page-header,
+.community-shell .page-review > .page-header,
+.community-shell .page-management > .page-header {
+  margin-bottom: 18px;
+}
+.community-shell .review-workspace {
+  grid-template-columns: 280px minmax(0, 1fr);
+}
+.community-shell .review-queue {
+  padding: 14px;
+}
+.community-shell .queue-heading {
+  margin-bottom: 10px;
+}
+.queue-heading small {
+  font-weight: 400;
+  font-size: 12px;
+  color: var(--muted);
+  margin-left: 5px;
+}
+.community-shell .review-queue .queue-item {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  padding: 11px 10px;
+  margin: 0;
+  min-height: 64px;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  font-size: 13px;
+}
+.community-shell .review-queue .queue-item strong {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.community-shell .review-queue .queue-item.active {
+  background: var(--accent-light);
+  box-shadow: inset 2px 0 var(--accent);
+}
+.community-shell .review-queue .queue-item:hover {
+  background: var(--surface-soft);
+}
+.community-shell .queue-item .queue-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 8px;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--muted);
+}
+.community-shell .queue-status {
+  white-space: nowrap;
+  font-size: 11px;
+}
+.community-shell .queue-status::before {
+  content: "";
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  margin-right: 5px;
+  background: currentColor;
+  vertical-align: middle;
+}
+.community-shell .queue-status.status-2 {
+  color: var(--link);
+}
+@media (max-width: 760px) {
+  .community-shell .review-workspace {
+    display: block;
+  }
+  .directory-menu [role="option"] {
+    min-height: 44px;
+  }
+}
+
+/* 状态与反馈为正文提供上下文，避免形成独立的大卡片。 */
+.community-shell .review-heading {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  padding: 14px 20px 10px;
+  border-bottom: 0;
+}
+.community-shell .review-heading h2 {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+.community-shell .release-progress {
+  padding: 0 20px 12px;
+  background: transparent;
+}
+.community-shell .release-progress > div:first-child {
+  gap: 8px 12px;
+}
+.community-shell .release-progress .actions {
+  margin: 0 0 0 auto;
+  gap: 8px;
+}
+.community-shell .release-progress .actions button {
+  min-height: 32px;
+  padding: 5px 10px;
+  font-size: 12px;
+}
+.community-shell .release-feedback {
+  margin-top: 10px;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+.community-shell .release-feedback > summary {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-height: 0;
+  padding: 8px 10px;
+  font-size: 13px;
+  line-height: 1.5;
+  background: var(--surface-soft);
+  border-radius: 5px;
+  list-style: none;
+}
+.release-feedback > summary::-webkit-details-marker {
+  display: none;
+}
+.release-feedback > summary::after {
+  content: "+";
+  flex: none;
+  color: var(--muted);
+}
+.release-feedback[open] > summary::after {
+  content: "−";
+}
+.release-feedback .feedback-label {
+  flex: none;
+  color: var(--muted);
+  font-size: 12px;
+}
+.release-feedback .feedback-excerpt {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow-wrap: anywhere;
+}
+.release-feedback[open] .feedback-excerpt {
+  display: none;
+}
+.release-feedback[open] .feedback-label {
+  flex: 1;
+}
+.community-shell .release-feedback blockquote {
+  margin: 0;
+  padding: 8px 10px;
+  font-size: 13px;
+  line-height: 1.6;
+  border: 0;
+  border-radius: 0;
+}
+.community-shell .release-progress .release-waiting {
+  margin: 8px 0 0;
+  font-size: 12px;
+}
+.community-shell .review-content {
+  padding: 14px 20px 20px;
+}
+.community-shell .review-content .document-tabs {
+  margin-top: 0;
+}
+.community-shell .review-properties {
+  padding: 0 20px;
+  border-top: 1px solid var(--line);
+}
+.community-shell .review-properties .properties {
+  min-height: 0;
+}
+.community-shell .management-editor {
+  max-width: 840px;
+  padding: 20px;
+  gap: 14px 20px;
+  align-items: start;
+  margin-top: 0;
+}
+.community-shell .management-editor .section-heading {
+  margin: 0 0 4px;
+}
+.community-shell .management-editor .section-heading h2 {
+  font-size: 18px;
+}
+.community-shell .management-editor .field,
+.community-shell .management-editor .entity-picker {
+  margin: 0;
+}
+.community-shell .management-editor input:not([type="checkbox"]),
+.community-shell .management-editor .ui-select {
+  min-height: 40px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+.community-shell .management-editor .actions {
+  margin-top: 2px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+.community-shell .management-editor .full {
+  margin-bottom: 0;
+}
+@media (max-width: 760px) {
+  .community-shell .review-heading {
+    padding: 12px 14px 8px;
+  }
+  .community-shell .release-progress {
+    padding: 0 14px 12px;
+  }
+  .community-shell .release-progress .actions button {
+    min-height: 44px;
+  }
+  .community-shell .release-progress .actions {
+    margin-left: 0;
+  }
+  .community-shell .review-content {
+    padding: 12px 14px;
+  }
+  .community-shell .management-editor {
+    padding: 16px;
+    grid-template-columns: 1fr;
+  }
+  .community-shell .management-editor input:not([type="checkbox"]),
+  .community-shell .management-editor .ui-select {
+    min-height: 44px;
+  }
+}
+.community-shell .review-content .document-modes {
+  margin: 0 0 10px;
+  border: 0;
+  gap: 4px;
+}
+.community-shell .review-content .document-modes button {
+  min-height: 28px;
+  padding: 3px 9px;
+  border: 0;
+  border-radius: 5px;
+  font-size: 12px;
+}
+.community-shell .review-content .document-modes button[aria-pressed="true"] {
+  background: var(--surface-soft);
+}
+.community-shell .review-content .document-prose > :first-child {
+  margin-top: 0;
+}
+.community-shell .review-content .document-prose {
+  line-height: 1.75;
+  color: var(--ink);
+}
+/* 本地列表以技能和安装目标为主，连接恢复只在检查失败后集中展示。 */
+.community-shell .library-list .installed-row {
+  padding: 18px 0;
+  gap: 20px;
+}
+.installation-content {
+  flex: 1;
+  min-width: 0;
+}
+.installation-heading {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.installation-heading h2 {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.5;
+}
+.installation-heading .version {
+  font-size: 13px;
+  color: var(--muted);
+}
+.installation-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  color: var(--muted);
+  font-size: 13px;
+  margin: 5px 0 8px;
+}
+.installation-meta span {
+  overflow-wrap: anywhere;
+}
+.installation-details {
+  color: var(--muted);
+  font-size: 12px;
+}
+.installation-details summary {
+  cursor: pointer;
+  width: fit-content;
+  padding: 6px 0;
+}
+.installation-details dl {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 6px 16px;
+  margin: 8px 0 0;
+}
+.installation-details dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.installation-details dt {
+  color: var(--ink);
+}
+.installation-current {
+  color: var(--muted);
+  font-size: 13px;
+  padding: 8px;
+}
+.installation-actions {
+  flex-shrink: 0;
+}
+.library-repair {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+  border: 1px solid var(--line);
+  background: var(--surface-soft);
+  border-radius: 8px;
+  padding: 16px;
+  margin: 16px 0;
+}
+.library-repair > div {
+  flex: 1;
+  min-width: 200px;
+}
+.library-repair p {
+  font-size: 14px;
+  color: var(--muted);
+  margin: 5px 0;
+}
+.library-repair small {
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+.library-repair-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.library-repair-actions .ui-select {
+  width: auto;
+  max-width: 100%;
+}
+.installation-error {
+  font-size: 13px;
+  margin: 10px 0;
+  color: var(--muted);
+}
+.installation-error > button {
+  font-size: 13px;
+  margin: 4px 0;
+}
+.installation-error details p {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 680px) {
+  .community-shell .library-list .installed-row {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .installation-actions {
+    align-self: flex-end;
+  }
+  .library-repair-actions {
+    width: 100%;
+  }
+  .library-repair-actions .ui-select {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+.community-shell .page-installed > .page-header {
+  margin-bottom: 8px;
+}
+.library-toolbar {
+  flex-wrap: wrap;
+}
+.library-toolbar > input {
+  flex: 1 1 240px;
+  min-width: 0;
+  width: auto;
+}
+.library-toolbar > span,
+.library-toolbar > button {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/* Project context stays in one compact toolbar; paths and removal are secondary. */
+.community-shell .page-projects > .page-header {
+  margin-bottom: 20px;
+}
+.project-toolbar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding-bottom: 20px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--line);
+}
+.project-toolbar > .field {
+  width: min(100%, 360px);
+  margin: 0;
+}
+.project-toolbar .actions {
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+}
+.project-location {
+  overflow-wrap: anywhere;
+  padding: 12px;
+  background: var(--surface);
+  border-radius: 8px;
+}
+.project-detail {
+  padding: 0;
+}
+.project-detail h2 {
+  font-size: 20px;
+}
+.project-prompt {
+  color: var(--muted);
+  margin: 24px 0;
+}
+.connection-toolbar {
+  gap: 16px;
+  align-items: center;
+}
+.connection-actions {
+  display: grid;
+  gap: 10px;
+}
+.connection-actions > button {
+  text-align: left;
+}
+.preferences-page {
+  max-width: 900px;
+}
+.preferences-page .preference-section {
+  padding: 20px 0;
+}
+.preferences-page .preference-section > h2 {
+  font-size: 18px;
+  margin-bottom: 8px;
+}
+.preferences-page .preference-section > .field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  max-width: 540px;
+}
+.preferences-page .preference-section > .field > span {
+  margin: 0;
+}
+.preferences-page .preference-section > .field > .ui-select {
+  max-width: 240px;
+}
+.skill-editor-layout {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
+  gap: 16px;
+  height: min(58vh, 540px);
+}
+.skill-editor-layout nav {
+  overflow: auto;
+  border-right: 1px solid var(--line);
+  padding-right: 10px;
+}
+.skill-editor-layout nav button {
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: left;
+  border: 0;
+  margin-bottom: 4px;
+}
+.skill-editor-layout nav button[aria-current="page"] {
+  color: var(--link);
+  background: var(--accent-light);
+}
+.skill-editor-layout section {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+.skill-editor-layout .section-heading {
+  flex: 0 0 auto;
+  margin-bottom: 8px;
+}
+.skill-text-editor {
+  flex: 1;
+  min-height: 0;
+  resize: none;
+  font:
+    14px/1.7 ui-monospace,
+    SFMono-Regular,
+    monospace;
+  tab-size: 2;
+}
+.editor-preview {
+  flex: 1;
+  overflow: auto;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+@media (max-width: 600px) {
+  .skill-editor-layout {
+    grid-template-columns: 1fr;
+    height: 58vh;
+  }
+  .skill-editor-layout nav {
+    max-height: 85px;
+    border: 0;
+  }
+}
+.access-explainer {
+  margin: 0 0 1rem;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+.access-explainer summary {
+  cursor: pointer;
+  width: fit-content;
+}
+.access-explainer p {
+  max-width: 70ch;
+  margin: 0.6rem 0;
+}
+.project-skill-picker {
+  min-width: 0;
+}
+.project-save {
+  align-self: end;
+}
+.project-skill-results {
+  max-height: min(180px, 24vh);
+  overflow: auto;
+  display: grid;
+  gap: 4px;
+  margin: 0.5rem 0 1rem;
+}
+.project-skill-results > button {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-align: left;
+  padding: 0.6rem;
+}
+.project-skill-results > button span {
+  min-width: 0;
+}
+.project-skill-results small {
+  display: block;
+  color: var(--muted);
+  font-size: 0.75rem;
+  overflow-wrap: anywhere;
+}
+.project-skill-results > button[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: var(--accent-light);
+}
+.project-skill-results .skill-symbol {
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+}
+/* 连接页属于设备设置：紧凑行呈现来源、账号和操作，技术细节留在管理弹窗。 */
+.connection-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 24px;
+}
+.connection-list .source-card {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.5fr) minmax(150px, 1fr) auto;
+  align-items: center;
+  gap: 24px;
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+}
+.connection-identity {
+  min-width: 0;
+}
+.connection-identity h2 {
+  margin: 0 0 8px;
+  font-size: 18px;
+  line-height: 1.4;
+}
+.connection-address {
+  overflow-wrap: anywhere;
+  color: var(--muted);
+  font-size: 14px;
+  margin: 0 0 8px;
+}
+.connection-alias {
+  display: inline-block;
+  font-size: 12px;
+  color: var(--muted);
+}
+.connection-account p {
+  margin: 8px 0 0;
+  font-size: 14px;
+}
+.connection-account small {
+  color: var(--muted);
+  font-size: 12px;
+}
+.connection-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+.connection-card-actions button {
+  white-space: nowrap;
+  font-size: 14px;
+}
+.connection-card-actions .quiet {
+  border-color: transparent;
+  background: transparent;
+  color: var(--link);
+}
+.connection-help {
+  margin: 24px 0 0;
+  max-width: 70ch;
+  color: var(--muted);
+  font-size: 14px;
+}
+.connection-technical {
+  margin: 16px 0 24px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.connection-technical code {
+  display: block;
+  margin-top: 8px;
+  overflow-wrap: anywhere;
+}
+.cache-section .section-heading {
+  gap: 24px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.cache-section .section-heading p {
+  margin: 8px 0 0;
+}
+.cache-section > p {
+  margin: 8px 0;
+}
+.cache-section details {
+  margin-top: 16px;
+  font-size: 13px;
+}
+.form-grid > .field:has(.input-action) {
+  grid-column: 1 / -1;
+}
+.input-action {
+  width: 100%;
+}
+.input-action input {
+  min-width: 0;
+}
+.input-action button {
+  flex-shrink: 0;
+}
+.zip-install > [role="status"] {
+  margin-top: 12px;
+}
+@media (max-width: 1000px) {
+  .connection-list .source-card {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 16px;
+  }
+  .connection-card-actions {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+  }
+}
+@media (max-width: 560px) {
+  .connection-list .source-card {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 20px;
+  }
+  .connection-account {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+  .connection-account p {
+    margin: 0;
+  }
+  .connection-toolbar {
+    align-items: flex-start;
+  }
+  .install-guide > .content-tabs {
+    flex-wrap: wrap;
+    overflow: visible;
+  }
+}
+
+/* 首页团队入口只承担发现导航，完整介绍留在团队主页。 */
+.team-collections .collection-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 72px;
+  padding: 16px;
+}
+.team-collections .collection-card .avatar {
+  margin: 0;
+}
+.team-collections .collection-card strong {
+  font-size: 14px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+.collection-arrow {
+  color: var(--muted);
+  font-size: 20px;
+}
+.project-detail > .section-heading {
+  margin-bottom: 16px;
+}
+.project-detail > .actions {
+  margin: 20px 0 16px;
+}
+.project-detail > .list {
+  margin-bottom: 16px;
+}
+.project-detail > .section-heading .path {
+  margin: 6px 0 0;
+}
+@media (max-width: 560px) {
+  .team-collections .collection-card {
+    gap: 8px;
+    padding: 12px;
+  }
+  .team-collections .collection-card .avatar {
+    width: 28px;
+    height: 28px;
+    flex-basis: 28px;
+  }
+}
+
+.audit-detail summary {
+  cursor: pointer;
+}
+.audit-detail pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-width: 80ch;
+  margin-top: 12px;
+  font-size: 12px;
+}
+
+.publish-main .form-grid > .field {
+  margin-top: 0;
+  align-self: start;
+}
+.publish-main .form-grid > .audience-explanation {
+  margin: 0;
+  font-size: 13px;
+}

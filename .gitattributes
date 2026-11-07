@@ -1,0 +1,9 @@
+* text=auto eol=lf
+*.png binary
+*.ico binary
+*.icns binary
+*.zip binary
+*.pdf binary
+gen/** linguist-generated=true
+desktop/frontend/bindings/** linguist-generated=true whitespace=-blank-at-eof
+sdk/typescript/gen/** linguist-generated=true whitespace=-blank-at-eof

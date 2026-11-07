@@ -1,0 +1,895 @@
+/* 主入口表达使用意图，二级导航只显示当前区域，偏好不占业务导航。 */
+.shell.community-shell {
+  display: block;
+  padding-top: 0;
+}
+.community-shell > .navigation-shell {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+.global-navigation,
+.context-navigation {
+  max-width: 1280px;
+  margin: auto;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  padding: 0 32px;
+}
+.global-navigation {
+  min-height: 72px;
+}
+.navigation-shell .home-link {
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  border-radius: 0;
+  min-height: 34px;
+  flex: none;
+}
+.navigation-shell .brand-logo {
+  width: 126px;
+  height: 33px;
+}
+.primary-navigation {
+  display: flex;
+  align-self: stretch;
+  align-items: center;
+  gap: 6px;
+}
+.primary-navigation button {
+  min-height: 38px;
+  padding: 7px 13px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 14px;
+  border-radius: 7px;
+}
+.primary-navigation button[aria-current] {
+  background: var(--accent-light);
+  color: var(--link);
+}
+.global-utilities {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.global-utilities .icon {
+  width: 19px;
+  height: 19px;
+  flex: none;
+}
+.global-utilities .utility-settings {
+  padding: 0;
+  border: 0;
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  color: var(--muted);
+}
+.global-utilities .utility-settings[aria-current] {
+  color: var(--link);
+  background: var(--accent-light);
+}
+.global-utilities .account-menu summary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
+  gap: 0;
+}
+.global-utilities .account-name {
+  display: none;
+}
+.global-utilities .account-menu summary > span:last-child {
+  display: none;
+}
+.global-utilities .account-menu {
+  margin-left: 4px;
+}
+.quick-language {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--muted);
+}
+.quick-language .ui-select {
+  width: 92px;
+  border: 0;
+  padding: 5px 18px 5px 2px;
+  min-height: 44px;
+  font-size: 12px;
+  background-color: transparent;
+  background-position: right 1px center;
+}
+.quick-theme {
+  position: relative;
+}
+.quick-theme > summary {
+  display: grid;
+  place-items: center;
+  list-style: none;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  margin: 0;
+  border-radius: 6px;
+  color: var(--muted);
+  cursor: pointer;
+}
+.quick-theme > summary::-webkit-details-marker {
+  display: none;
+}
+.quick-theme > summary:hover {
+  background: var(--surface-soft);
+}
+.theme-popover {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 192px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: 0 12px 36px var(--shadow-color);
+}
+.theme-popover p {
+  margin: 5px 10px 9px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.theme-popover button {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 0;
+  background: transparent;
+  font-size: 13px;
+}
+.theme-popover button span {
+  flex: 1;
+  text-align: left;
+}
+.theme-popover button[aria-pressed="true"] {
+  background: var(--accent-light);
+  color: var(--link);
+}
+.context-navigation {
+  min-height: 52px;
+  border-top: 1px solid var(--line);
+  gap: 16px;
+}
+.context-navigation > nav {
+  display: flex;
+  align-items: stretch;
+  align-self: stretch;
+  gap: 22px;
+}
+.context-navigation > nav button {
+  border: 0;
+  border-radius: 0;
+  border-bottom: 2px solid transparent;
+  padding: 10px 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+}
+.context-navigation > nav button[aria-current] {
+  border-bottom-color: var(--accent);
+  color: var(--ink);
+}
+.context-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  min-width: 0;
+}
+.publish-shortcut {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  border: 0;
+  min-height: 32px;
+  padding: 5px 10px;
+  background: var(--accent-light);
+  color: var(--link);
+  font-size: 12px;
+}
+.publish-shortcut .icon {
+  width: 16px;
+  height: 16px;
+}
+.local-scope {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.local-scope .icon {
+  width: 15px;
+  height: 15px;
+}
+.shell.community-shell > main {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 30px 32px 32px;
+}
+.community-shell .page-header {
+  margin-bottom: 24px;
+  min-height: 0;
+}
+.community-shell .page-discover .page-header {
+  display: none;
+}
+.community-shell .discovery-intro {
+  padding-top: 18px;
+}
+.community-shell .page-discover .catalog-items {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.community-shell .page-teams > .page-header,
+.community-shell .page-profile > .page-header {
+  display: none;
+}
+/* 使用固定画布渲染字母，消除不同上下文的字号、行高与匿名 grid 子项影响。 */
+.avatar {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+  padding: 0;
+  line-height: 1;
+  vertical-align: middle;
+  isolation: isolate;
+}
+.avatar > .avatar-initials,
+.avatar > img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  margin: 0;
+}
+.avatar-initials {
+  overflow: hidden;
+  fill: currentColor;
+}
+.avatar-initials text {
+  font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+.avatar > img {
+  object-fit: cover;
+}
+@media (max-width: 1000px) {
+  .global-navigation,
+  .context-navigation {
+    gap: 16px;
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+  .global-utilities {
+    gap: 8px;
+  }
+  .primary-navigation button {
+    padding: 7px 10px;
+  }
+  .shell.community-shell > main {
+    padding: 26px 24px;
+  }
+  .community-shell .page-discover .catalog-items {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 760px) {
+  .global-navigation {
+    flex-wrap: wrap;
+    gap: 0;
+    padding: 14px 18px 0;
+  }
+  .global-utilities {
+    gap: 6px;
+  }
+  .global-utilities .quick-language > .icon {
+    display: none;
+  }
+  .navigation-shell .brand-logo {
+    width: 112px;
+    height: 30px;
+  }
+  .primary-navigation {
+    order: 3;
+    width: 100%;
+    margin-top: 12px;
+    gap: 18px;
+  }
+  .primary-navigation button {
+    padding: 9px 0 12px;
+    border-radius: 0;
+    border-bottom: 2px solid transparent;
+    background: transparent;
+  }
+  .primary-navigation button[aria-current] {
+    border-bottom-color: var(--accent);
+    background: transparent;
+  }
+  .context-navigation {
+    padding: 0 18px;
+    flex-wrap: wrap;
+    gap: 0;
+  }
+  .context-navigation > nav {
+    min-height: 45px;
+    gap: 20px;
+  }
+  .context-actions {
+    padding: 7px 0;
+    gap: 8px;
+    width: 100%;
+    justify-content: space-between;
+  }
+  .context-actions:empty {
+    display: none;
+  }
+  .context-actions .community-switcher {
+    max-width: calc(100% - 90px);
+  }
+  .context-navigation > nav button[aria-current] {
+    border-color: transparent;
+    color: var(--link);
+  }
+  .shell.community-shell > main {
+    padding: 22px 18px;
+  }
+  .community-shell .discovery-intro {
+    padding-top: 8px;
+  }
+  .community-shell .page-discover .catalog-items {
+    grid-template-columns: 1fr;
+  }
+  .quick-language .ui-select {
+    width: 83px;
+  }
+  .global-utilities .account-menu {
+    margin-left: 0;
+  }
+  .global-utilities .account-menu summary .avatar {
+    width: 28px;
+    height: 28px;
+  }
+  .global-utilities .account-menu summary > .icon {
+    width: 24px;
+  }
+  .navigation-shell .account-popover {
+    right: 0;
+  }
+}
+@media (max-width: 760px) {
+  .web-shell .context-actions {
+    width: auto;
+    margin-left: auto;
+    padding: 0;
+  }
+  .global-utilities .quick-theme > summary,
+  .global-utilities .utility-settings,
+  .global-utilities .account-menu summary {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .global-utilities .account-menu summary {
+    justify-content: center;
+  }
+  .quick-language .ui-select {
+    min-height: 44px;
+  }
+}
+@media (max-width: 400px) {
+  .navigation-shell .brand-logo {
+    width: 102px;
+  }
+  .global-utilities {
+    gap: 4px;
+  }
+}
+@media (max-width: 760px) {
+  .community-shell .navigation-shell .brand-logo {
+    width: 112px;
+    height: 30px;
+  }
+}
+@media (max-width: 400px) {
+  .community-shell .navigation-shell .brand-logo {
+    width: 102px;
+  }
+}
+
+/* 菜单触发器共享命中区域，避免文档折叠面板的 summary 样式泄漏。 */
+.navigation-shell summary {
+  list-style: none;
+}
+.navigation-shell summary::-webkit-details-marker {
+  display: none;
+}
+.navigation-shell .account-menu summary .avatar {
+  width: 30px;
+  height: 30px;
+}
+.navigation-shell .utility-settings:hover,
+.navigation-shell .account-menu summary:hover {
+  background: var(--surface-soft);
+}
+.hub-context {
+  position: relative;
+  min-width: 0;
+  flex: 0 1 240px;
+}
+.hub-context > summary {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 44px;
+  padding: 0 18px 0 0;
+  margin-right: 4px;
+  border-right: 1px solid var(--line);
+  font-size: 13px;
+  color: var(--ink);
+  cursor: pointer;
+}
+.hub-switch-name {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.hub-context .icon {
+  width: 17px;
+  height: 17px;
+  flex: none;
+  color: var(--link);
+}
+.menu-chevron {
+  margin-left: auto;
+  color: var(--muted);
+}
+.hub-popover {
+  position: absolute;
+  top: calc(100% + 7px);
+  left: 0;
+  width: 310px;
+  max-width: calc(100vw - 36px);
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: 0 12px 36px var(--shadow-color);
+}
+.hub-popover > p {
+  margin: 6px 10px 10px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.hub-popover button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  border: 0;
+  text-align: left;
+  padding: 10px;
+  background: transparent;
+  white-space: normal;
+}
+.hub-popover button > span {
+  flex: 1;
+  min-width: 0;
+}
+.hub-popover strong,
+.hub-popover small {
+  display: block;
+  overflow-wrap: anywhere;
+}
+.hub-popover strong {
+  font-size: 14px;
+  font-weight: 550;
+}
+.hub-popover small {
+  font-size: 12px;
+  color: var(--muted);
+}
+.hub-popover button[aria-pressed="true"] {
+  background: var(--accent-light);
+  color: var(--link);
+}
+.hub-menu-footer {
+  border-top: 1px solid var(--line);
+  margin-top: 8px;
+  padding-top: 8px;
+}
+.hub-menu-footer > small {
+  padding: 4px 10px 8px;
+}
+.publish-shortcut {
+  min-height: 36px;
+}
+.community-shell .discovery-search .search-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 0;
+  max-width: 790px;
+}
+.discovery-search .search-row > .icon {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  margin-left: 12px;
+  color: var(--muted);
+}
+.community-shell .discovery-search .search-row > .search-scope {
+  width: 160px;
+  flex: 0 0 160px;
+  border: 0;
+  border-right: 1px solid var(--line);
+  padding: 8px 28px 8px 12px;
+  border-radius: 0;
+  min-height: 36px;
+  background-color: transparent;
+}
+.discovery-search .search-row input {
+  flex: 1;
+  width: 0;
+}
+.search-context {
+  text-align: center;
+  font-size: 12px;
+  color: var(--muted);
+  margin: 10px 0 0;
+}
+.source-results .section-heading h2 {
+  font-size: 20px;
+  overflow-wrap: anywhere;
+}
+.source-results + .source-results {
+  margin-top: 32px;
+}
+.community-shell .page-bookmarks > .page-header {
+  display: none;
+}
+.community-shell .skill-detail > .section-heading {
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--line);
+}
+.community-shell .skill-detail > .section-heading > .muted {
+  overflow-wrap: anywhere;
+  font-size: 12px;
+}
+.community-shell .skill-detail > .section-heading > button {
+  flex: none;
+}
+.team-filter {
+  max-width: 420px;
+  margin: 0 0 24px;
+}
+.team-card:hover {
+  border-color: var(--accent);
+}
+.community-shell .team-card {
+  text-align: left;
+}
+.community-shell .profile-about {
+  font-size: 14px;
+}
+.community-shell .installed-row {
+  gap: 24px;
+  padding: 24px 0;
+  border-radius: 0;
+  border-width: 0 0 1px;
+}
+.installed-row > div:first-child {
+  min-width: 0;
+}
+.installed-row .source-origin {
+  font-size: 12px;
+  color: var(--muted);
+}
+.studio-identity {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: -8px 0 24px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.studio-identity strong {
+  color: var(--ink);
+  font-weight: 500;
+}
+.review-queue > input {
+  margin-bottom: 10px;
+}
+.review-queue .queue-item {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.preferences-page .preference-section {
+  padding: 24px 0;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+}
+.preferences-page .field {
+  max-width: 360px;
+}
+.preferences-page dialog .field {
+  max-width: none;
+}
+@media (max-width: 760px) {
+  .hub-context {
+    flex-basis: 100%;
+    max-width: none;
+    border: 0;
+    margin-top: 6px;
+  }
+  .hub-context > summary {
+    width: 100%;
+    border: 0;
+    padding-right: 0;
+  }
+  .context-actions {
+    width: auto;
+    margin-left: auto;
+  }
+  .context-navigation > nav {
+    gap: 18px;
+  }
+  .community-shell .discovery-search .search-row {
+    flex-wrap: wrap;
+  }
+  .community-shell .discovery-search .search-row > .search-scope {
+    flex: 1 1 calc(100% - 40px);
+    width: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    min-height: 44px;
+  }
+  .community-shell .discovery-search .search-row input {
+    font-size: 16px;
+    padding-left: 10px;
+  }
+  .search-context {
+    text-align: left;
+  }
+  .search-row button {
+    min-height: 44px;
+  }
+  .topic-buttons button {
+    min-height: 44px;
+  }
+  .community-shell .installed-row {
+    flex-direction: column;
+  }
+  .community-shell .skill-detail > .section-heading {
+    align-items: flex-start;
+  }
+}
+
+/* 审核按阅读顺序展开，元信息按需查看，正文不再被多层滚动截断。 */
+.community-shell .review-workspace {
+  grid-template-columns: 230px minmax(0, 1fr);
+  height: auto;
+  min-height: 480px;
+  overflow: visible;
+  align-items: start;
+}
+.community-shell .review-queue {
+  position: sticky;
+  top: 142px;
+  max-height: calc(100vh - 165px);
+  border-radius: 12px 0 0 12px;
+}
+.community-shell .review-document {
+  border-left: 1px solid var(--line);
+}
+.community-shell .review-content {
+  overflow: visible;
+}
+.community-shell .review-properties {
+  padding: 0 24px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  overflow: visible;
+}
+.community-shell .review-properties > summary {
+  min-height: 44px;
+  padding: 10px 0;
+}
+.community-shell .review-properties .properties {
+  display: grid;
+  grid-template-columns: 140px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px 20px;
+  margin: 6px 0 16px;
+}
+.community-shell .review-properties dt {
+  margin: 0;
+}
+.community-shell .review-properties > p {
+  margin-top: 0;
+}
+.community-shell .review-decision {
+  max-height: none;
+  overflow: visible;
+}
+.community-shell .review-workspace > .empty {
+  grid-column: 2;
+}
+.community-shell .review-queue .queue-item.active {
+  border-color: var(--accent);
+  background: var(--accent-light);
+}
+@media (max-width: 760px) {
+  .community-shell .review-workspace {
+    display: block;
+  }
+  .community-shell .review-queue {
+    position: static;
+    max-height: 300px;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .community-shell .review-document {
+    border-left: 0;
+  }
+  .community-shell .review-properties .properties {
+    grid-template-columns: 100px minmax(0, 1fr);
+  }
+}
+
+.community-shell .review-document {
+  scroll-margin-top: 140px;
+}
+.review-content > .chips,
+.review-content > .integrity-details {
+  display: none;
+}
+@media (max-width: 760px) {
+  .community-shell .review-document {
+    scroll-margin-top: 230px;
+  }
+}
+
+/* Web 的品牌区标识当前站点；App 的 Hub 选择只影响远端任务。 */
+.navigation-shell .home-link.site-home {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  max-width: 280px;
+  flex: 0 1 auto;
+  min-height: 44px;
+  text-align: left;
+}
+.site-mark {
+  width: 28px;
+  height: 33px;
+  flex-shrink: 0;
+}
+.site-name {
+  min-width: 0;
+  font-size: 16px;
+  font-weight: 650;
+  line-height: 1.3;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.context-actions .hub-context {
+  flex: 0 1 240px;
+  margin: 0;
+}
+.community-shell .context-actions .hub-context > summary {
+  gap: 8px;
+  min-height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 5px 10px;
+  margin: 0;
+  background: var(--surface);
+}
+.hub-switch-label {
+  color: var(--muted);
+  font-size: 12px;
+  flex-shrink: 0;
+}
+.hub-switch-name {
+  min-width: 0;
+}
+.context-actions .hub-popover {
+  left: auto;
+  right: 0;
+}
+.context-actions .hub-context > summary:hover {
+  background: var(--surface-soft);
+}
+.navigation-shell .home-link:focus-visible,
+.hub-context > summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+@media (max-width: 1000px) {
+  .navigation-shell .home-link.site-home {
+    max-width: 230px;
+  }
+  .global-utilities {
+    gap: 2px;
+  }
+}
+@media (max-width: 760px) {
+  .navigation-shell .home-link.site-home {
+    flex: 1 1 0;
+    max-width: none;
+    gap: 7px;
+    margin-right: 8px;
+  }
+  .site-name {
+    font-size: 13px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+  .site-mark {
+    width: 24px;
+    height: 28px;
+  }
+  .global-utilities {
+    flex-shrink: 0;
+    gap: 0;
+  }
+  .context-navigation:has(.hub-context) .context-actions {
+    flex: 1 1 100%;
+    padding: 0 0 6px;
+  }
+  .context-actions .hub-context {
+    flex: 1 1 auto;
+    max-width: 280px;
+  }
+  .community-shell .context-actions .hub-context > summary {
+    min-height: 44px;
+  }
+  .context-actions .hub-popover {
+    left: 0;
+    right: auto;
+  }
+}

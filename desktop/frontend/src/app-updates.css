@@ -1,0 +1,51 @@
+.app-update-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+.app-update-heading p {
+  margin: 8px 0 4px;
+}
+.app-update-heading button {
+  flex-shrink: 0;
+}
+.app-update-preview {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 20px 0 8px;
+}
+.app-update-preview input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+}
+.app-update-hint {
+  font-size: 13px;
+}
+.app-update-result {
+  border-top: 1px solid var(--line);
+  margin-top: 16px;
+  padding-top: 12px;
+}
+.app-update-result .actions {
+  margin-top: 12px;
+}
+.app-update-notes {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 220px;
+  overflow: auto;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  font-size: 14px;
+}
+@media (max-width: 600px) {
+  .app-update-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+  }
+}
