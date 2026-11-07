@@ -245,7 +245,7 @@ func ReadDirectory(root string) ([]File, error) {
 		if entry.IsDir() {
 			return nil
 		}
-		info, err := entry.Info()
+		info, err := directory.Lstat(rel)
 		if err != nil {
 			return err
 		}
@@ -344,14 +344,31 @@ func (b *Bundle) Extract(root string) error {
 
 // 用目录句柄约束遍历与打开，避免检查符号链接后再按绝对路径访问的竞态。
 func openDirectory(path string) (*os.Root, error) {
-	expected, err := os.Lstat(path)
+	if path == "" {
+		return nil, errors.New("package root is required")
+	}
+	absolute, err := filepath.Abs(path)
+	if err != nil {
+		return nil, err
+	}
+	parentPath, name := filepath.Dir(absolute), filepath.Base(absolute)
+	if parentPath == absolute {
+		name = "."
+	}
+	parent, err := os.OpenRoot(parentPath)
+	if err != nil {
+		return nil, err
+	}
+	defer parent.Close()
+	// Root.Lstat 从句柄立即读取身份；Windows 的 os.Lstat 可能延迟按旧路径读取文件 ID。
+	expected, err := parent.Lstat(name)
 	if err != nil {
 		return nil, err
 	}
 	if !expected.IsDir() || expected.Mode()&os.ModeSymlink != 0 {
 		return nil, errors.New("package root must be a directory")
 	}
-	root, err := os.OpenRoot(path)
+	root, err := parent.OpenRoot(name)
 	if err != nil {
 		return nil, err
 	}

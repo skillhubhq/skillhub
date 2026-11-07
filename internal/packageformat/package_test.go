@@ -133,15 +133,15 @@ func TestPackageReadRejectsFileReplacedAfterInspection(t *testing.T) {
 			if err := os.WriteFile(name, []byte(validSkill), 0600); err != nil {
 				t.Fatal(err)
 			}
-			expected, err := os.Lstat(name)
-			if err != nil {
-				t.Fatal(err)
-			}
 			root, err := openDirectory(directory)
 			if err != nil {
 				t.Fatal(err)
 			}
 			defer root.Close()
+			expected, err := root.Lstat("SKILL.md")
+			if err != nil {
+				t.Fatal(err)
+			}
 			// 保留旧文件，保证替换后的 inode 不会被文件系统立即复用。
 			if err = os.Rename(name, name+".previous"); err != nil {
 				t.Fatal(err)
