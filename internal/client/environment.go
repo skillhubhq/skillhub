@@ -26,7 +26,7 @@ type environmentValue struct {
 
 // 运行时控制变量不能从技能声明进入 Shell 或改变 Agent 的登录身份。
 func safeEnvironmentName(name string) bool {
-	for _, prefix := range []string{"BASH", "ZSH", "SHELLOPT", "LD_", "DYLD_", "PYTHON", "NODE_", "NPM_", "RUBY", "PERL", "GIT_", "SKILLHUB", "CODEX", "CLAUDE", "OPENAI", "ANTHROPIC", "SSL_", "CURL_", "LC_", "DOTNET_", "COMPlus_", "GLIBC_", "GCONV_", "GTK_", "QT_", "SSH_", "SUDO_", "LESS"} {
+	for _, prefix := range []string{"BASH", "ZSH", "SHELLOPT", "LD_", "DYLD_", "PYTHON", "NODE_", "NPM_", "RUBY", "PERL", "GIT_", "SKILLHUB", "CODEX", "CLAUDE", "OPENAI", "ANTHROPIC", "SSL_", "CURL_", "LC_", "DOTNET_", "COMPLUS_", "GLIBC_", "GCONV_", "GTK_", "QT_", "SSH_", "SUDO_", "LESS"} {
 		if strings.HasPrefix(name, prefix) {
 			return false
 		}

@@ -1039,6 +1039,14 @@ export async function runNativeSmoke() {
         !guide.textContent!.includes("test-region"),
       "terminal handoff displays commands without stored values",
     );
+    check(
+      Array.from(guide.querySelectorAll("button, pre")).every(
+        (element) =>
+          element.getBoundingClientRect().right <=
+          document.querySelector("dialog")!.getBoundingClientRect().right,
+      ),
+      "terminal guide keeps copy controls inside the dialog",
+    );
     const guideHeight = document
       .querySelector("dialog")!
       .getBoundingClientRect().height;

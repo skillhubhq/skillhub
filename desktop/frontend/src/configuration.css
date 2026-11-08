@@ -76,6 +76,7 @@
 
 .configuration-guide {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 0.9rem;
   min-width: 0;
 }
@@ -109,4 +110,9 @@
   overflow: auto;
   max-height: 10rem;
   font-size: 0.78rem;
+}
+
+.configuration-guide > * {
+  min-width: 0;
+  max-width: 100%;
 }
