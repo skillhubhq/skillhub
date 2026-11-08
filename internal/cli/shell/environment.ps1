@@ -33,12 +33,12 @@ function global:skillhub_env {
                 $global:SkillHubEnvironmentActive = $true
                 Write-Host 'Loaded into this terminal. Start your tool yourself; existing apps are unchanged.'
             } catch {
-                foreach ($name in $names) { [Environment]::SetEnvironmentVariable($name, $null, 'Process') }
+                foreach ($name in $names) { if (Test-Path -LiteralPath "Env:$name") { Remove-Item -LiteralPath "Env:$name" -ErrorAction Stop } }
                 throw 'Could not load configuration; no values were displayed.'
             } finally { $raw = $null; $entries = $null }
         }
         'deactivate' {
-            foreach ($name in $global:SkillHubEnvironmentNames) { [Environment]::SetEnvironmentVariable($name, $null, 'Process') }
+            foreach ($name in $global:SkillHubEnvironmentNames) { if (Test-Path -LiteralPath "Env:$name") { Remove-Item -LiteralPath "Env:$name" -ErrorAction Stop } }
             $global:SkillHubEnvironmentNames = @()
             $global:SkillHubEnvironmentActive = $false
             Write-Host 'Cleared variables added by SkillHub. Running processes retain their copies.'
