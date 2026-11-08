@@ -1,5 +1,5 @@
 """Run actual old/new binaries in isolated smoke fixtures; never use a live Hub."""
-import argparse
+from types import SimpleNamespace
 import json
 import os
 import secrets
@@ -65,12 +65,13 @@ def verify_protocol_boundary(args):
 
 
 def main():
-    parser = argparse.ArgumentParser()
-    for option in ("server", "cli", "baseline-server", "baseline-cli"):
-        parser.add_argument("--" + option, required=True)
-    args = parser.parse_args()
-    for option in ("server", "cli", "baseline_server", "baseline_cli"):
-        setattr(args, option, str(Path(getattr(args, option)).resolve()))
+    root = Path(__file__).resolve().parents[1]
+    args = SimpleNamespace(
+        server=str(root / "bin/skillhub-server"),
+        cli=str(root / "bin/skillhub"),
+        baseline_server=str(root / ".local/compatibility-baseline/bin/skillhub-server"),
+        baseline_cli=str(root / ".local/compatibility-baseline/bin/skillhub"),
+    )
     if verify_protocol_boundary(args): return
     smoke = Path(__file__).with_name("smoke.py")
     matrix = [

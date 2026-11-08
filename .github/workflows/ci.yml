@@ -93,8 +93,7 @@ jobs:
           make -C "$baseline" web
           (cd "$baseline" && go build -o bin/skillhub-server ./cmd/skillhub-server && go build -o bin/skillhub ./cmd/skillhub)
           printf 'candidate=%s\nbaseline=%s\n' "$(git rev-parse HEAD)" "$BASE_SHA" > .local/compatibility.txt
-          python scripts/compatibility.py --server bin/skillhub-server --cli bin/skillhub \
-            --baseline-server "$baseline/bin/skillhub-server" --baseline-cli "$baseline/bin/skillhub" | tee -a .local/compatibility.txt
+          python scripts/compatibility.py | tee -a .local/compatibility.txt
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always() && matrix.os == 'ubuntu-latest'
         with:
