@@ -1,0 +1,75 @@
+.configuration-intro {
+  color: var(--muted);
+  margin: 0 0 1.5rem;
+}
+.configuration-list {
+  display: grid;
+  gap: 0.75rem;
+}
+.configuration-list article {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.configuration-list article > div {
+  min-width: 0;
+}
+.configuration-list h2 {
+  margin: 0 0 0.25rem;
+  font-size: 1rem;
+}
+.configuration-list p {
+  margin: 0 0 0.3rem;
+}
+.configuration-list small {
+  display: block;
+  max-width: 70vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--muted);
+}
+.configuration-dialog {
+  display: grid;
+  gap: 1rem;
+}
+.configuration-dialog > p {
+  margin: 0;
+}
+.configuration-context {
+  display: grid;
+  gap: 0.3rem;
+  overflow-wrap: anywhere;
+}
+.configuration-context small,
+.configuration-variable small {
+  color: var(--muted);
+}
+.configuration-variable {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 0;
+  border-bottom: 1px solid var(--line);
+}
+.configuration-variable > div {
+  display: grid;
+  gap: 0.3rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.configuration-variable p {
+  margin: 0;
+}
+.configuration-editor {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}

@@ -151,8 +151,8 @@ export function Downloads() {
           <h3>{t("Know what you download", "了解你下载的版本")}</h3>
           <p>
             {t(
-              "Preview desktop builds are unsigned and do not update automatically. Verify SHA256SUMS and review the platform requirements on the release page.",
-              "预览版桌面安装包尚未签名，也不会自动更新。请校验 SHA256SUMS，并查看发行页的平台要求。",
+              "Desktop packages do not include platform signing or automatic installation. Verify SHA256SUMS and review the platform requirements on the release page.",
+              "桌面安装包未提供平台签名，也不会自动覆盖安装。请校验 SHA256SUMS，并查看发行页的平台要求。",
             )}
           </p>
           <ProjectLink href={`${projectURL}/blob/main/docs/distribution.md`}>

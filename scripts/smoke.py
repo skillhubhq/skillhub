@@ -170,7 +170,7 @@ def main():
                 upgraded.terminate()
                 upgraded.wait(timeout=10)
                 rollback = root / "rolled-back"
-                maintenance("rollback", "--input", str(before_upgrade), "--data", str(rollback))
+                maintenance("restore", "--input", str(before_upgrade), "--data", str(rollback))
                 rolled_back = start_hub(rollback, origins["company"], True)
                 # Snapshot recovery must revoke tokens without changing registry/source identity.
                 assert cli("search", "smoke-check", expected=1)[0]["error"]

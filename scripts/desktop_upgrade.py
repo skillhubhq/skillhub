@@ -89,6 +89,8 @@ def exercise(baseline, candidate, server, cli, report_path, provenance=None):
         data.mkdir(mode=0o700)
         env.update(SKILLHUB_HOME=str(data), SKILLHUB_NATIVE_SMOKE="1")
         (data / ".native-smoke-fixture").write_bytes(b"skillhub-native-smoke-v1\n")
+        config_target = None
+        config_files = {}
         def binary(app):
             return app / "Contents/MacOS/SkillHub" if sys.platform == "darwin" else app
         def app_hash(app):
@@ -127,6 +129,11 @@ def exercise(baseline, candidate, server, cli, report_path, provenance=None):
             for alias in ("company", "partner"):
                 identity = json.loads(client("whoami", "--source", alias).stdout)
                 if identity.get("identity", {}).get("username") != "admin": raise RuntimeError("independent CLI identity changed")
+            if config_target:
+                configuration = json.loads(client("config", "doctor", config_target).stdout)
+                if not configuration.get("ready"): raise RuntimeError("local configuration or system secret lost during replacement")
+                current = {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in (data / "local-configuration").glob("*.json")}
+                if current != config_files: raise RuntimeError("local configuration changed during application replacement")
         try:
             evidence["baseline_sha256"], evidence["candidate_sha256"] = app_hash(baseline), app_hash(candidate)
             if evidence["baseline_sha256"] == evidence["candidate_sha256"]:
@@ -157,12 +164,19 @@ def exercise(baseline, candidate, server, cli, report_path, provenance=None):
                     client("admin", "namespace-put", "team", "--source", alias, "--review-required=false")
                     package = root / "package"; package.mkdir()
                     (package / "SKILL.md").write_text("---\nname: upgrade-check\ndescription: Isolated upgrade fixture.\n---\nPreserve these files.\n")
+                    (package / "skillhub.config.json").write_text(json.dumps({"version": 1, "variables": [
+                        {"name": "UPGRADE_TOKEN", "description": "Isolated credential fixture", "secret": True, "required": True}
+                    ]}))
                     client("publish", str(package), "--source", alias, "--namespace", "team", "--version", "1.0.0")
                 accounts.append({"alias":alias,"password":password})
             account_file = data / "upgrade-accounts.json"
             account_file.write_text(json.dumps(accounts)); account_file.chmod(0o600)
             replace(baseline)
             phase("seed")
+            # The current CLI seeds settings beside an older App without changing its existing data.
+            config_target = json.loads((data / "upgrade-snapshot.json").read_text())["installed"][1]["target"]
+            client("config", "set", config_target, "UPGRADE_TOKEN", "--mode", "keychain", "--value-stdin", password=secrets.token_urlsafe(32)+"\n")
+            config_files = {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in (data / "local-configuration").glob("*.json")}
             account_file.unlink()  # Subsequent phases cannot silently log in again.
             phase("baseline")
             # Back up closed state before replacement; no live SQLite copy is used.
@@ -188,6 +202,9 @@ def exercise(baseline, candidate, server, cli, report_path, provenance=None):
         finally:
             # Only these random fixture credential references are removed.
             cleanup_errors = []
+            if config_target:
+                try: client("config", "clear", config_target, "--yes")
+                except (subprocess.CalledProcessError, subprocess.TimeoutExpired): cleanup_errors.append("local-configuration")
             for alias in ("company", "partner"):
                 try: client("logout", alias)
                 except (subprocess.CalledProcessError, subprocess.TimeoutExpired): cleanup_errors.append(alias)

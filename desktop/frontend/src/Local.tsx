@@ -273,6 +273,7 @@ export function Installed() {
                   )}
                 </div>
                 <div className="actions installation-actions">
+                  <button disabled={ui.busy} onClick={() => ui.navigate(`configuration?${new URLSearchParams({ target: item.target })}`)}>{t("Configure", "配置")}</button>
                   {current ? (
                     <span className="installation-current" role="status">
                       {t("Up to date", "已是最新")}

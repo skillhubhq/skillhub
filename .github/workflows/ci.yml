@@ -70,8 +70,14 @@ jobs:
       - run: go vet ./...
       - run: go test -race ./...
       - run: |
+          if [[ "$RUNNER_OS" == "Linux" ]]; then export CGO_ENABLED=0; fi
           go build -trimpath -o "bin/skillhub-server${EXE_SUFFIX}" ./cmd/skillhub-server
           go build -trimpath -o "bin/skillhub${EXE_SUFFIX}" ./cmd/skillhub
+          if [[ "$RUNNER_OS" == "Linux" ]]; then
+            for binary in bin/skillhub bin/skillhub-server; do
+              if readelf -l "$binary" | grep -q INTERP; then echo "Linux binary requires a dynamic loader"; exit 1; fi
+            done
+          fi
           python scripts/smoke.py --server "bin/skillhub-server${EXE_SUFFIX}" --cli "bin/skillhub${EXE_SUFFIX}"
         shell: bash
       - name: Exercise baseline compatibility, upgrade and rollback

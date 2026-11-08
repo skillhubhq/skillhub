@@ -983,6 +983,63 @@ export async function runNativeSmoke() {
     );
     setLanguage("en");
     const project = await API.OpenProject(projects[0], false);
+    location.hash = `configuration?${new URLSearchParams({ target: final[0].target })}`;
+    await waitForUI(
+      () =>
+        !!document.querySelector(
+          ".configuration-variable button:not(:disabled)",
+        ),
+    );
+    check(
+      document
+        .querySelector(".configuration-variable")
+        ?.textContent?.includes("EXAMPLE_REGION"),
+      "local requirements render in the configuration dialog",
+    );
+    document
+      .querySelector<HTMLButtonElement>(".configuration-variable button")!
+      .click();
+    await waitForUI(
+      () => !!document.querySelector(".configuration-editor input"),
+    );
+    const configurationInput = document.querySelector<HTMLInputElement>(
+      ".configuration-editor input",
+    )!;
+    Object.getOwnPropertyDescriptor(
+      HTMLInputElement.prototype,
+      "value",
+    )!.set!.call(configurationInput, "test-region");
+    configurationInput.dispatchEvent(new Event("input", { bubbles: true }));
+    await waitForUI(
+      () =>
+        !document.querySelector<HTMLButtonElement>(
+          ".configuration-editor .primary",
+        )?.disabled,
+    );
+    document
+      .querySelector<HTMLButtonElement>(".configuration-editor .primary")!
+      .click();
+    await waitForUI(
+      () =>
+        document.querySelector(".configuration-variable [role=status]")
+          ?.textContent === "Available",
+    );
+    const configured = await API.SkillConfiguration(final[0].target);
+    check(
+      configured.ready && !JSON.stringify(configured).includes("test-region"),
+      "App saves shared local configuration and diagnostics omit values",
+    );
+    await API.ClearSkillConfiguration(final[0].target);
+    check(
+      !(await API.SkillConfiguration(final[0].target)).ready,
+      "local configuration clears without modifying the installation",
+    );
+    document
+      .querySelector<HTMLButtonElement>(
+        'dialog[open] button[aria-label="Close dialog"]',
+      )!
+      .click();
+    await waitForUI(() => !document.querySelector("dialog[open]"));
     check(
       !project.needs_lock &&
         project.manifest.skills?.every((s) => s.version === "1.0.0"),

@@ -7,6 +7,7 @@ const repo = path.dirname(root.replace(/\/$/, ""));
 export const pages = [
   ["docs/README.md", "index", "Overview"],
   ["docs/usage.md", "usage", "Use skills"],
+  ["docs/local-configuration.md", "local-configuration", "Local configuration and secrets"],
   ["docs/official-community.md", "official-community", "Official community"],
   ["docs/authoring.md", "authoring", "Create and test a skill"],
   ["docs/evaluations.md", "evaluations", "Evaluation evidence"],

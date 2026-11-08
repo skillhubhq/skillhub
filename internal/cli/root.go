@@ -106,7 +106,7 @@ func (a *application) command() *cobra.Command {
 		}
 		return a.output(cmd, items)
 	}})
-	root.AddCommand(a.installCommand(), a.removeCommand(), a.updatesCommand(), a.updateCommand(), a.cacheCommand())
+	root.AddCommand(a.configCommand(), a.installCommand(), a.removeCommand(), a.updatesCommand(), a.updateCommand(), a.cacheCommand())
 	root.AddCommand(&cobra.Command{Use: "info SOURCE/NAMESPACE/NAME", Short: "Show a visible skill", Args: cobra.ExactArgs(1), RunE: func(cmd *cobra.Command, args []string) error {
 		coordinate, err := client.ParseCoordinate(args[0], false)
 		if err != nil {

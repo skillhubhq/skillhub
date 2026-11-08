@@ -93,6 +93,10 @@ export function ClearCache(): $CancellablePromise<client$0.CacheInfo> {
     return $Call.ByID(2243882208);
 }
 
+export function ClearSkillConfiguration(target: string): $CancellablePromise<void> {
+    return $Call.ByID(2006130651, target);
+}
+
 export function CommunityCreateComment(source: string, id: string, parent: string, body: string, key: string): $CancellablePromise<community$0.Comment> {
     return $Call.ByID(871420215, source, id, parent, body, key);
 }
@@ -167,6 +171,10 @@ export function CommunityUpdateProfile(source: string, name: string, bio: string
 
 export function CommunityUpdateTeam(source: string, $namespace: string, name: string, bio: string, revision: number, key: string): $CancellablePromise<community$0.Team> {
     return $Call.ByID(1292972358, source, $namespace, name, bio, revision, key);
+}
+
+export function ConfigurationTargets(): $CancellablePromise<client$0.ConfigTarget[] | null> {
+    return $Call.ByID(631288013);
 }
 
 /**
@@ -387,8 +395,20 @@ export function SetProjectSkill(path: string, skill: client$0.ProjectSkill): $Ca
     return $Call.ByID(4047147901, path, skill);
 }
 
+export function SetSkillConfiguration(target: string, name: string, mode: string, value: string): $CancellablePromise<void> {
+    return $Call.ByID(269507874, target, name, mode, value);
+}
+
+export function SkillConfiguration(target: string): $CancellablePromise<client$0.SkillConfiguration> {
+    return $Call.ByID(733753148, target);
+}
+
 export function Submissions(source: string, $namespace: string, token: string): $CancellablePromise<$models.ReleasePage> {
     return $Call.ByID(3052681070, source, $namespace, token);
+}
+
+export function UnsetSkillConfiguration(target: string, name: string): $CancellablePromise<void> {
+    return $Call.ByID(712285395, target, name);
 }
 
 export function Yank(source: string, id: string, reason: string, requestID: string): $CancellablePromise<client$0.ReleaseInfo> {

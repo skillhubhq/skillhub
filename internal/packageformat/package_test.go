@@ -10,6 +10,19 @@ import (
 
 const validSkill = "---\nname: release-check\ndescription: Verify release readiness.\n---\nRun the documented checks.\n"
 
+func TestPackageConfigurationDeclarationIsValidated(t *testing.T) {
+	for _, declaration := range []string{`{"version":1,"variables":[{"name":"TOKEN","secret":true,"required":true}]}`, `{"version":1,"variables":[]}`} {
+		if _, err := Inspect(archive(t, map[string]string{"SKILL.md": validSkill, "skillhub.config.json": declaration})); err != nil {
+			t.Fatal(err)
+		}
+	}
+	for _, declaration := range []string{`{"version":1,"command":"ignored"}`, `{"version":1,"variables":[{"name":"TOKEN","default":"must-not-be-packaged"}]}`} {
+		if _, err := Inspect(archive(t, map[string]string{"SKILL.md": validSkill, "skillhub.config.json": declaration})); err == nil {
+			t.Fatal("invalid declaration reached installation")
+		}
+	}
+}
+
 func archive(t *testing.T, files map[string]string) []byte {
 	t.Helper()
 	var b bytes.Buffer

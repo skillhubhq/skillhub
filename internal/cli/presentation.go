@@ -81,6 +81,30 @@ func (a *application) output(cmd *cobra.Command, value any) error {
 	}
 	p := &presentation{color: terminalColor(cmd.OutOrStdout(), a.noColor)}
 	switch v := value.(type) {
+	case client.SkillConfiguration:
+		p.heading("Local configuration · " + v.Installation.Name)
+		p.field("Target", v.Installation.Target)
+		if !v.Installed {
+			p.hint("Not installed. Saved configuration can be cleared with config clear TARGET --yes.")
+		}
+		if !v.Declared {
+			p.hint("No optional skillhub.config.json requirements declared.")
+		}
+		if v.Changed {
+			p.hint("Skill version or origin changed. Clear saved configuration and review the current requirements.")
+		}
+		for _, item := range v.Variables {
+			p.field(item.Name, item.Status+" · "+item.Mode)
+		}
+		p.hint("Local checks only. No values displayed, uploaded or injected into an agent.")
+	case []client.ConfigTarget:
+		p.heading("Local configurations")
+		for _, item := range v {
+			p.gap()
+			p.installation(item.Installation)
+			p.field("Installed", fmt.Sprint(item.Installed))
+			p.field("Saved configuration", fmt.Sprint(item.Saved))
+		}
 	case client.EvaluationPage:
 		p.heading(fmt.Sprintf("Evaluation evidence · %d", len(v.Evidence)))
 		if !v.Supported {

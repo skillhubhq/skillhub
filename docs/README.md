@@ -9,6 +9,7 @@ Choose a starting point for the work you want to do.
 | Guide | What you will find |
 | --- | --- |
 | [Hub and CLI](usage.md) | Connect, sign in, discover, install and restore a project |
+| [Local configuration and secrets](local-configuration.md) | Declare requirements, manage device-local values and diagnose missing configuration |
 | [Create and test a skill](authoring.md) | Write instructions, validate locally and test behavior in an agent |
 | [Evaluation evidence](evaluations.md) | Define cases, import external results and review version-bound evidence |
 | [Desktop app](../desktop/README.md) | Native app setup and local workflows |

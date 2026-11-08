@@ -1,5 +1,7 @@
 # 架构
 
+本地配置由共享客户端内核负责，保存在独立的 `local-configuration/` 私有目录中，并复用系统凭据接口。写操作先取得安装锁、再取得配置锁，通过暂存文件和原子替换提交；系统凭据写入前先持久化无密钥值的引用，便于中断后诊断、重试和清理。绑定包含来源身份、安装位置、精确版本及摘要。此数据没有远程 RPC、值导出或 Agent 执行入口。参见[本地配置与密钥](local-configuration.md)。
+
 ## 进程与存储 [#processes-and-storage]
 
 Hub 单 Go 进程内嵌 Web，使用 SQLite/PostgreSQL 元数据及内容寻址 ZIP 包。CLI/App 共享 Go 内核，桌面 Wails + React/TypeScript 独立模块隔离原生依赖。

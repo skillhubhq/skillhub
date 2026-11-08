@@ -1,5 +1,7 @@
 # SkillHub 文档
 
+[本地配置与密钥](local-configuration.md)：声明需求、管理设备上的配置并检查缺失项。
+
 [项目概览](../../README.md) · [参与贡献](contributing.md)
 
 SkillHub 用于分享、审核和安装技能，不执行 Agent。文档提供英文和简体中文，右上角可切换语言；示例中的域名、账号和输入均为虚构内容。

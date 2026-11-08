@@ -15,6 +15,7 @@ import (
 	"connectrpc.com/connect"
 	"github.com/skillhubhq/skillhub/internal/client"
 	"github.com/skillhubhq/skillhub/internal/hub"
+	"github.com/skillhubhq/skillhub/internal/packageformat"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
@@ -112,5 +113,53 @@ func TestDesktopUsesSystemCredentialStore(t *testing.T) {
 	}
 	if _, err = credentials.Get(ref); !errors.Is(err, client.ErrCredentialMissing) {
 		t.Fatal("App logout did not delete the system credential")
+	}
+	verifyLocalSystemConfiguration(t, service, runCLI)
+}
+
+func verifyLocalSystemConfiguration(t *testing.T, service *DesktopService, runCLI func(string, ...string) []byte) {
+	t.Helper()
+	dir := t.TempDir()
+	for name, content := range map[string]string{"SKILL.md": "---\nname: credential-check\ndescription: Isolated credential test.\n---\n", client.SkillConfigFile: `{"version":1,"variables":[{"name":"EXAMPLE_TOKEN","secret":true,"required":true}]}`} {
+		if err := os.WriteFile(filepath.Join(dir, name), []byte(content), 0600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	archive, bundle, err := packageformat.Pack(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	plan, err := service.store.PlanInstall(service.ctx, client.Installation{RegistryID: "fixture", RegistryURL: "https://skills.example.com", Namespace: "fixture", Name: "credential-check", Version: "1.0.0", Digest: bundle.Digest, Tool: "codex", Scope: "project", Target: filepath.Join(t.TempDir(), "credential-check")}, archive)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err = service.store.Apply(service.ctx, *plan, archive); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		if err := service.ClearSkillConfiguration(plan.Target); err != nil {
+			t.Error("isolated local configuration cleanup failed")
+		}
+	})
+	secret := "synthetic-local-config-secret"
+	out := runCLI(secret+"\n", "config", "set", plan.Target, "EXAMPLE_TOKEN", "--mode", "keychain", "--value-stdin")
+	if bytes.Contains(out, []byte(secret)) {
+		t.Fatal("CLI printed secret")
+	}
+	report, err := service.SkillConfiguration(plan.Target)
+	if err != nil || !report.Ready {
+		t.Fatal("App did not observe CLI system-store configuration", err)
+	}
+	if err = service.SetSkillConfiguration(plan.Target, "EXAMPLE_TOKEN", "keychain", secret+"-rotated"); err != nil {
+		t.Fatal(err)
+	}
+	out = runCLI("", "config", "doctor", plan.Target)
+	if bytes.Contains(out, []byte(secret)) || !bytes.Contains(out, []byte(`"ready": true`)) {
+		t.Fatal("CLI did not safely observe App system-store configuration")
+	}
+	runCLI("", "config", "clear", plan.Target, "--yes")
+	report, err = service.SkillConfiguration(plan.Target)
+	if err != nil || report.Ready {
+		t.Fatal("App did not observe CLI configuration cleanup", err)
 	}
 }

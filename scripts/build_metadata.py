@@ -22,5 +22,7 @@ if settings.get("vcs.revision") != revision or settings.get("vcs.modified") != "
     raise SystemExit("Release binary must identify this exact clean Git revision")
 if os.environ.get("GITHUB_SHA", revision) != revision:
     raise SystemExit("Checkout does not match the CI source revision")
+if settings.get("GOOS") == "linux" and settings.get("CGO_ENABLED") != "0":
+    raise SystemExit("Linux release binaries must not depend on the build runner libc")
 args.output.write_text(json.dumps({"revision": revision, "goos": settings["GOOS"], "goarch": settings["GOARCH"],
-                                   "dirty": False, "toolchain": output.splitlines()[0].split(": ")[-1]}, indent=2) + "\n")
+                                   "dirty": False, "cgo_enabled": settings.get("CGO_ENABLED"), "toolchain": output.splitlines()[0].split(": ")[-1]}, indent=2) + "\n")

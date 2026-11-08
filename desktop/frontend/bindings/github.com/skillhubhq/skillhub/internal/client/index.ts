@@ -3,6 +3,8 @@
 
 export type {
     CacheInfo,
+    ConfigTarget,
+    ConfigVariableStatus,
     DraftFile,
     DraftSummary,
     DraftWorkspace,
@@ -29,6 +31,7 @@ export type {
     ReviewTaskPage,
     ScanFinding,
     ScanInfo,
+    SkillConfiguration,
     Source,
     UpdateCheck
 } from "./models.js";
