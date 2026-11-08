@@ -15,8 +15,9 @@ database:
 # Only for a directly connected, same-host reverse proxy.
 trusted_proxies:
   - 127.0.0.1/32
-# Providers authenticate identities; enterprise mode keeps first admission pending.
+# Providers authenticate identities. Choose approval or automatic first admission.
 # auth:
+#   admission: automatic
 #   providers:
 #     - id: company
 #       type: oidc

@@ -969,10 +969,17 @@ export async function runNativeSmoke() {
           (await API.PlatformAccess("public", user.id)).can_read_audit,
           "platform duty confirmation persists through native bridge",
         );
+        await waitForUI(() => {
+          const close = document.querySelector<HTMLButtonElement>(
+            "dialog[open] .modal-head button",
+          );
+          return !!close && !close.disabled;
+        });
         document
           .querySelector<HTMLButtonElement>("dialog[open] .modal-head button")!
           .click();
         await waitForUI(() => !document.querySelector("dialog[open]"));
+        check(true, "platform duties dialog closes after its mutation settles");
         await API.SetPlatformRole(
           "public",
           user.id,

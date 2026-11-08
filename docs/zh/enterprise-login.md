@@ -1,12 +1,12 @@
 # 企业登录
 
-Hub 支持本地账号和最多八个可配置第三方登录入口，企业登录通过 OIDC 适配器接入。默认没有公开注册；首次企业验证进入准入审批，批准后再登录。企业身份绑定经过验证的 issuer/subject，不按邮箱自动合并本地账号。
+Hub 支持本地账号和最多八个可配置第三方登录入口，企业登录通过 OIDC 适配器接入。默认没有公开注册；首次企业验证默认进入准入审批，批准后再登录。企业身份绑定经过验证的 issuer/subject，不按邮箱自动合并本地账号。
 
 ## 账号与准入 [#accounts-and-admission]
 
 本地账号由有权限的管理员主动创建，密码通过 stdin 或受控界面输入。企业登录证明身份；Hub 成员资格与发布、审核、管理权限分别授予。
 
-默认 `mode: enterprise`：新身份验证后创建待审批申请，不发放可用会话。Hub 管理员或人员管理员在“创作 → Hub 设置 → 人员”审批；批准仅成为普通成员，不获得命名空间或平台角色。拒绝和禁用状态不会因再次登录自动解除。显式选择[社区模式](community-hosting.md)时，新身份可直接成为普通成员，仍不获得管理能力。
+默认 `mode: enterprise`：新身份验证后创建待审批申请，不发放可用会话。Hub 管理员或人员管理员在“创作 → Hub 设置 → 人员”审批；批准仅成为普通成员，不获得命名空间或平台角色。拒绝和禁用状态不会因再次登录自动解除。配置 `auth.admission: automatic` 后，企业模式下的新身份也会立即创建普通成员账号并登录，可浏览团队、安装公司成员可见的技能、点赞、收藏、评论及修改自己的资料。群组受众仍需相应成员资格，发布、审核和管理权限另行分配，不自动创建个人发布空间。`approval` 表示管理员审批；省略时采用模式默认值。已有待审批、拒绝和禁用账号仍由管理员处理。
 
 ## 配置 Microsoft Entra ID [#configure-microsoft-entra-id]
 
@@ -21,6 +21,7 @@ mode: enterprise
 private: true
 public_url: https://skills.example.com
 auth:
+  admission: automatic
   providers:
     - id: company
       type: oidc
@@ -36,7 +37,7 @@ Hub 仅请求 `openid profile`，使用稳定身份与初始展示名，不读�
 
 ## Web、App 与 CLI [#web-app-and-cli-sign-in]
 
-Web 选择“使用 Microsoft 继续”；首次等待审批，批准后重新登录。本地登录位于可展开区。CLI 使用 `skillhub login SOURCE`，App 在连接中选择浏览器登录；Hub 的 `/authorize` 支持先完成 Microsoft 验证，再明确确认客户端显示的设备码。
+Web 选择“使用 Microsoft 继续”；自动准入时首次验证即可进入；审批准入时等待批准后重新登录。本地登录位于可展开区。CLI 使用 `skillhub login SOURCE`，App 在连接中选择浏览器登录；Hub 的 `/authorize` 支持先完成 Microsoft 验证，再明确确认客户端显示的设备码。
 
 企业凭据只输入 Microsoft 页面。CLI/App 接收各 Hub 自行签发的独立令牌，切换 Hub 不转移身份或权限。
 

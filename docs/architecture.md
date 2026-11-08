@@ -18,7 +18,7 @@ SQLite uses WAL on local disk. PostgreSQL uses `database/sql` with a pgx adapter
 
 ## Identity and authorization
 
-The Hub has local accounts and configurable third-party identity adapters (OIDC and GitHub). External identities bind verified issuer/subject, not email. Pending admission creates no usable session. Administrators approve ordinary membership separately from namespace/platform permissions.
+The Hub has local accounts and configurable third-party identity adapters (OIDC and GitHub). External identities bind verified issuer/subject, not email. An independent admission policy selects automatic ordinary membership or pending approval. Pending admission creates no usable session. Administrators approve ordinary membership separately from namespace/platform permissions.
 
 Browser sessions use HttpOnly, SameSite cookies with Origin and custom-header checks. CLI/App hold independent Hub-issued tokens through the OS credential store. External-login state and PKCE attempts (plus nonce for OIDC) are single-use, bounded and expire after five minutes; restart invalidates incomplete login. IdP tokens are not retained. Callback/login pages are browser transport endpoints, not a second business API.
 

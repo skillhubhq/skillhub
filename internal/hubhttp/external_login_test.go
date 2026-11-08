@@ -27,14 +27,24 @@ func (a *verifiedAdapter) Avatar(context.Context, identityprovider.Identity) ([]
 	return nil, nil
 }
 func TestExternalLoginUsesProviderConfigurationAndMode(t *testing.T) {
-	for _, mode := range []string{hubpolicy.Enterprise, hubpolicy.Community} {
-		t.Run(mode, func(t *testing.T) {
+	for _, tc := range []struct {
+		mode, admission string
+		automatic       bool
+	}{
+		{hubpolicy.Enterprise, "", false},
+		{hubpolicy.Community, "", true},
+		{hubpolicy.Enterprise, hubpolicy.AdmissionAutomatic, true},
+		{hubpolicy.Community, hubpolicy.AdmissionApproval, false},
+		{hubpolicy.Enterprise, hubpolicy.AdmissionApproval, false},
+		{hubpolicy.Community, hubpolicy.AdmissionAutomatic, true},
+	} {
+		t.Run(tc.mode+"/"+tc.admission, func(t *testing.T) {
 			store, e := testDatabase(t, t.TempDir())
 			if e != nil {
 				t.Fatal(e)
 			}
 			defer store.Close()
-			p := hubpolicy.Policy{Mode: mode, Limits: hubpolicy.Defaults()}
+			p := hubpolicy.Policy{Mode: tc.mode, Admission: tc.admission, Limits: hubpolicy.Defaults()}
 			server, e := New(store, Config{PublicURL: "http://localhost", Policy: p, Providers: []identityprovider.Config{{ID: "social", Type: "github", Name: "Community account", ClientID: "client", Secret: "secret"}, {ID: "second", Type: "github", Name: "Another account", ClientID: "client2", Secret: "secret2"}}})
 			if e != nil {
 				t.Fatal(e)
@@ -65,7 +75,7 @@ func TestExternalLoginUsesProviderConfigurationAndMode(t *testing.T) {
 			}
 			result := callback("social", state)
 			want := 403
-			if mode == hubpolicy.Community {
+			if tc.automatic {
 				want = 200
 			}
 			if result.Code != want || a.calls != 1 {
@@ -74,7 +84,7 @@ func TestExternalLoginUsesProviderConfigurationAndMode(t *testing.T) {
 			if strings.Contains(result.Body.String(), "outside.example") {
 				t.Fatal("open redirect")
 			}
-			if mode == hubpolicy.Community {
+			if tc.automatic {
 				token := ""
 				for _, v := range result.Result().Cookies() {
 					if v.Name == server.sessionCookieName() {
@@ -86,8 +96,8 @@ func TestExternalLoginUsesProviderConfigurationAndMode(t *testing.T) {
 					t.Fatal("invalid ordinary session", e)
 				}
 				v, e := store.GetParticipation(context.Background(), u)
-				if e != nil || v.PersonalNamespace == "" {
-					t.Fatal("missing personal space", e)
+				if e != nil || (v.PersonalNamespace != "") != (tc.mode == hubpolicy.Community) {
+					t.Fatal("personal publication must follow mode, not admission", e)
 				}
 			}
 			if callback("social", state).Code != 401 || a.calls != 1 {
