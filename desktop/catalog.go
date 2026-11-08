@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"slices"
 
 	"connectrpc.com/connect"
 	catalogv1 "github.com/skillhubhq/skillhub/gen/api/catalog/v1"
@@ -221,12 +222,12 @@ func (s *DesktopService) GetSkill(source, namespace, name string) (SkillView, er
 	}
 	return SkillView{Namespace: v.Namespace, Name: v.Name, DisplayNameEN: v.DisplayNameEn, DisplayNameZH: v.DisplayNameZh, Icon: v.Icon, Provenance: provenancewire.Decode(v.Provenance), Description: v.Description, Category: v.Category, Tags: v.Tags, Version: v.LatestVersion, Featured: v.Featured}, nil
 }
-func (s *DesktopService) FilterSubmissions(source, query string, status taxonomy.ReleaseStatus, mine bool, token string) (ReleasePage, error) {
+func (s *DesktopService) FilterSubmissions(source, query string, status taxonomy.ReleaseStatus, mine bool, token string, activeOnly bool) (ReleasePage, error) {
 	remote, err := s.core.Remote(s.ctx, source)
 	if err != nil {
 		return ReleasePage{}, err
 	}
-	response, err := remote.Publishing.ListSubmissions(s.ctx, connect.NewRequest(&publishingv1.ListSubmissionsRequest{Query: query, Status: status, Mine: mine, Page: &commonv1.PageRequest{PageSize: 30, PageToken: token}}))
+	response, err := remote.Publishing.ListSubmissions(s.ctx, connect.NewRequest(&publishingv1.ListSubmissionsRequest{ActiveOnly: activeOnly, Query: query, Status: status, Mine: mine, Page: &commonv1.PageRequest{PageSize: 30, PageToken: token}}))
 	if err != nil {
 		return ReleasePage{}, err
 	}
@@ -235,4 +236,20 @@ func (s *DesktopService) FilterSubmissions(source, query string, status taxonomy
 		result.Releases = append(result.Releases, client.ReleaseInformation(r))
 	}
 	return result, nil
+}
+
+func (s *DesktopService) DeleteSubmission(source, id, coordinate, requestID string) error {
+	remote, err := s.core.Remote(s.ctx, source)
+	if err != nil {
+		return err
+	}
+	_, err = remote.Publishing.DeleteRelease(s.ctx, connect.NewRequest(&publishingv1.DeleteReleaseRequest{Mutation: &commonv1.Mutation{IdempotencyKey: requestID}, ReleaseId: id, ConfirmCoordinate: coordinate}))
+	return err
+}
+func (s *DesktopService) SubmissionCleanupSupported(source string) (bool, error) {
+	remote, err := s.core.Remote(s.ctx, source)
+	if err != nil {
+		return false, err
+	}
+	return slices.Contains(remote.Capabilities, "publishing.cleanup.v1"), nil
 }

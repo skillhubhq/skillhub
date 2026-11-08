@@ -33,17 +33,28 @@ export function useResource<T>(
     [error, setError] = useState(""),
     [loading, setLoading] = useState(true),
     [revision, setRevision] = useState(0);
+  const loadedDeps = useRef<DependencyList | null>(null);
+  const sameResource =
+    loadedDeps.current?.length === deps.length &&
+    deps.every((v, i) => Object.is(v, loadedDeps.current![i]));
   useEffect(() => {
     let active = true;
+    const unchanged =
+      loadedDeps.current?.length === deps.length &&
+      deps.every((v, i) => Object.is(v, loadedDeps.current![i]));
+    loadedDeps.current = [...deps];
     setLoading(true);
-    setValue(null);
+    if (!unchanged) setValue(null);
     setError("");
     fetcher()
       .then((v) => {
         if (active) setValue(v);
       })
       .catch((e) => {
-        if (active) setError(String(e.message ?? e));
+        if (active) {
+          setValue(null);
+          setError(String(e.message ?? e));
+        }
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -53,10 +64,11 @@ export function useResource<T>(
     };
   }, [...deps, revision]);
   return {
-    value,
+    value: sameResource ? value : null,
     setValue,
-    error,
-    loading,
+    error: sameResource ? error : "",
+    loading: !sameResource || (loading && value === null),
+    refreshing: loading,
     reload: () => setRevision((v) => v + 1),
   };
 }

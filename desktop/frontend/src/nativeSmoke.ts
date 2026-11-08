@@ -568,6 +568,39 @@ export async function runNativeSmoke() {
       (await API.NamespaceAccess("company", pending.namespace)).can_review,
       "review actions follow namespace capability",
     );
+    await waitForUI(() => document.querySelectorAll(".queue-item").length >= 2);
+    const reviewDocument = document.querySelector(".review-document");
+    const reviewScroll = window.scrollY;
+    const publishedRow = Array.from(
+      document.querySelectorAll<HTMLButtonElement>(".queue-item"),
+    ).find((row) => row.textContent?.includes("v1.0.0"))!;
+    publishedRow.click();
+    await waitForUI(
+      () =>
+        document
+          .querySelector(".review-heading")
+          ?.textContent?.includes("v1.0.0") ?? false,
+    );
+    check(
+      document.querySelector(".review-document") === reviewDocument &&
+        Math.abs(window.scrollY - reviewScroll) < 2,
+      "version switching preserves document frame and page position",
+    );
+    check(
+      Array.from(document.querySelectorAll(".queue-item")).every(
+        (row) => row.getBoundingClientRect().height >= 64,
+      ),
+      "release rows retain room for identity and status",
+    );
+    Array.from(document.querySelectorAll<HTMLButtonElement>(".queue-item"))
+      .find((row) => row.textContent?.includes("v1.1.0"))!
+      .click();
+    await waitForUI(
+      () =>
+        document
+          .querySelector(".review-heading")
+          ?.textContent?.includes("v1.1.0") ?? false,
+    );
     const exact = await API.GetSkill("company", "platform", "release-check");
     check(
       exact.name === "release-check",
@@ -579,6 +612,7 @@ export async function runNativeSmoke() {
       Status.ReleaseStatus_RELEASE_STATUS_PENDING,
       false,
       "",
+      false,
     );
     check(
       filtered.releases?.some((r) => r.id === pending.id),
@@ -1359,6 +1393,13 @@ export async function runNativeSmoke() {
     await waitForUI(
       () => !!document.querySelector('input[name="connection-name"]'),
     );
+    document
+      .querySelector<HTMLElement>(".connection-custom-name > summary")!
+      .click();
+    check(
+      !document.querySelector('input[name="connection-note"]'),
+      "connection notes do not clutter account settings",
+    );
     const connectionField = document.querySelector<HTMLInputElement>(
       'input[name="connection-name"]',
     )!;
@@ -1449,6 +1490,7 @@ export async function runNativeSmoke() {
       "review outcome persisted for submitting identity",
     );
     location.hash = "submissions?source=limited";
+    await waitForUI(() => !!document.querySelector(".review-heading"));
     await waitForUI(() =>
       Array.from(document.querySelectorAll("button")).some((b) =>
         b.getAttribute("aria-label")?.startsWith("Inbox"),
@@ -1476,10 +1518,14 @@ export async function runNativeSmoke() {
     const inboxBounds = document
       .querySelector("dialog[open]")!
       .getBoundingClientRect();
+    const outcomeList = document.querySelector(".review-outcomes");
     inboxTabs[0].click();
-    await waitForUI(() => !!document.querySelector(".review-tasks"));
+    await waitForUI(
+      () =>
+        !!document.querySelector(".inbox-panel:not([hidden]) .review-tasks"),
+    );
     check(
-      !document.querySelector(".review-outcomes"),
+      !document.querySelector(".inbox-panel:not([hidden]) .review-outcomes"),
       "inbox separates review tasks from submission outcomes",
     );
     check(
@@ -1490,7 +1536,16 @@ export async function runNativeSmoke() {
       "inbox keeps a stable height across task and outcome tabs",
     );
     inboxTabs[1].click();
-    await waitForUI(() => !!document.querySelector(".review-outcomes button"));
+    await waitForUI(
+      () =>
+        !!document.querySelector(
+          ".inbox-panel:not([hidden]) .review-outcomes button",
+        ),
+    );
+    check(
+      document.querySelector(".review-outcomes") === outcomeList,
+      "inbox tab switching retains loaded content",
+    );
     check(
       document.querySelector("dialog[open]")!.getBoundingClientRect().right <=
         window.innerWidth,
@@ -1509,6 +1564,16 @@ export async function runNativeSmoke() {
         (n) => n.release_id === pending.id && n.read,
       ),
       "opening notification marks read and navigates to feedback",
+    );
+    location.hash = "installed";
+    await waitForUI(
+      () =>
+        !document.querySelector(".review-workspace") &&
+        !!document.querySelector(".utility-inbox"),
+    );
+    check(
+      !!document.querySelector(".utility-inbox"),
+      "local library keeps the notification entry",
     );
     location.hash = "management?source=limited";
     await clickManagementTab("Role grants");

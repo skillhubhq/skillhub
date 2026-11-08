@@ -217,6 +217,13 @@ func (s *Store) SubmitRelease(ctx context.Context, actor Identity, key string, c
 				return Release{}, ErrInvalid
 			}
 		}
+		var retired bool
+		if err := tx.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM release_tombstones WHERE namespace=? AND name=? AND version=?)", cmd.Namespace, bundle.Metadata.Name, cmd.Version).Scan(&retired); err != nil {
+			return Release{}, err
+		}
+		if retired {
+			return Release{}, ErrConflict
+		}
 		report, err := skillscan.Scan(ctx, bundle)
 		if err != nil {
 			return Release{}, err
@@ -403,9 +410,10 @@ func (s *Store) GetSkill(ctx context.Context, actor Identity, namespace, name st
 }
 
 type SubmissionFilter struct {
-	Mine   bool
-	Status taxonomy.ReleaseStatus
-	Query  string
+	ActiveOnly bool
+	Mine       bool
+	Status     taxonomy.ReleaseStatus
+	Query      string
 }
 
 func (s *Store) ListReleases(ctx context.Context, actor Identity, namespace, name string, page Page, submissions bool) (PageResult[Release], error) {
@@ -430,9 +438,9 @@ func (s *Store) listReleases(ctx context.Context, actor Identity, namespace, nam
 		}
 		visibility = manageableSQL
 	}
-	args := append(principalArgs(user), sql.Named("namespace", namespace), sql.Named("name", name), sql.Named("mine", filter.Mine), sql.Named("status", filter.Status), sql.Named("query", strings.ToLower(filter.Query)))
+	args := append(principalArgs(user), sql.Named("namespace", namespace), sql.Named("name", name), sql.Named("mine", filter.Mine), sql.Named("active", filter.ActiveOnly), sql.Named("status", filter.Status), sql.Named("query", strings.ToLower(filter.Query)))
 	columns := strings.Replace(releaseColumns, "r.markdown", "''", 1)
-	query := "SELECT " + columns + ` FROM releases r WHERE (@after='' OR r.sequence<CAST(COALESCE(NULLIF(@after,''),'0') AS INTEGER)) AND (@namespace='' OR r.namespace=@namespace) AND (@name='' OR r.name=@name) AND (@mine=0 OR r.submitted_by=@actor) AND (@status=0 OR r.status=@status) AND (@query='' OR instr(lower(r.namespace||'/'||r.name||' '||r.version||' '||r.display_name_en||' '||r.display_name_zh),@query)>0) AND ` + visibility + ` ORDER BY r.sequence DESC LIMIT @limit`
+	query := "SELECT " + columns + ` FROM releases r WHERE (@after='' OR r.sequence<CAST(COALESCE(NULLIF(@after,''),'0') AS INTEGER)) AND (@namespace='' OR r.namespace=@namespace) AND (@name='' OR r.name=@name) AND (@mine=0 OR r.submitted_by=@actor) AND (@active=0 OR r.status=1 OR NOT EXISTS(SELECT 1 FROM releases newer WHERE newer.namespace=r.namespace AND newer.name=r.name AND newer.sequence>r.sequence AND (@mine=0 OR newer.submitted_by=@actor))) AND (@status=0 OR r.status=@status) AND (@query='' OR instr(lower(r.namespace||'/'||r.name||' '||r.version||' '||r.display_name_en||' '||r.display_name_zh),@query)>0) AND ` + visibility + ` ORDER BY r.sequence DESC LIMIT @limit`
 	return pageQuery(s, ctx, tx, page, scope(user.ID, "releases", []any{namespace, name, submissions, filter}), query, args, func(rows *sql.Rows) (Release, string, error) {
 		v, err := scanRelease(rows)
 		return v, strconv.FormatInt(v.Sequence, 10), err

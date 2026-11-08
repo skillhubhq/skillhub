@@ -13,10 +13,7 @@ export function ReviewInbox({ source }: { source: string }) {
     () => API.ReviewTasks(source, ""),
     [source, ui.revision],
   );
-  const [count, setCount] = useState(0);
-  useEffect(() => {
-    if (tasks.value) setCount(tasks.value.total);
-  }, [tasks.value]);
+  const count = tasks.value?.total ?? 0;
   useEffect(() => {
     const refresh = () => {
       if (document.visibilityState === "visible") tasks.reload();
@@ -114,12 +111,11 @@ function InboxDialog({
         </div>
       }
     >
-      <div className="inbox-panel" key={tab}>
-        {tab === "tasks" ? (
-          <ReviewTaskList source={source} close={close} />
-        ) : (
-          <ReviewOutcomes source={source} close={close} />
-        )}
+      <div className="inbox-panel" hidden={tab !== "tasks"}>
+        <ReviewTaskList source={source} close={close} />
+      </div>
+      <div className="inbox-panel" hidden={tab !== "outcomes"}>
+        <ReviewOutcomes source={source} close={close} />
       </div>
     </Modal>
   );

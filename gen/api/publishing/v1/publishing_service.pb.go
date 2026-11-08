@@ -329,7 +329,9 @@ type ListSubmissionsRequest struct {
 	// 零表示所有状态。
 	Status v12.ReleaseStatus `protobuf:"varint,4,opt,name=status,proto3,enum=common.registry.v1.ReleaseStatus" json:"status,omitempty"`
 	// 匹配名称、空间或版本。
-	Query         string `protobuf:"bytes,5,opt,name=query,proto3" json:"query,omitempty"`
+	Query string `protobuf:"bytes,5,opt,name=query,proto3" json:"query,omitempty"`
+	// 显示每个技能的最新提交，并保留所有待审核版本。
+	ActiveOnly    bool `protobuf:"varint,6,opt,name=active_only,json=activeOnly,proto3" json:"active_only,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -397,6 +399,13 @@ func (x *ListSubmissionsRequest) GetQuery() string {
 		return x.Query
 	}
 	return ""
+}
+
+func (x *ListSubmissionsRequest) GetActiveOnly() bool {
+	if x != nil {
+		return x.ActiveOnly
+	}
+	return false
 }
 
 // ListSubmissionsResponse 返回权限过滤后的提交。
@@ -683,6 +692,116 @@ func (x *YankReleaseResponse) GetRelease() *v1.Release {
 	return nil
 }
 
+// DeleteReleaseRequest 绑定待清理的确切版本。
+type DeleteReleaseRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 幂等身份。
+	Mutation *v11.Mutation `protobuf:"bytes,1,opt,name=mutation,proto3" json:"mutation,omitempty"`
+	// 已拒绝或已撤下的版本标识。
+	ReleaseId string `protobuf:"bytes,2,opt,name=release_id,json=releaseId,proto3" json:"release_id,omitempty"`
+	// 明确确认 namespace/name@version。
+	ConfirmCoordinate string `protobuf:"bytes,3,opt,name=confirm_coordinate,json=confirmCoordinate,proto3" json:"confirm_coordinate,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *DeleteReleaseRequest) Reset() {
+	*x = DeleteReleaseRequest{}
+	mi := &file_api_publishing_v1_publishing_service_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteReleaseRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteReleaseRequest) ProtoMessage() {}
+
+func (x *DeleteReleaseRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_publishing_v1_publishing_service_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteReleaseRequest.ProtoReflect.Descriptor instead.
+func (*DeleteReleaseRequest) Descriptor() ([]byte, []int) {
+	return file_api_publishing_v1_publishing_service_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *DeleteReleaseRequest) GetMutation() *v11.Mutation {
+	if x != nil {
+		return x.Mutation
+	}
+	return nil
+}
+
+func (x *DeleteReleaseRequest) GetReleaseId() string {
+	if x != nil {
+		return x.ReleaseId
+	}
+	return ""
+}
+
+func (x *DeleteReleaseRequest) GetConfirmCoordinate() string {
+	if x != nil {
+		return x.ConfirmCoordinate
+	}
+	return ""
+}
+
+// DeleteReleaseResponse 返回清理完成的版本标识。
+type DeleteReleaseResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 已清理的版本标识。
+	ReleaseId     string `protobuf:"bytes,1,opt,name=release_id,json=releaseId,proto3" json:"release_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteReleaseResponse) Reset() {
+	*x = DeleteReleaseResponse{}
+	mi := &file_api_publishing_v1_publishing_service_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteReleaseResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteReleaseResponse) ProtoMessage() {}
+
+func (x *DeleteReleaseResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_api_publishing_v1_publishing_service_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteReleaseResponse.ProtoReflect.Descriptor instead.
+func (*DeleteReleaseResponse) Descriptor() ([]byte, []int) {
+	return file_api_publishing_v1_publishing_service_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *DeleteReleaseResponse) GetReleaseId() string {
+	if x != nil {
+		return x.ReleaseId
+	}
+	return ""
+}
+
 var File_api_publishing_v1_publishing_service_proto protoreflect.FileDescriptor
 
 const file_api_publishing_v1_publishing_service_proto_rawDesc = "" +
@@ -718,13 +837,15 @@ const file_api_publishing_v1_publishing_service_proto_rawDesc = "" +
 	"provenance\x18\f \x01(\v2\x1a.api.catalog.v1.ProvenanceR\n" +
 	"provenance\"J\n" +
 	"\x15SubmitReleaseResponse\x121\n" +
-	"\arelease\x18\x01 \x01(\v2\x17.api.catalog.v1.ReleaseR\arelease\"\xdf\x01\n" +
+	"\arelease\x18\x01 \x01(\v2\x17.api.catalog.v1.ReleaseR\arelease\"\x80\x02\n" +
 	"\x16ListSubmissionsRequest\x12\x1c\n" +
 	"\tnamespace\x18\x01 \x01(\tR\tnamespace\x12.\n" +
 	"\x04page\x18\x02 \x01(\v2\x1a.api.common.v1.PageRequestR\x04page\x12\x12\n" +
 	"\x04mine\x18\x03 \x01(\bR\x04mine\x12C\n" +
 	"\x06status\x18\x04 \x01(\x0e2!.common.registry.v1.ReleaseStatusB\b\xbaH\x05\x82\x01\x02\x10\x01R\x06status\x12\x1e\n" +
-	"\x05query\x18\x05 \x01(\tB\b\xbaH\x05r\x03\x18\xa0\x06R\x05query\"}\n" +
+	"\x05query\x18\x05 \x01(\tB\b\xbaH\x05r\x03\x18\xa0\x06R\x05query\x12\x1f\n" +
+	"\vactive_only\x18\x06 \x01(\bR\n" +
+	"activeOnly\"}\n" +
 	"\x17ListSubmissionsResponse\x123\n" +
 	"\breleases\x18\x01 \x03(\v2\x17.api.catalog.v1.ReleaseR\breleases\x12-\n" +
 	"\x04page\x18\x02 \x01(\v2\x19.api.common.v1.PageResultR\x04page\"\xba\x01\n" +
@@ -745,13 +866,24 @@ const file_api_publishing_v1_publishing_service_proto_rawDesc = "" +
 	"\x06reason\x18\x03 \x01(\tB\n" +
 	"\xbaH\ar\x05\x10\x01\x18\x80\bR\x06reason\"H\n" +
 	"\x13YankReleaseResponse\x121\n" +
-	"\arelease\x18\x01 \x01(\v2\x17.api.catalog.v1.ReleaseR\arelease2\x87\x04\n" +
+	"\arelease\x18\x01 \x01(\v2\x17.api.catalog.v1.ReleaseR\arelease\"\xb9\x01\n" +
+	"\x14DeleteReleaseRequest\x12;\n" +
+	"\bmutation\x18\x01 \x01(\v2\x17.api.common.v1.MutationB\x06\xbaH\x03\xc8\x01\x01R\bmutation\x12)\n" +
+	"\n" +
+	"release_id\x18\x02 \x01(\tB\n" +
+	"\xbaH\ar\x05\x10\x01\x18\x80\x01R\treleaseId\x129\n" +
+	"\x12confirm_coordinate\x18\x03 \x01(\tB\n" +
+	"\xbaH\ar\x05\x10\x01\x18\x90\x03R\x11confirmCoordinate\"6\n" +
+	"\x15DeleteReleaseResponse\x12\x1d\n" +
+	"\n" +
+	"release_id\x18\x01 \x01(\tR\treleaseId2\xeb\x04\n" +
 	"\x11PublishingService\x12b\n" +
 	"\rSubmitRelease\x12'.api.publishing.v1.SubmitReleaseRequest\x1a(.api.publishing.v1.SubmitReleaseResponse\x12h\n" +
 	"\x0fListSubmissions\x12).api.publishing.v1.ListSubmissionsRequest\x1a*.api.publishing.v1.ListSubmissionsResponse\x12b\n" +
 	"\rGetSubmission\x12'.api.publishing.v1.GetSubmissionRequest\x1a(.api.publishing.v1.GetSubmissionResponse\x12b\n" +
 	"\rReviewRelease\x12'.api.publishing.v1.ReviewReleaseRequest\x1a(.api.publishing.v1.ReviewReleaseResponse\x12\\\n" +
-	"\vYankRelease\x12%.api.publishing.v1.YankReleaseRequest\x1a&.api.publishing.v1.YankReleaseResponseB\xd8\x01\n" +
+	"\vYankRelease\x12%.api.publishing.v1.YankReleaseRequest\x1a&.api.publishing.v1.YankReleaseResponse\x12b\n" +
+	"\rDeleteRelease\x12'.api.publishing.v1.DeleteReleaseRequest\x1a(.api.publishing.v1.DeleteReleaseResponseB\xd8\x01\n" +
 	"\x15com.api.publishing.v1B\x16PublishingServiceProtoP\x01ZAgithub.com/skillhubhq/skillhub/gen/api/publishing/v1;publishingv1\xa2\x02\x03APX\xaa\x02\x11Api.Publishing.V1\xca\x02\x11Api\\Publishing\\V1\xe2\x02\x1dApi\\Publishing\\V1\\GPBMetadata\xea\x02\x13Api::Publishing::V1b\x06proto3"
 
 var (
@@ -766,7 +898,7 @@ func file_api_publishing_v1_publishing_service_proto_rawDescGZIP() []byte {
 	return file_api_publishing_v1_publishing_service_proto_rawDescData
 }
 
-var file_api_publishing_v1_publishing_service_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_api_publishing_v1_publishing_service_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_api_publishing_v1_publishing_service_proto_goTypes = []any{
 	(*GetSubmissionRequest)(nil),    // 0: api.publishing.v1.GetSubmissionRequest
 	(*GetSubmissionResponse)(nil),   // 1: api.publishing.v1.GetSubmissionResponse
@@ -778,45 +910,50 @@ var file_api_publishing_v1_publishing_service_proto_goTypes = []any{
 	(*ReviewReleaseResponse)(nil),   // 7: api.publishing.v1.ReviewReleaseResponse
 	(*YankReleaseRequest)(nil),      // 8: api.publishing.v1.YankReleaseRequest
 	(*YankReleaseResponse)(nil),     // 9: api.publishing.v1.YankReleaseResponse
-	(*v1.Release)(nil),              // 10: api.catalog.v1.Release
-	(*v11.Mutation)(nil),            // 11: api.common.v1.Mutation
-	(v12.Visibility)(0),             // 12: common.registry.v1.Visibility
-	(v12.SkillIcon)(0),              // 13: common.registry.v1.SkillIcon
-	(*v1.Provenance)(nil),           // 14: api.catalog.v1.Provenance
-	(*v11.PageRequest)(nil),         // 15: api.common.v1.PageRequest
-	(v12.ReleaseStatus)(0),          // 16: common.registry.v1.ReleaseStatus
-	(*v11.PageResult)(nil),          // 17: api.common.v1.PageResult
+	(*DeleteReleaseRequest)(nil),    // 10: api.publishing.v1.DeleteReleaseRequest
+	(*DeleteReleaseResponse)(nil),   // 11: api.publishing.v1.DeleteReleaseResponse
+	(*v1.Release)(nil),              // 12: api.catalog.v1.Release
+	(*v11.Mutation)(nil),            // 13: api.common.v1.Mutation
+	(v12.Visibility)(0),             // 14: common.registry.v1.Visibility
+	(v12.SkillIcon)(0),              // 15: common.registry.v1.SkillIcon
+	(*v1.Provenance)(nil),           // 16: api.catalog.v1.Provenance
+	(*v11.PageRequest)(nil),         // 17: api.common.v1.PageRequest
+	(v12.ReleaseStatus)(0),          // 18: common.registry.v1.ReleaseStatus
+	(*v11.PageResult)(nil),          // 19: api.common.v1.PageResult
 }
 var file_api_publishing_v1_publishing_service_proto_depIdxs = []int32{
-	10, // 0: api.publishing.v1.GetSubmissionResponse.release:type_name -> api.catalog.v1.Release
-	11, // 1: api.publishing.v1.SubmitReleaseRequest.mutation:type_name -> api.common.v1.Mutation
-	12, // 2: api.publishing.v1.SubmitReleaseRequest.visibility:type_name -> common.registry.v1.Visibility
-	13, // 3: api.publishing.v1.SubmitReleaseRequest.icon:type_name -> common.registry.v1.SkillIcon
-	14, // 4: api.publishing.v1.SubmitReleaseRequest.provenance:type_name -> api.catalog.v1.Provenance
-	10, // 5: api.publishing.v1.SubmitReleaseResponse.release:type_name -> api.catalog.v1.Release
-	15, // 6: api.publishing.v1.ListSubmissionsRequest.page:type_name -> api.common.v1.PageRequest
-	16, // 7: api.publishing.v1.ListSubmissionsRequest.status:type_name -> common.registry.v1.ReleaseStatus
-	10, // 8: api.publishing.v1.ListSubmissionsResponse.releases:type_name -> api.catalog.v1.Release
-	17, // 9: api.publishing.v1.ListSubmissionsResponse.page:type_name -> api.common.v1.PageResult
-	11, // 10: api.publishing.v1.ReviewReleaseRequest.mutation:type_name -> api.common.v1.Mutation
-	10, // 11: api.publishing.v1.ReviewReleaseResponse.release:type_name -> api.catalog.v1.Release
-	11, // 12: api.publishing.v1.YankReleaseRequest.mutation:type_name -> api.common.v1.Mutation
-	10, // 13: api.publishing.v1.YankReleaseResponse.release:type_name -> api.catalog.v1.Release
-	2,  // 14: api.publishing.v1.PublishingService.SubmitRelease:input_type -> api.publishing.v1.SubmitReleaseRequest
-	4,  // 15: api.publishing.v1.PublishingService.ListSubmissions:input_type -> api.publishing.v1.ListSubmissionsRequest
-	0,  // 16: api.publishing.v1.PublishingService.GetSubmission:input_type -> api.publishing.v1.GetSubmissionRequest
-	6,  // 17: api.publishing.v1.PublishingService.ReviewRelease:input_type -> api.publishing.v1.ReviewReleaseRequest
-	8,  // 18: api.publishing.v1.PublishingService.YankRelease:input_type -> api.publishing.v1.YankReleaseRequest
-	3,  // 19: api.publishing.v1.PublishingService.SubmitRelease:output_type -> api.publishing.v1.SubmitReleaseResponse
-	5,  // 20: api.publishing.v1.PublishingService.ListSubmissions:output_type -> api.publishing.v1.ListSubmissionsResponse
-	1,  // 21: api.publishing.v1.PublishingService.GetSubmission:output_type -> api.publishing.v1.GetSubmissionResponse
-	7,  // 22: api.publishing.v1.PublishingService.ReviewRelease:output_type -> api.publishing.v1.ReviewReleaseResponse
-	9,  // 23: api.publishing.v1.PublishingService.YankRelease:output_type -> api.publishing.v1.YankReleaseResponse
-	19, // [19:24] is the sub-list for method output_type
-	14, // [14:19] is the sub-list for method input_type
-	14, // [14:14] is the sub-list for extension type_name
-	14, // [14:14] is the sub-list for extension extendee
-	0,  // [0:14] is the sub-list for field type_name
+	12, // 0: api.publishing.v1.GetSubmissionResponse.release:type_name -> api.catalog.v1.Release
+	13, // 1: api.publishing.v1.SubmitReleaseRequest.mutation:type_name -> api.common.v1.Mutation
+	14, // 2: api.publishing.v1.SubmitReleaseRequest.visibility:type_name -> common.registry.v1.Visibility
+	15, // 3: api.publishing.v1.SubmitReleaseRequest.icon:type_name -> common.registry.v1.SkillIcon
+	16, // 4: api.publishing.v1.SubmitReleaseRequest.provenance:type_name -> api.catalog.v1.Provenance
+	12, // 5: api.publishing.v1.SubmitReleaseResponse.release:type_name -> api.catalog.v1.Release
+	17, // 6: api.publishing.v1.ListSubmissionsRequest.page:type_name -> api.common.v1.PageRequest
+	18, // 7: api.publishing.v1.ListSubmissionsRequest.status:type_name -> common.registry.v1.ReleaseStatus
+	12, // 8: api.publishing.v1.ListSubmissionsResponse.releases:type_name -> api.catalog.v1.Release
+	19, // 9: api.publishing.v1.ListSubmissionsResponse.page:type_name -> api.common.v1.PageResult
+	13, // 10: api.publishing.v1.ReviewReleaseRequest.mutation:type_name -> api.common.v1.Mutation
+	12, // 11: api.publishing.v1.ReviewReleaseResponse.release:type_name -> api.catalog.v1.Release
+	13, // 12: api.publishing.v1.YankReleaseRequest.mutation:type_name -> api.common.v1.Mutation
+	12, // 13: api.publishing.v1.YankReleaseResponse.release:type_name -> api.catalog.v1.Release
+	13, // 14: api.publishing.v1.DeleteReleaseRequest.mutation:type_name -> api.common.v1.Mutation
+	2,  // 15: api.publishing.v1.PublishingService.SubmitRelease:input_type -> api.publishing.v1.SubmitReleaseRequest
+	4,  // 16: api.publishing.v1.PublishingService.ListSubmissions:input_type -> api.publishing.v1.ListSubmissionsRequest
+	0,  // 17: api.publishing.v1.PublishingService.GetSubmission:input_type -> api.publishing.v1.GetSubmissionRequest
+	6,  // 18: api.publishing.v1.PublishingService.ReviewRelease:input_type -> api.publishing.v1.ReviewReleaseRequest
+	8,  // 19: api.publishing.v1.PublishingService.YankRelease:input_type -> api.publishing.v1.YankReleaseRequest
+	10, // 20: api.publishing.v1.PublishingService.DeleteRelease:input_type -> api.publishing.v1.DeleteReleaseRequest
+	3,  // 21: api.publishing.v1.PublishingService.SubmitRelease:output_type -> api.publishing.v1.SubmitReleaseResponse
+	5,  // 22: api.publishing.v1.PublishingService.ListSubmissions:output_type -> api.publishing.v1.ListSubmissionsResponse
+	1,  // 23: api.publishing.v1.PublishingService.GetSubmission:output_type -> api.publishing.v1.GetSubmissionResponse
+	7,  // 24: api.publishing.v1.PublishingService.ReviewRelease:output_type -> api.publishing.v1.ReviewReleaseResponse
+	9,  // 25: api.publishing.v1.PublishingService.YankRelease:output_type -> api.publishing.v1.YankReleaseResponse
+	11, // 26: api.publishing.v1.PublishingService.DeleteRelease:output_type -> api.publishing.v1.DeleteReleaseResponse
+	21, // [21:27] is the sub-list for method output_type
+	15, // [15:21] is the sub-list for method input_type
+	15, // [15:15] is the sub-list for extension type_name
+	15, // [15:15] is the sub-list for extension extendee
+	0,  // [0:15] is the sub-list for field type_name
 }
 
 func init() { file_api_publishing_v1_publishing_service_proto_init() }
@@ -830,7 +967,7 @@ func file_api_publishing_v1_publishing_service_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_publishing_v1_publishing_service_proto_rawDesc), len(file_api_publishing_v1_publishing_service_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   10,
+			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

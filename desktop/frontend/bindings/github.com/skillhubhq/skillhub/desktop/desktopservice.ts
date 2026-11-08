@@ -192,6 +192,10 @@ export function CreateDraft(directory: string, target: client$0.PreviewTarget): 
     return $Call.ByID(2934989396, directory, target);
 }
 
+export function DeleteSubmission(source: string, id: string, coordinate: string, requestID: string): $CancellablePromise<void> {
+    return $Call.ByID(772976710, source, id, coordinate, requestID);
+}
+
 export function DiscardPlan(id: string): $CancellablePromise<void> {
     return $Call.ByID(2974110414, id);
 }
@@ -208,8 +212,8 @@ export function Evaluations(source: string, id: string): $CancellablePromise<cli
     return $Call.ByID(3048702660, source, id);
 }
 
-export function FilterSubmissions(source: string, query: string, status: registryv1$0.ReleaseStatus, mine: boolean, token: string): $CancellablePromise<$models.ReleasePage> {
-    return $Call.ByID(3084496456, source, query, status, mine, token);
+export function FilterSubmissions(source: string, query: string, status: registryv1$0.ReleaseStatus, mine: boolean, token: string, activeOnly: boolean): $CancellablePromise<$models.ReleasePage> {
+    return $Call.ByID(3084496456, source, query, status, mine, token, activeOnly);
 }
 
 export function ForgetProject(path: string): $CancellablePromise<void> {
@@ -421,6 +425,10 @@ export function SetSkillConfiguration(target: string, name: string, mode: string
 
 export function SkillConfiguration(target: string): $CancellablePromise<client$0.SkillConfiguration> {
     return $Call.ByID(733753148, target);
+}
+
+export function SubmissionCleanupSupported(source: string): $CancellablePromise<boolean> {
+    return $Call.ByID(1833273739, source);
 }
 
 export function Submissions(source: string, $namespace: string, token: string): $CancellablePromise<$models.ReleasePage> {

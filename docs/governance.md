@@ -127,3 +127,13 @@ Permanent cleanup has no product undo. Back up before deleting business content;
 Package removal follows the committed metadata deletion. A package shared with another namespace is retained. Unreferenced packages enter a durable cleanup queue, removed under the same write lock as publication. Failed removals remain queued: resolve storage permissions and retry the same request with `--request-id`, or restart the Hub to retry. An incomplete package cleanup does not roll back an already committed team deletion or prevent the Hub from starting.
 
 Use isolated Hubs for write-workflow acceptance. If an explicitly authorized test team exists on a serving Hub, archive, inspect and clean it up through these APIs. Do not silently delete its users or shared groups. Account retirement is a separate administrative decision. Older Hubs do not advertise `namespace.lifecycle.v1`; new clients hide the action or report that the Hub needs an upgrade.
+
+## Version cleanup
+
+My releases defaults to each skill’s latest submission by the current publisher, plus all pending submissions. Use **All versions** to find older attempts. A namespace maintainer or administrator can permanently delete a rejected or withdrawn version from its detail view. Published and pending versions must be withdrawn first.
+
+```sh
+skillhub review delete RELEASE_ID --source company --confirm research/example@1.0.0
+```
+
+Deletion removes the version’s files, comments, reactions, evaluations, scan reports and notifications. Audit events and a reserved coordinate remain; the same namespace/name/version cannot be reused. Installed copies remain on users’ devices. Shared package files stay until their final reference is removed. Storage failures can be retried with the same request ID. Clients expose deletion when the Hub advertises `publishing.cleanup.v1`.

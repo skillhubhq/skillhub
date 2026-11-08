@@ -20,7 +20,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-const currentSchema = 12
+const currentSchema = 13
 
 var (
 	ErrUnauthenticated = errors.New("authentication required")
@@ -129,7 +129,7 @@ func (s *Store) initializeContext(ctx context.Context) error {
 	if err = tx.QueryRowContext(ctx, "PRAGMA user_version").Scan(&version); err != nil {
 		return err
 	}
-	if version != 0 && version != 1 && version != 2 && version != 10 && version != 11 && version != currentSchema {
+	if version != 0 && version != 1 && version != 2 && version != 10 && version != 11 && version != 12 && version != currentSchema {
 		return errors.New("unsupported hub database schema")
 	}
 	if version == 0 {
@@ -163,8 +163,13 @@ CREATE TABLE package_cleanup (digest TEXT PRIMARY KEY);`); err != nil {
 			return err
 		}
 	}
+	if version != 0 && version < 13 {
+		if _, err = tx.ExecContext(ctx, `CREATE TABLE release_tombstones (id TEXT PRIMARY KEY, namespace TEXT NOT NULL, name TEXT NOT NULL, version TEXT NOT NULL, digest TEXT NOT NULL, deleted_at INTEGER NOT NULL, UNIQUE(namespace,name,version));`); err != nil {
+			return err
+		}
+	}
 	// 拒绝结构不完整的数据库，不能用 CREATE IF NOT EXISTS 掩盖损坏。
-	for _, table := range []string{"instance", "users", "sessions", "devices", "audit", "groups", "group_members", "namespaces", "namespace_grants", "categories", "releases", "release_groups", "release_tags", "mutations", "profiles", "team_profiles", "comments", "reactions", "access_requests", "platform_roles", "release_scans", "review_notifications", "featured_skills", "evaluation_evidence", "personal_namespaces", "community_reports", "external_identities", "namespace_tombstones", "package_cleanup"} {
+	for _, table := range []string{"instance", "users", "sessions", "devices", "audit", "groups", "group_members", "namespaces", "namespace_grants", "categories", "releases", "release_groups", "release_tags", "mutations", "profiles", "team_profiles", "comments", "reactions", "access_requests", "platform_roles", "release_scans", "review_notifications", "featured_skills", "evaluation_evidence", "personal_namespaces", "community_reports", "external_identities", "namespace_tombstones", "package_cleanup", "release_tombstones"} {
 		rows, e := tx.QueryContext(ctx, "SELECT * FROM "+table+" LIMIT 0")
 		if e != nil {
 			return errors.New("incomplete hub database schema")
@@ -180,7 +185,7 @@ CREATE TABLE package_cleanup (digest TEXT PRIMARY KEY);`); err != nil {
 		return err
 	}
 
-	if _, err = tx.ExecContext(ctx, "PRAGMA user_version=12;"); err != nil {
+	if _, err = tx.ExecContext(ctx, "PRAGMA user_version=13;"); err != nil {
 		return err
 	}
 	return tx.Commit()

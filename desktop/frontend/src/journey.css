@@ -684,6 +684,13 @@
 }
 .community-shell .review-queue {
   padding: 14px;
+  gap: 10px;
+}
+.community-shell .review-queue > * {
+  flex-shrink: 0;
+}
+.community-shell .review-queue .queue-identity {
+  overflow-wrap: anywhere;
 }
 .community-shell .queue-heading {
   margin-bottom: 10px;
@@ -1130,8 +1137,10 @@
   align-items: center;
 }
 .connection-actions {
-  display: grid;
-  gap: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
 }
 .connection-actions > button {
   text-align: left;
@@ -1336,7 +1345,7 @@
   font-size: 14px;
 }
 .connection-technical {
-  margin: 16px 0 24px;
+  margin: 0;
   color: var(--muted);
   font-size: 13px;
 }
@@ -1471,4 +1480,41 @@
 .publish-main .form-grid > .audience-explanation {
   margin: 0;
   font-size: 13px;
+}
+
+/* 切换时保留正文空间，避免重新挂载造成整页跳动。 */
+.review-document {
+  position: relative;
+}
+.review-document-body {
+  min-width: 0;
+}
+.review-loading {
+  position: absolute;
+  z-index: 2;
+  top: 8px;
+  right: 16px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--muted);
+  box-shadow: 0 1px 6px #0002;
+}
+.review-document.is-switching {
+  cursor: progress;
+}
+.community-shell .review-workspace.is-empty {
+  min-height: 260px;
+}
+.community-shell .review-workspace.is-empty > .empty {
+  min-height: 260px;
+  padding: 32px;
+}
+.connection-custom-name {
+  padding-block: 0;
+  border-top: 1px solid var(--line);
+}
+.connection-custom-name > summary {
+  cursor: pointer;
+  color: var(--muted);
 }

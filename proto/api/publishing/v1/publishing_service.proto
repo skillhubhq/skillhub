@@ -19,6 +19,8 @@ service PublishingService {
   rpc ReviewRelease(ReviewReleaseRequest) returns (ReviewReleaseResponse);
   // YankRelease 禁止版本继续分发并保留证据。
   rpc YankRelease(YankReleaseRequest) returns (YankReleaseResponse);
+  // DeleteRelease 清理已拒绝或已撤下版本的内容，保留版本占位与审计。
+  rpc DeleteRelease(DeleteReleaseRequest) returns (DeleteReleaseResponse);
 }
 
 // GetSubmissionRequest 按不可变版本标识查询。
@@ -96,6 +98,8 @@ message ListSubmissionsRequest {
   .common.registry.v1.ReleaseStatus status = 4 [(buf.validate.field).enum.defined_only = true];
   // 匹配名称、空间或版本。
   string query = 5 [(buf.validate.field).string.max_len = 800];
+  // 显示每个技能的最新提交，并保留所有待审核版本。
+  bool active_only = 6;
 }
 
 // ListSubmissionsResponse 返回权限过滤后的提交。
@@ -147,4 +151,25 @@ message YankReleaseRequest {
 message YankReleaseResponse {
   // 版本状态。
   api.catalog.v1.Release release = 1;
+}
+
+// DeleteReleaseRequest 绑定待清理的确切版本。
+message DeleteReleaseRequest {
+  // 幂等身份。
+  api.common.v1.Mutation mutation = 1 [(buf.validate.field).required = true];
+  // 已拒绝或已撤下的版本标识。
+  string release_id = 2 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 128
+  }];
+  // 明确确认 namespace/name@version。
+  string confirm_coordinate = 3 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 400
+  }];
+}
+// DeleteReleaseResponse 返回清理完成的版本标识。
+message DeleteReleaseResponse {
+  // 已清理的版本标识。
+  string release_id = 1;
 }

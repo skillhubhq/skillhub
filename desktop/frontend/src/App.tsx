@@ -170,10 +170,10 @@ export default function App() {
   const remotePage = remotePages.has(page);
   const session = useResource(
     async () =>
-      activeSource && remotePage
+      activeSource
         ? { ...(await API.Identity(activeSource)), source: activeSource }
         : null,
-    [activeSource, remotePage, revision],
+    [activeSource, revision],
   );
   const [verifiedSource, setVerifiedSource] = useState("");
   useEffect(() => {
