@@ -59,5 +59,5 @@ CREATE TABLE community_reports (sequence INTEGER PRIMARY KEY AUTOINCREMENT, id T
 CREATE INDEX community_reports_queue ON community_reports(resolved,sequence);
 
 CREATE TABLE external_identities (issuer TEXT NOT NULL, subject TEXT NOT NULL, user_id TEXT NOT NULL UNIQUE REFERENCES users(id), PRIMARY KEY(issuer,subject));
-PRAGMA user_version=2;
+PRAGMA user_version=11;
 `

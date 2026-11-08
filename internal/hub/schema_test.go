@@ -2,6 +2,7 @@ package hub
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/skillhubhq/skillhub/internal/hubdb"
@@ -115,5 +116,61 @@ func testSchemaInitializationIsAtomic(t *testing.T, cfg hubdb.Config) {
 	if rows, e := db.Query("SELECT * FROM instance"); e == nil {
 		rows.Close()
 		t.Fatal("failed initialization left partial tables")
+	}
+}
+
+func TestSupportedSchemaUpgradePreservesIdentity(t *testing.T) {
+	for _, version := range []int{1, 2, 10} {
+		t.Run(fmt.Sprint(version), func(t *testing.T) {
+			testSupportedSchemaUpgrade(t, hubdb.Config{Driver: "sqlite"}, version)
+		})
+	}
+}
+func TestPostgresSupportedSchemaUpgradePreservesIdentity(t *testing.T) {
+	for _, version := range []int{1, 2, 10} {
+		t.Run(fmt.Sprint(version), func(t *testing.T) {
+			cfg, _ := postgresFixture(t)
+			testSupportedSchemaUpgrade(t, cfg, version)
+		})
+	}
+}
+func testSupportedSchemaUpgrade(t *testing.T, cfg hubdb.Config, version int) {
+	t.Helper()
+	root := t.TempDir()
+	s, err := OpenDatabase(root, cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	id := s.RegistryID()
+	admin, err := s.Bootstrap(context.Background(), "admin", "test-password-123")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if version == 1 || version == 10 {
+		if _, err = s.db.Exec("ALTER TABLE releases DROP COLUMN provenance"); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if version == 10 {
+		if _, err = s.db.Exec("DROP TABLE personal_namespaces; DROP TABLE community_reports; DROP INDEX releases_author_time;"); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if _, err = s.db.Exec(fmt.Sprintf("PRAGMA user_version=%d;", version)); err != nil {
+		t.Fatal(err)
+	}
+	s.Close()
+	s, err = OpenDatabase(root, cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer s.Close()
+	user, err := s.Login(context.Background(), "admin", "test-password-123")
+	if err != nil || user.Identity.ID != admin.ID || s.RegistryID() != id {
+		t.Fatal("upgrade changed identity", err)
+	}
+	var actual int
+	if err = s.db.QueryRow("PRAGMA user_version").Scan(&actual); err != nil || actual != currentSchema {
+		t.Fatal("schema marker", actual, err)
 	}
 }
