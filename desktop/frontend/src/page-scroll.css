@@ -1,0 +1,45 @@
+/* 桌面窗口由导航与正文组成；滚动条从正文开始，弹窗继续使用顶层 dialog。 */
+.shell.community-shell.desktop-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+}
+.desktop-shell > .navigation-shell {
+  flex: none;
+}
+.shell.community-shell.desktop-shell > main {
+  flex: 1;
+  min-height: 0;
+  max-width: none;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  padding-inline: max(32px, calc((100% - 1216px) / 2));
+}
+/* 版本信息与正文一起滚动，短窗口也能完整阅读侧栏。 */
+.desktop-shell .skill-install-aside {
+  position: static;
+}
+.desktop-shell .review-queue,
+.desktop-shell .publishing-journey .publish-summary {
+  top: 16px;
+}
+.desktop-shell .review-queue {
+  max-height: min(60vh, 600px);
+}
+.desktop-shell .community-detail,
+.desktop-shell .discussion-anchor,
+.desktop-shell .review-document,
+.desktop-shell .editor {
+  scroll-margin-top: 16px;
+}
+@media (max-width: 760px) {
+  .shell.community-shell.desktop-shell > main {
+    padding-inline: 16px;
+  }
+  .desktop-shell .review-queue {
+    max-height: 240px;
+  }
+}

@@ -16,3 +16,10 @@ func (s *DesktopService) ListDrafts() ([]client.DraftSummary, error) { return s.
 func (s *DesktopService) OpenDraft(id string) (client.DraftWorkspace, error) {
 	return s.store.OpenDraft(id)
 }
+
+func (s *DesktopService) LoadPublicationDraft(source, account string) (string, error) {
+	return s.core.LoadPublicationDraft(s.ctx, source, account)
+}
+func (s *DesktopService) SavePublicationDraft(source, account, payload string) error {
+	return s.core.SavePublicationDraft(s.ctx, source, account, payload)
+}

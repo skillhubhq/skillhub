@@ -1,6 +1,6 @@
+import { ResourceState, useResource } from "./community-ui";
 import { useEffect, useState } from "react";
 import type {
-  ConfigTarget,
   SkillConfiguration,
   ConfigVariableStatus,
 } from "../bindings/github.com/skillhubhq/skillhub/internal/client/models";
@@ -24,16 +24,18 @@ const statusLabel = (status: string) =>
 
 export function Configuration() {
   const ui = useUI();
-  const [items, setItems] = useState<ConfigTarget[]>([]);
+  const inventory = useResource(
+    () => API.ConfigurationTargets(),
+    [],
+    ui.revision,
+  );
+  const items = inventory.value ?? [];
   const [target, setTarget] = useState(
     () =>
       new URLSearchParams(window.location.hash.split("?")[1] || "").get(
         "target",
       ) || "",
   );
-  useEffect(() => {
-    void ui.run(async () => setItems((await API.ConfigurationTargets()) || []));
-  }, [ui.revision]);
   return (
     <>
       <p className="configuration-intro">
@@ -42,37 +44,39 @@ export function Configuration() {
           "仅保存在此设备。CLI 与 App 共用配置，Hub 不接收任何配置值。",
         )}
       </p>
-      {!items.length ? (
-        <Empty title={t("No installed skills", "尚未安装技能")}>
-          {t(
-            "Install a skill to check its configuration requirements.",
-            "安装技能后，可在这里检查它的配置要求。",
-          )}
-        </Empty>
-      ) : (
-        <div className="configuration-list">
-          {items.map((item) => (
-            <article key={item.installation.target}>
-              <div>
-                <h2>{skillTitle(item.installation)}</h2>
-                <p>
-                  {item.installation.namespace}/{item.installation.name} ·{" "}
-                  {toolLabel(item.installation.tool)} ·{" "}
-                  {item.installed
-                    ? t("Installed", "已安装")
-                    : t("Retained configuration", "保留的配置")}
-                </p>
-                <small title={item.installation.target}>
-                  {item.installation.target}
-                </small>
-              </div>
-              <button onClick={() => setTarget(item.installation.target)}>
-                {t("Configure", "配置")}
-              </button>
-            </article>
-          ))}
-        </div>
-      )}
+      <ResourceState {...inventory} retry={inventory.reload}>
+        {!items.length ? (
+          <Empty title={t("No installed skills", "尚未安装技能")}>
+            {t(
+              "Install a skill to check its configuration requirements.",
+              "安装技能后，可在这里检查它的配置要求。",
+            )}
+          </Empty>
+        ) : (
+          <div className="configuration-list">
+            {items.map((item) => (
+              <article key={item.installation.target}>
+                <div>
+                  <h2>{skillTitle(item.installation)}</h2>
+                  <p>
+                    {item.installation.namespace}/{item.installation.name} ·{" "}
+                    {toolLabel(item.installation.tool)} ·{" "}
+                    {item.installed
+                      ? t("Installed", "已安装")
+                      : t("Retained configuration", "保留的配置")}
+                  </p>
+                  <small title={item.installation.target}>
+                    {item.installation.target}
+                  </small>
+                </div>
+                <button onClick={() => setTarget(item.installation.target)}>
+                  {t("Configure", "配置")}
+                </button>
+              </article>
+            ))}
+          </div>
+        )}
+      </ResourceState>
       {target && (
         <ConfigurationDialog
           target={target}
@@ -178,9 +182,26 @@ function ConfigurationDialog({
             {report.changed && (
               <p role="status" className="notice">
                 {t(
-                  "This skill's version or origin changed. Clear the previous configuration, review the new requirements, then configure it again.",
-                  "技能版本或来源已变化。请清理旧配置、查看新要求后重新配置。",
+                  "Review the current requirements, then authorize this version to use matching saved values.",
+                  "查看当前配置要求，确认后授权此版本使用已有的匹配配置。",
                 )}
+                <button
+                  onClick={() =>
+                    ui.confirm(
+                      t("Authorize this version?", "授权此版本？"),
+                      `${report.installation.version} · ${report.installation.digest}`,
+                      async () => {
+                        await API.RenewSkillConfiguration(
+                          target,
+                          report.installation.digest,
+                        );
+                        await refresh();
+                      },
+                    )
+                  }
+                >
+                  {t("Authorize saved configuration", "授权使用已有配置")}
+                </button>
               </p>
             )}
             {!report.installed ? (

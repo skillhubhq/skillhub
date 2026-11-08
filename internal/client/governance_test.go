@@ -18,7 +18,7 @@ type limitedRegistry struct {
 }
 
 func (limitedRegistry) GetRegistry(context.Context, *connect.Request[registryv1.GetRegistryRequest]) (*connect.Response[registryv1.GetRegistryResponse], error) {
-	return connect.NewResponse(&registryv1.GetRegistryResponse{RegistryId: "limited-fixture", DisplayName: "Limited", ProtocolMajor: 1, Capabilities: []string{"catalog.v1"}}), nil
+	return connect.NewResponse(&registryv1.GetRegistryResponse{RegistryId: "limited-fixture", DisplayName: "Limited", ProtocolMajor: 2, Capabilities: []string{"catalog.v1"}}), nil
 }
 func TestGovernanceMissingCapabilityIsNotCleanScan(t *testing.T) {
 	mux := http.NewServeMux()

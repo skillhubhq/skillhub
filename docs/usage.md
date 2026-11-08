@@ -125,7 +125,7 @@ skillhub yank RELEASE_ID --source company --reason "Withdrawn version"
 
 The skill directory must contain a root `SKILL.md` with valid `name` and `description` frontmatter. ZIP archives are limited to 20 MiB, expanded files to 80 MiB total / 8 MiB per file, and the main skill Markdown to 256 KiB. Paths, symlinks, duplicate files, case collisions and metadata are checked without executing content.
 
-Versions use full semantic versions, and coordinates remain reserved after rejection or withdrawal. Submit a new version when contents or audience change. A namespace with review disabled publishes immediately. In the catalog, “latest” means the most recently published version visible to the caller; installations still require an explicit version.
+Versions use full semantic versions. Published coordinates remain reserved after withdrawal; pending or rejected submissions can be revised under the same proposed version with a new review identity. A namespace with review disabled can publish immediately. The catalog defaults to the highest stable semantic version, or the highest prerelease when none is stable; installations require an explicit version. Approved publication updates the skill’s access policy and presentation.
 
 Review inspection returns the exact submission's Markdown, file names, sizes and execution flags. The API also provides the immutable ZIP for client-side content preview. Normal catalog/download APIs never serve pending, rejected or withdrawn releases, even to an administrator.
 
@@ -238,7 +238,7 @@ Web publication accepts a ZIP with `SKILL.md` at its root. Preview it, choose an
 
 Use **Teams** to browse namespace homepages, published skills and (when authorized) member roles. **My profile** on desktop or the account button on Web opens your profile; **Edit profile** updates your display name and introduction. Namespace administrators can also edit team information. Each desktop source keeps its own Hub identity.
 
-Open a published skill to like it, save it privately, post a comment or reply. **Saved** lists the exact releases saved by the current identity in the selected Hub. Comments and reactions belong to the selected version, and remain subject to its current audience. Removing a comment keeps the reply thread readable. These actions persist in the Hub database and are visible across Web and App; they persist with the community.
+Open a published skill to like it, save it privately, post a comment or reply. **Saved** lists each saved skill once, using its default published version. Comments, likes and saves belong to the skill and share its current access policy. Comments show the version being discussed; unavailable saves remain removable. Removing a comment keeps the reply thread readable. These actions persist in the Hub database and are visible across Web and App; they persist with the community.
 
 Both applications start in English. Choose **Simplified Chinese** in the header to switch immediately and retain the choice on reload. User-authored content and administrator-defined category names keep their original language.
 

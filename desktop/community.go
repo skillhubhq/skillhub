@@ -62,3 +62,7 @@ func (s *DesktopService) CommunityResolveReport(source, id string, action taxono
 func (s *DesktopService) CommunitySite(source string) (c.Site, error) {
 	return s.core.CommunitySite(s.ctx, source)
 }
+
+func (s *DesktopService) CommunityRemoveBookmark(source, namespace, name, key string) error {
+	return s.core.CommunityRemoveBookmark(s.ctx, source, namespace, name, key)
+}

@@ -17,36 +17,43 @@ CREATE TABLE release_tombstones (id TEXT PRIMARY KEY, namespace TEXT NOT NULL, n
 CREATE TABLE package_cleanup (digest TEXT PRIMARY KEY);
 CREATE TABLE namespace_grants (namespace TEXT NOT NULL REFERENCES namespaces(name), kind INTEGER NOT NULL CHECK(kind IN (1,2)), subject_id TEXT NOT NULL, role INTEGER NOT NULL CHECK(role IN (1,2,3,4)), PRIMARY KEY(namespace,kind,subject_id,role));
 CREATE TABLE categories (name TEXT PRIMARY KEY, title TEXT NOT NULL, archived INTEGER NOT NULL, revision INTEGER NOT NULL);
+CREATE TABLE skills (namespace TEXT NOT NULL REFERENCES namespaces(name), name TEXT NOT NULL,
+ visibility INTEGER NOT NULL CHECK(visibility IN (1,2,3)), audience_groups TEXT NOT NULL DEFAULT '[]',
+ display_name_en TEXT NOT NULL DEFAULT '', display_name_zh TEXT NOT NULL DEFAULT '', icon INTEGER NOT NULL DEFAULT 0,
+ description TEXT NOT NULL DEFAULT '', category TEXT NOT NULL DEFAULT '', tags TEXT NOT NULL DEFAULT '[]', revision INTEGER NOT NULL DEFAULT 1,
+ PRIMARY KEY(namespace,name));
 CREATE TABLE releases (
  sequence INTEGER PRIMARY KEY AUTOINCREMENT, id TEXT NOT NULL UNIQUE,
  namespace TEXT NOT NULL REFERENCES namespaces(name), name TEXT NOT NULL, version TEXT NOT NULL,
+ version_order TEXT NOT NULL DEFAULT '', superseded INTEGER NOT NULL DEFAULT 0, cleaned INTEGER NOT NULL DEFAULT 0, ever_published INTEGER NOT NULL DEFAULT 0,
  digest TEXT NOT NULL, archive_bytes INTEGER NOT NULL DEFAULT 0,
  display_name_en TEXT NOT NULL DEFAULT '', display_name_zh TEXT NOT NULL DEFAULT '', icon INTEGER NOT NULL DEFAULT 0,
  description TEXT NOT NULL, markdown TEXT NOT NULL, provenance TEXT NOT NULL DEFAULT 'null',
  status INTEGER NOT NULL CHECK(status IN (1,2,3,4)), visibility INTEGER NOT NULL CHECK(visibility IN (1,2,3)),
  submitted_by TEXT NOT NULL REFERENCES users(id), created_at INTEGER NOT NULL,
  review_reason TEXT NOT NULL DEFAULT '', category TEXT NOT NULL DEFAULT '', published_order INTEGER NOT NULL DEFAULT 0,
- UNIQUE(namespace,name,version)
+ FOREIGN KEY(namespace,name) REFERENCES skills(namespace,name)
 );
+CREATE UNIQUE INDEX releases_live_version ON releases(namespace,name,version) WHERE superseded=0;
 CREATE INDEX releases_catalog ON releases(status,namespace,name,published_order DESC);
 CREATE TABLE release_groups (release_id TEXT NOT NULL REFERENCES releases(id), group_id TEXT NOT NULL REFERENCES groups(id), PRIMARY KEY(release_id,group_id));
 CREATE TABLE release_tags (release_id TEXT NOT NULL REFERENCES releases(id), tag TEXT NOT NULL, PRIMARY KEY(release_id,tag));
 CREATE INDEX release_tags_name ON release_tags(tag,release_id);
-CREATE TABLE mutations (actor TEXT NOT NULL REFERENCES users(id), method TEXT NOT NULL, key TEXT NOT NULL, fingerprint TEXT NOT NULL, result BLOB NOT NULL, PRIMARY KEY(actor,method,key));
+CREATE TABLE mutations (actor TEXT NOT NULL REFERENCES users(id), method TEXT NOT NULL, key TEXT NOT NULL, fingerprint TEXT NOT NULL, result BLOB NOT NULL, invalidated INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(actor,method,key));
 
 CREATE TABLE profiles (user_id TEXT PRIMARY KEY REFERENCES users(id), display_name TEXT NOT NULL DEFAULT '', bio TEXT NOT NULL DEFAULT '', avatar TEXT NOT NULL DEFAULT '', revision INTEGER NOT NULL DEFAULT 0);
 CREATE TABLE team_profiles (namespace TEXT PRIMARY KEY REFERENCES namespaces(name), display_name TEXT NOT NULL DEFAULT '', bio TEXT NOT NULL DEFAULT '', revision INTEGER NOT NULL DEFAULT 0);
 CREATE TABLE comments (sequence INTEGER PRIMARY KEY AUTOINCREMENT, id TEXT NOT NULL UNIQUE, release_id TEXT NOT NULL REFERENCES releases(id), parent_id TEXT REFERENCES comments(id), author_id TEXT NOT NULL REFERENCES users(id), body TEXT NOT NULL, created_at INTEGER NOT NULL, deleted INTEGER NOT NULL DEFAULT 0);
 CREATE INDEX comments_thread ON comments(release_id,parent_id,sequence);
-CREATE TABLE reactions (user_id TEXT NOT NULL REFERENCES users(id), release_id TEXT NOT NULL REFERENCES releases(id), bookmark INTEGER NOT NULL CHECK(bookmark IN (0,1)), PRIMARY KEY(user_id,release_id,bookmark));
-CREATE INDEX reactions_release ON reactions(release_id,bookmark);
+CREATE TABLE reactions (user_id TEXT NOT NULL REFERENCES users(id), namespace TEXT NOT NULL, name TEXT NOT NULL, bookmark INTEGER NOT NULL CHECK(bookmark IN (0,1)), PRIMARY KEY(user_id,namespace,name,bookmark), FOREIGN KEY(namespace,name) REFERENCES skills(namespace,name));
+CREATE INDEX reactions_skill ON reactions(namespace,name,bookmark);
 
 CREATE TABLE access_requests (user_id TEXT PRIMARY KEY REFERENCES users(id), created_at INTEGER NOT NULL);
 
 CREATE TABLE platform_roles (user_id TEXT NOT NULL REFERENCES users(id), role INTEGER NOT NULL CHECK(role IN (1,2)), PRIMARY KEY(user_id,role));
 CREATE TABLE release_scans (sequence INTEGER PRIMARY KEY AUTOINCREMENT, release_id TEXT NOT NULL REFERENCES releases(id), digest TEXT NOT NULL, report TEXT NOT NULL, created_at INTEGER NOT NULL);
 CREATE INDEX release_scans_release ON release_scans(release_id,sequence);
-CREATE TABLE review_notifications (sequence INTEGER PRIMARY KEY AUTOINCREMENT, recipient TEXT NOT NULL REFERENCES users(id), release_id TEXT NOT NULL REFERENCES releases(id), approved INTEGER NOT NULL, is_read INTEGER NOT NULL DEFAULT 0, created_at INTEGER NOT NULL, UNIQUE(recipient,release_id));
+CREATE TABLE review_notifications (sequence INTEGER PRIMARY KEY AUTOINCREMENT, recipient TEXT NOT NULL REFERENCES users(id), release_id TEXT NOT NULL REFERENCES releases(id), kind TEXT NOT NULL DEFAULT 'review', comment_id TEXT NOT NULL DEFAULT '', approved INTEGER NOT NULL DEFAULT 0, is_read INTEGER NOT NULL DEFAULT 0, created_at INTEGER NOT NULL, UNIQUE(recipient,release_id,comment_id));
 CREATE INDEX review_notifications_recipient ON review_notifications(recipient,sequence);
 
 CREATE TABLE featured_skills (namespace TEXT NOT NULL REFERENCES namespaces(name), name TEXT NOT NULL, PRIMARY KEY(namespace,name));
@@ -62,5 +69,5 @@ CREATE TABLE community_reports (sequence INTEGER PRIMARY KEY AUTOINCREMENT, id T
 CREATE INDEX community_reports_queue ON community_reports(resolved,sequence);
 
 CREATE TABLE external_identities (issuer TEXT NOT NULL, subject TEXT NOT NULL, user_id TEXT NOT NULL UNIQUE REFERENCES users(id), PRIMARY KEY(issuer,subject));
-PRAGMA user_version=12;
+PRAGMA user_version=14;
 `

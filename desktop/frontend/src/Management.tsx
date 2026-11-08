@@ -1,3 +1,4 @@
+import { AccessState } from "./AccessState";
 import { TeamLifecycle } from "./TeamLifecycle";
 import { ContentReports } from "./Moderation";
 import { PlatformRoles } from "./Governance";
@@ -74,42 +75,29 @@ function useMutationID() {
 export function Management({ mode = "management" }: { mode?: string }) {
   const ui = useUI();
   const source = ui.activeSource;
-  const [identityLoading, setIdentityLoading] = useState(true);
-  const [kind, setKind] = useState("users"),
-    [identity, setIdentity] = useState<IdentityView | null>(null);
-  useEffect(() => {
-    let active = true;
-    setIdentityLoading(!!source);
-    setIdentity(null);
-    if (source)
-      void ui.run(async () => {
-        try {
-          const value = await API.Identity(source);
-          if (active) setIdentity(value);
-        } catch (error) {
-          if (active) setIdentity(null);
-          throw error;
-        } finally {
-          if (active) setIdentityLoading(false);
-        }
-      });
-    return () => {
-      active = false;
-    };
-  }, [source, ui.revision]);
+  const [kind, setKind] = useState("users");
+  const session = useResource(
+    () => (source ? API.Identity(source) : Promise.resolve(null)),
+    [source],
+    ui.revision,
+  );
+  const identity = session.value;
+  const identityLoading = session.loading;
   const participation = useResource(
     () =>
       source && identity
         ? API.CommunityParticipation(source)
         : Promise.resolve(null),
-    [source, identity?.id, ui.revision],
+    [source, identity?.id],
+    ui.revision,
   );
   const duties = useResource(
     () =>
       source && identity
         ? API.PlatformAccess(source, "")
         : Promise.resolve(null),
-    [source, identity?.id, ui.revision],
+    [source, identity?.id],
+    ui.revision,
   );
   useEffect(() => {
     if (
@@ -206,6 +194,8 @@ export function Management({ mode = "management" }: { mode?: string }) {
         </Empty>
       ) : identityLoading ? (
         <p role="status">{t("Loading…", "加载中…")}</p>
+      ) : session.error ? (
+        <AccessState error={session.error} retry={session.reload} />
       ) : !identity ? (
         <Empty title={t("Sign in to continue")}>
           {isWeb ? (

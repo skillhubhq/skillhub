@@ -2,13 +2,11 @@ package hub
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
-	"time"
 
 	taxonomy "github.com/skillhubhq/skillhub/gen/common/registry/v1"
 	"github.com/skillhubhq/skillhub/internal/hubdb"
@@ -83,84 +81,5 @@ func testProvenance(t *testing.T, cfg hubdb.Config) {
 	mustGovernance(t, s.db.QueryRow("SELECT actor_id FROM audit WHERE action='release.review' AND resource=?", r.ID).Scan(&actor))
 	if actor != admin.ID {
 		t.Fatal("review audit identity lost")
-	}
-}
-func TestProvenanceSchemaUpgradePreservesIdentityAndBackup(t *testing.T) {
-	testProvenanceUpgrade(t, hubdb.Config{Driver: "sqlite"})
-}
-func TestPostgresProvenanceSchemaUpgradePreservesIdentityAndBackup(t *testing.T) {
-	cfg, _ := postgresFixture(t)
-	testProvenanceUpgrade(t, cfg)
-}
-func testProvenanceUpgrade(t *testing.T, cfg hubdb.Config) {
-	root := t.TempDir()
-	s, e := OpenDatabase(root, cfg)
-	mustGovernance(t, e)
-	ctx := context.Background()
-	admin, e := s.Bootstrap(ctx, "admin", "a-strong-test-password")
-	mustGovernance(t, e)
-	id := s.RegistryID()
-	_, e = s.PutNamespace(ctx, admin, "provenance-space", PutNamespace{Name: "original"})
-	mustGovernance(t, e)
-	r, e := s.SubmitRelease(ctx, admin, "provenance-submit", SubmitRelease{Namespace: "original", Version: "1.0.0", Archive: governanceArchive(t, "Existing content"), Visibility: taxonomy.Visibility_VISIBILITY_PUBLIC})
-	mustGovernance(t, e)
-	_, e = s.db.Exec("ALTER TABLE releases DROP COLUMN provenance; ALTER TABLE namespaces DROP COLUMN archived; DROP TABLE namespace_tombstones; DROP TABLE package_cleanup; DROP TABLE release_tombstones; PRAGMA user_version=1;")
-	mustGovernance(t, e)
-	if cfg.Driver == "sqlite" {
-		snapshot := filepath.Join(t.TempDir(), "old-backup")
-		mustGovernance(t, os.Mkdir(snapshot, 0700))
-		_, e = s.db.Exec("VACUUM INTO ?", filepath.Join(snapshot, "hub.db"))
-		mustGovernance(t, e)
-		digest, bytes, e := hashBackupFile(ctx, filepath.Join(snapshot, "hub.db"))
-		mustGovernance(t, e)
-		info := BackupInfo{Format: 1, Schema: 1, RegistryID: id, CreatedAt: time.Now().UTC().Format(time.RFC3339), DatabaseDigest: digest, DatabaseBytes: bytes, Packages: 1}
-		blob, e := s.readBlob(r.Digest)
-		mustGovernance(t, e)
-		writer := &Store{root: snapshot}
-		mustGovernance(t, writer.writeBlob(r.Digest, blob))
-		raw, _ := json.Marshal(info)
-		mustGovernance(t, os.WriteFile(filepath.Join(snapshot, "backup.json"), raw, 0600))
-		_, e = VerifyBackup(ctx, snapshot)
-		mustGovernance(t, e)
-		target := filepath.Join(t.TempDir(), "restored")
-		_, e = RestoreBackup(ctx, snapshot, target)
-		mustGovernance(t, e)
-		restored, e := Open(target)
-		mustGovernance(t, e)
-		release, data, e := restored.DownloadRelease(ctx, Identity{}, "original", "governance-check", "1.0.0")
-		mustGovernance(t, e)
-		if release.Digest != r.Digest || packageformat.Digest(data) != r.Digest || restored.RegistryID() != id {
-			t.Fatal("old backup upgrade lost data")
-		}
-		restored.Close()
-		unchanged, e := VerifyBackup(ctx, snapshot)
-		mustGovernance(t, e)
-		if unchanged.Schema != 1 {
-			t.Fatal("restore modified source snapshot")
-		}
-	}
-	s.Close()
-	// 旧快照保持原样；升级只在打开可写目标时进行。
-	s, e = OpenDatabase(root, cfg)
-	mustGovernance(t, e)
-	defer s.Close()
-	login, e := s.Login(ctx, "admin", "a-strong-test-password")
-	mustGovernance(t, e)
-	got, data, e := s.DownloadRelease(ctx, login.Identity, "original", "governance-check", "1.0.0")
-	mustGovernance(t, e)
-	if s.RegistryID() != id || login.Identity.ID != admin.ID || got.ID != r.ID || got.Digest != r.Digest || got.Provenance != nil || packageformat.Digest(data) != r.Digest {
-		t.Fatal("upgrade changed existing content or identity")
-	}
-	var schema int
-	mustGovernance(t, s.db.QueryRow("PRAGMA user_version").Scan(&schema))
-	if schema != currentSchema {
-		t.Fatal(schema)
-	}
-	if cfg.Driver == "sqlite" {
-		snapshot := filepath.Join(t.TempDir(), "backup")
-		_, e = s.Backup(ctx, snapshot)
-		mustGovernance(t, e)
-		_, e = VerifyBackup(ctx, snapshot)
-		mustGovernance(t, e)
 	}
 }

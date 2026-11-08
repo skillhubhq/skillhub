@@ -72,9 +72,13 @@ func (s *Server) ListNotifications(ctx context.Context, req *connect.Request[gov
 	if err != nil {
 		return nil, err
 	}
-	result := &governancev1.ListNotificationsResponse{Page: pageDTO(r.Next)}
+	unread, err := s.store.UnreadNotifications(ctx, u)
+	if err != nil {
+		return nil, err
+	}
+	result := &governancev1.ListNotificationsResponse{Page: pageDTO(r.Next), Unread: unread}
 	for _, n := range r.Items {
-		result.Notifications = append(result.Notifications, &governancev1.ReviewNotification{NotificationId: n.ID, ReleaseId: n.ReleaseID, Coordinate: n.Coordinate, Approved: n.Approved, Read: n.Read, CreatedAt: timestamppb.New(n.CreatedAt)})
+		result.Notifications = append(result.Notifications, &governancev1.ReviewNotification{NotificationId: n.ID, ReleaseId: n.ReleaseID, Coordinate: n.Coordinate, Approved: n.Approved, Read: n.Read, CreatedAt: timestamppb.New(n.CreatedAt), Kind: n.Kind, CommentId: n.CommentID, Unavailable: n.Unavailable})
 	}
 	return connect.NewResponse(result), nil
 }
@@ -83,7 +87,12 @@ func (s *Server) MarkNotificationRead(ctx context.Context, req *connect.Request[
 	if err != nil {
 		return nil, err
 	}
-	if err = s.store.MarkNotificationRead(ctx, u, req.Msg.NotificationId); err != nil {
+	if req.Msg.All {
+		err = s.store.MarkAllNotificationsRead(ctx, u)
+	} else {
+		err = s.store.MarkNotificationRead(ctx, u, req.Msg.NotificationId)
+	}
+	if err != nil {
 		return nil, err
 	}
 	return connect.NewResponse(&governancev1.MarkNotificationReadResponse{}), nil

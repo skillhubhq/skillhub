@@ -51,7 +51,7 @@ try {
       readMaxBytes: 32 << 20, writeMaxBytes: 32 << 20, defaultTimeoutMs: 5000 };
     const anonymous = createHubClients(createConnectTransport(transportOptions));
     const info = await anonymous.registry.getRegistry({});
-    assert.equal(info.protocolMajor, 1);
+    assert.equal(info.protocolMajor, 2);
     if (registryId) assert.equal(info.registryId, registryId);
     registryId = info.registryId;
     await assert.rejects(anonymous.catalog.searchSkills({}), error => {

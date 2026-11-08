@@ -642,7 +642,13 @@ type ReviewNotification struct {
 	// 已读状态。
 	Read bool `protobuf:"varint,5,opt,name=read,proto3" json:"read,omitempty"`
 	// 发生时间。
-	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	CreatedAt *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	// 通知类型：review 或 reply。
+	Kind string `protobuf:"bytes,7,opt,name=kind,proto3" json:"kind,omitempty"`
+	// 回复目标；只在仍有访问权时返回。
+	CommentId string `protobuf:"bytes,8,opt,name=comment_id,json=commentId,proto3" json:"comment_id,omitempty"`
+	// 目标已清理或访问权已失效。
+	Unavailable   bool `protobuf:"varint,9,opt,name=unavailable,proto3" json:"unavailable,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -719,6 +725,27 @@ func (x *ReviewNotification) GetCreatedAt() *timestamppb.Timestamp {
 	return nil
 }
 
+func (x *ReviewNotification) GetKind() string {
+	if x != nil {
+		return x.Kind
+	}
+	return ""
+}
+
+func (x *ReviewNotification) GetCommentId() string {
+	if x != nil {
+		return x.CommentId
+	}
+	return ""
+}
+
+func (x *ReviewNotification) GetUnavailable() bool {
+	if x != nil {
+		return x.Unavailable
+	}
+	return false
+}
+
 // ListNotificationsRequest 的游标绑定当前身份。
 type ListNotificationsRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -771,7 +798,9 @@ type ListNotificationsResponse struct {
 	// 通知。
 	Notifications []*ReviewNotification `protobuf:"bytes,1,rep,name=notifications,proto3" json:"notifications,omitempty"`
 	// 下一页。
-	Page          *v11.PageResult `protobuf:"bytes,2,opt,name=page,proto3" json:"page,omitempty"`
+	Page *v11.PageResult `protobuf:"bytes,2,opt,name=page,proto3" json:"page,omitempty"`
+	// 当前身份全部未读通知数量。
+	Unread        uint32 `protobuf:"varint,3,opt,name=unread,proto3" json:"unread,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -820,13 +849,22 @@ func (x *ListNotificationsResponse) GetPage() *v11.PageResult {
 	return nil
 }
 
+func (x *ListNotificationsResponse) GetUnread() uint32 {
+	if x != nil {
+		return x.Unread
+	}
+	return 0
+}
+
 // MarkNotificationReadRequest 不能操作他人的通知。
 type MarkNotificationReadRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// 通知标识。
 	NotificationId string `protobuf:"bytes,1,opt,name=notification_id,json=notificationId,proto3" json:"notification_id,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	// 将本人所有通知标记为已读。
+	All           bool `protobuf:"varint,2,opt,name=all,proto3" json:"all,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *MarkNotificationReadRequest) Reset() {
@@ -864,6 +902,13 @@ func (x *MarkNotificationReadRequest) GetNotificationId() string {
 		return x.NotificationId
 	}
 	return ""
+}
+
+func (x *MarkNotificationReadRequest) GetAll() bool {
+	if x != nil {
+		return x.All
+	}
+	return false
 }
 
 // MarkNotificationReadResponse 表示已读状态已提交。
@@ -1240,7 +1285,7 @@ const file_api_governance_v1_governance_service_proto_rawDesc = "" +
 	"\n" +
 	"release_id\x18\x02 \x01(\tR\treleaseId\"L\n" +
 	"\x13ScanReleaseResponse\x125\n" +
-	"\x06report\x18\x01 \x01(\v2\x1d.api.governance.v1.ScanReportR\x06report\"\xe7\x01\n" +
+	"\x06report\x18\x01 \x01(\v2\x1d.api.governance.v1.ScanReportR\x06report\"\xbc\x02\n" +
 	"\x12ReviewNotification\x12'\n" +
 	"\x0fnotification_id\x18\x01 \x01(\tR\x0enotificationId\x12\x1d\n" +
 	"\n" +
@@ -1251,14 +1296,20 @@ const file_api_governance_v1_governance_service_proto_rawDesc = "" +
 	"\bapproved\x18\x04 \x01(\bR\bapproved\x12\x12\n" +
 	"\x04read\x18\x05 \x01(\bR\x04read\x129\n" +
 	"\n" +
-	"created_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\"J\n" +
+	"created_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x12\x12\n" +
+	"\x04kind\x18\a \x01(\tR\x04kind\x12\x1d\n" +
+	"\n" +
+	"comment_id\x18\b \x01(\tR\tcommentId\x12 \n" +
+	"\vunavailable\x18\t \x01(\bR\vunavailable\"J\n" +
 	"\x18ListNotificationsRequest\x12.\n" +
-	"\x04page\x18\x01 \x01(\v2\x1a.api.common.v1.PageRequestR\x04page\"\x97\x01\n" +
+	"\x04page\x18\x01 \x01(\v2\x1a.api.common.v1.PageRequestR\x04page\"\xaf\x01\n" +
 	"\x19ListNotificationsResponse\x12K\n" +
 	"\rnotifications\x18\x01 \x03(\v2%.api.governance.v1.ReviewNotificationR\rnotifications\x12-\n" +
-	"\x04page\x18\x02 \x01(\v2\x19.api.common.v1.PageResultR\x04page\"F\n" +
+	"\x04page\x18\x02 \x01(\v2\x19.api.common.v1.PageResultR\x04page\x12\x16\n" +
+	"\x06unread\x18\x03 \x01(\rR\x06unread\"X\n" +
 	"\x1bMarkNotificationReadRequest\x12'\n" +
-	"\x0fnotification_id\x18\x01 \x01(\tR\x0enotificationId\"\x1e\n" +
+	"\x0fnotification_id\x18\x01 \x01(\tR\x0enotificationId\x12\x10\n" +
+	"\x03all\x18\x02 \x01(\bR\x03all\"\x1e\n" +
 	"\x1cMarkNotificationReadResponse\"\x86\x01\n" +
 	"\n" +
 	"ReviewTask\x12\x1d\n" +

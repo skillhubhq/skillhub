@@ -118,8 +118,8 @@ export function TeamLifecycle({
               </dl>
               <p>
                 {t(
-                  "Archiving hides this team and its skills and stops downloads, publishing, reviews and interactions. Content and grants are retained but inactive. Restoring reactivates the previous permissions and release states.",
-                  "归档后隐藏团队及技能，停止下载、发布、审核和互动。内容和授权保留但不生效；恢复后沿用原权限及版本状态。",
+                  "Archiving removes this team from discovery and stops publishing, reviews and interactions. Authorized readers can still open existing links and download published versions.",
+                  "归档后从发现页隐藏团队，停止发布、审核和互动。已有权限的用户仍可通过链接查看内容、下载已发布版本。",
                 )}
               </p>
               <p className="muted">

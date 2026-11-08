@@ -20,7 +20,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-const currentSchema = 13
+const currentSchema = 14
 
 var (
 	ErrUnauthenticated = errors.New("authentication required")
@@ -129,7 +129,7 @@ func (s *Store) initializeContext(ctx context.Context) error {
 	if err = tx.QueryRowContext(ctx, "PRAGMA user_version").Scan(&version); err != nil {
 		return err
 	}
-	if version != 0 && version != 1 && version != 2 && version != 10 && version != 11 && version != 12 && version != currentSchema {
+	if version != 0 && version != currentSchema {
 		return errors.New("unsupported hub database schema")
 	}
 	if version == 0 {
@@ -140,43 +140,15 @@ func (s *Store) initializeContext(ctx context.Context) error {
 			return err
 		}
 	}
-	// 版本 1 已用于实际部署；在持有独占数据库所有权的事务中扩展，不改写既有版本。
-	if version == 1 {
-		if _, err = tx.ExecContext(ctx, "ALTER TABLE releases ADD COLUMN provenance TEXT NOT NULL DEFAULT 'null'; PRAGMA user_version=2;"); err != nil {
-			return err
-		}
-	}
-	// 已支持的完整基础结构只做增量扩展，版本号不复用；事务失败会保留原结构。
-	if version == 10 {
-		if _, err = tx.ExecContext(ctx, `ALTER TABLE releases ADD COLUMN provenance TEXT NOT NULL DEFAULT 'null';
-CREATE TABLE personal_namespaces (user_id TEXT PRIMARY KEY REFERENCES users(id), namespace TEXT NOT NULL UNIQUE REFERENCES namespaces(name));
-CREATE INDEX releases_author_time ON releases(submitted_by,created_at);
-CREATE TABLE community_reports (sequence INTEGER PRIMARY KEY AUTOINCREMENT, id TEXT NOT NULL UNIQUE, reporter TEXT NOT NULL REFERENCES users(id), release_id TEXT NOT NULL REFERENCES releases(id), comment_id TEXT NOT NULL DEFAULT '', reason TEXT NOT NULL, resolved INTEGER NOT NULL DEFAULT 0, resolution TEXT NOT NULL DEFAULT '', created_at INTEGER NOT NULL, resolved_at INTEGER NOT NULL DEFAULT 0, UNIQUE(reporter,release_id,comment_id));
-CREATE INDEX community_reports_queue ON community_reports(resolved,sequence);`); err != nil {
-			return err
-		}
-	}
-	if version != 0 && version < 12 {
-		if _, err = tx.ExecContext(ctx, `ALTER TABLE namespaces ADD COLUMN archived INTEGER NOT NULL DEFAULT 0;
-CREATE TABLE namespace_tombstones (name TEXT PRIMARY KEY, deleted_at INTEGER NOT NULL);
-CREATE TABLE package_cleanup (digest TEXT PRIMARY KEY);`); err != nil {
-			return err
-		}
-	}
-	if version != 0 && version < 13 {
-		if _, err = tx.ExecContext(ctx, `CREATE TABLE release_tombstones (id TEXT PRIMARY KEY, namespace TEXT NOT NULL, name TEXT NOT NULL, version TEXT NOT NULL, digest TEXT NOT NULL, deleted_at INTEGER NOT NULL, UNIQUE(namespace,name,version));`); err != nil {
-			return err
-		}
-	}
 	// 拒绝结构不完整的数据库，不能用 CREATE IF NOT EXISTS 掩盖损坏。
-	for _, table := range []string{"instance", "users", "sessions", "devices", "audit", "groups", "group_members", "namespaces", "namespace_grants", "categories", "releases", "release_groups", "release_tags", "mutations", "profiles", "team_profiles", "comments", "reactions", "access_requests", "platform_roles", "release_scans", "review_notifications", "featured_skills", "evaluation_evidence", "personal_namespaces", "community_reports", "external_identities", "namespace_tombstones", "package_cleanup", "release_tombstones"} {
+	for _, table := range []string{"instance", "users", "sessions", "devices", "audit", "groups", "group_members", "namespaces", "namespace_grants", "categories", "skills", "releases", "release_groups", "release_tags", "mutations", "profiles", "team_profiles", "comments", "reactions", "access_requests", "platform_roles", "release_scans", "review_notifications", "featured_skills", "evaluation_evidence", "personal_namespaces", "community_reports", "external_identities", "namespace_tombstones", "package_cleanup", "release_tombstones"} {
 		rows, e := tx.QueryContext(ctx, "SELECT * FROM "+table+" LIMIT 0")
 		if e != nil {
 			return errors.New("incomplete hub database schema")
 		}
 		rows.Close()
 	}
-	columns, columnErr := tx.QueryContext(ctx, "SELECT r.provenance,n.archived FROM releases r,namespaces n LIMIT 0")
+	columns, columnErr := tx.QueryContext(ctx, "SELECT r.provenance,r.version_order,r.superseded,r.cleaned,r.ever_published,n.archived,s.audience_groups,s.tags,s.revision,m.invalidated,c.namespace,c.name FROM releases r,namespaces n,skills s,mutations m,reactions c LIMIT 0")
 	if columnErr != nil {
 		return errors.New("incomplete hub database schema")
 	}
@@ -185,7 +157,7 @@ CREATE TABLE package_cleanup (digest TEXT PRIMARY KEY);`); err != nil {
 		return err
 	}
 
-	if _, err = tx.ExecContext(ctx, "PRAGMA user_version=13;"); err != nil {
+	if _, err = tx.ExecContext(ctx, "PRAGMA user_version=14;"); err != nil {
 		return err
 	}
 	return tx.Commit()

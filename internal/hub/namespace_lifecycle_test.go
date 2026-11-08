@@ -76,15 +76,15 @@ func testNamespaceLifecycle(t *testing.T, cfg hubdb.Config) {
 	}
 	for _, actor := range []Identity{{}, member, admin} {
 		_, _, e = s.DownloadRelease(ctx, actor, "team", "lifecycle-check", "1.0.0")
-		if !errors.Is(e, ErrNotFound) {
+		if e != nil {
 			t.Fatal("archived download", e)
 		}
 		_, e = s.GetTeam(ctx, actor, "team")
-		if !errors.Is(e, ErrNotFound) {
+		if e != nil {
 			t.Fatal("archived team", e)
 		}
 		_, e = s.GetDiscussion(ctx, actor, release.ID)
-		if !errors.Is(e, ErrNotFound) {
+		if e != nil {
 			t.Fatal("archived discussion", e)
 		}
 	}
@@ -139,7 +139,7 @@ func testNamespaceLifecycle(t *testing.T, cfg hubdb.Config) {
 		t.Fatal("deleted coordinate reused", e)
 	}
 	var cached int
-	mustGovernance(t, s.db.QueryRow("SELECT count(*) FROM mutations WHERE key IN ('member-publish','comment-root','comment-reply')").Scan(&cached))
+	mustGovernance(t, s.db.QueryRow("SELECT count(*) FROM mutations WHERE invalidated=0 AND key IN ('member-publish','comment-root','comment-reply')").Scan(&cached))
 	if cached != 0 {
 		t.Fatal("deleted content retained in response cache")
 	}

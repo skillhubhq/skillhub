@@ -270,3 +270,89 @@ func TestProjectRestoreAcrossClientsUsesLockedIdentityDigestAndCurrentAuthorizat
 		}
 	}
 }
+
+func TestProjectPreviewResolvesLockAndRemovalsTogether(t *testing.T) {
+	ctx := context.Background()
+	core, inventory := newProjectClient(t)
+	server := httptest.NewServer(handler(t))
+	defer server.Close()
+	if _, e := core.AddSource(ctx, "hub", server.URL); e != nil {
+		t.Fatal(e)
+	}
+	if _, e := core.LoginPassword(ctx, "hub", "admin", "a-strong-test-password"); e != nil {
+		t.Fatal(e)
+	}
+	remote, e := core.Remote(ctx, "hub")
+	if e != nil {
+		t.Fatal(e)
+	}
+	_, e = remote.Admin.PutNamespace(ctx, connect.NewRequest(&adminv1.PutNamespaceRequest{Mutation: projectMutation(), Name: "team"}))
+	if e != nil {
+		t.Fatal(e)
+	}
+	dir := t.TempDir()
+	if e = os.WriteFile(filepath.Join(dir, "SKILL.md"), []byte("---\nname: project-check\ndescription: Preview a project.\n---\nInstructions."), 0600); e != nil {
+		t.Fatal(e)
+	}
+	archive, _, e := packageformat.Pack(dir)
+	if e != nil {
+		t.Fatal(e)
+	}
+	_, e = remote.Publishing.SubmitRelease(ctx, connect.NewRequest(&publishingv1.SubmitReleaseRequest{Mutation: projectMutation(), Namespace: "team", Version: "1.0.0", Archive: archive, Visibility: taxonomy.Visibility_VISIBILITY_MEMBERS}))
+	if e != nil {
+		t.Fatal(e)
+	}
+	project := t.TempDir()
+	if _, e = core.InitProject(ctx, project); e != nil {
+		t.Fatal(e)
+	}
+	if _, e = core.SetProjectSkill(ctx, project, client.ProjectSkill{Source: "hub", Namespace: "team", Name: "project-check", Version: "1.0.0", Tool: "codex"}); e != nil {
+		t.Fatal(e)
+	}
+	plan, e := core.PlanProjectRestore(ctx, project)
+	if e != nil {
+		t.Fatal(e)
+	}
+	if !plan.LockUpdate || len(plan.Plans) != 1 {
+		t.Fatal("missing lock and install preview")
+	}
+	if _, e = os.Stat(filepath.Join(project, client.ProjectLockFile)); !errors.Is(e, os.ErrNotExist) {
+		t.Fatal("preview wrote lock")
+	}
+	results, e := core.ApplyProjectRestore(ctx, plan)
+	if e != nil || len(results) != 1 || !results[0].Applied {
+		t.Fatal("apply", results, e)
+	}
+	if _, e = core.RemoveProjectSkill(ctx, project, "codex", "project-check"); e != nil {
+		t.Fatal(e)
+	}
+	plan, e = core.PlanProjectRestore(ctx, project)
+	if e != nil {
+		t.Fatal(e)
+	}
+	if !plan.LockUpdate || len(plan.Removals) != 1 || len(plan.Plans) != 0 {
+		t.Fatal("missing removal preview")
+	}
+	target := plan.Removals[0].Target
+	if e = os.WriteFile(filepath.Join(target, "SKILL.md"), []byte("User edit"), 0600); e != nil {
+		t.Fatal(e)
+	}
+	results, e = core.ApplyProjectRestore(ctx, plan)
+	if e != nil || len(results) != 1 || results[0].Applied {
+		t.Fatal("removed edited content", results, e)
+	}
+	if e = os.WriteFile(filepath.Join(target, "SKILL.md"), []byte("---\nname: project-check\ndescription: Preview a project.\n---\nInstructions."), 0600); e != nil {
+		t.Fatal(e)
+	}
+	plan, e = core.PlanProjectRestore(ctx, project)
+	if e != nil {
+		t.Fatal(e)
+	}
+	results, e = core.ApplyProjectRestore(ctx, plan)
+	if e != nil || len(results) != 1 || !results[0].Applied {
+		t.Fatal("remove", results, e)
+	}
+	if items, e := inventory.ListInstallations(ctx); e != nil || len(items) != 0 {
+		t.Fatal("inventory not reconciled", e)
+	}
+}

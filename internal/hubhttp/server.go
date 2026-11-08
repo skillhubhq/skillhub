@@ -171,7 +171,7 @@ func (s *Server) GetRegistry(ctx context.Context, req *connect.Request[registryv
 			}
 		}
 	}
-	return connect.NewResponse(&registryv1.GetRegistryResponse{RegistryId: s.store.RegistryID(), DisplayName: s.config.DisplayName, ProtocolMajor: 1, PrivateMode: s.config.Private, Capabilities: capabilities, MaxPackageBytes: packageformat.MaxArchiveBytes, CommunityMode: s.config.Policy.IsCommunity(), PrivacyUrl: s.config.Site.PrivacyURL, TermsUrl: s.config.Site.TermsURL, ContactUrl: s.config.Site.ContactURL, FilingText: s.config.Site.FilingText, FilingUrl: s.config.Site.FilingURL}), nil
+	return connect.NewResponse(&registryv1.GetRegistryResponse{RegistryId: s.store.RegistryID(), DisplayName: s.config.DisplayName, ProtocolMajor: 2, PrivateMode: s.config.Private, Capabilities: capabilities, MaxPackageBytes: packageformat.MaxArchiveBytes, CommunityMode: s.config.Policy.IsCommunity(), PrivacyUrl: s.config.Site.PrivacyURL, TermsUrl: s.config.Site.TermsURL, ContactUrl: s.config.Site.ContactURL, FilingText: s.config.Site.FilingText, FilingUrl: s.config.Site.FilingURL}), nil
 }
 
 func publicError(err error) error {

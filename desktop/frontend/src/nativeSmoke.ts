@@ -1,3 +1,5 @@
+import { pageScroller } from "./pageScroll";
+import { runResourceSmoke } from "./resourceSmoke";
 import { runModalSmoke } from "./modalSmoke";
 import { runEvaluationSmoke } from "./evaluationSmoke";
 import { runUpgradeSmoke } from "./nativeUpgrade";
@@ -48,8 +50,21 @@ export async function runNativeSmoke() {
       "task navigation and persistent preference shortcuts rendered",
     );
     await runSelectSmoke(check);
+    // 等待上一组菜单的焦点恢复完成，避免干扰弹窗滚动断言。
+    await new Promise(requestAnimationFrame);
+    await new Promise(requestAnimationFrame);
     await runModalSmoke(check);
+    const shell = document.querySelector<HTMLElement>(".desktop-shell")!;
+    shell.classList.replace("desktop-shell", "web-shell");
+    try {
+      await runModalSmoke((value, label) =>
+        check(value, `Web layout: ${label}`),
+      );
+    } finally {
+      shell.classList.replace("web-shell", "desktop-shell");
+    }
     await runAccessSmoke(check);
+    await runResourceSmoke(check);
     // 模拟无类型调用方：偏好存储只接受枚举字面量，不持久化任意输入。
     setLanguage("fixture-untrusted-value" as Language);
     check(
@@ -106,6 +121,18 @@ export async function runNativeSmoke() {
           );
         await new Promise((resolve) => setTimeout(resolve, 50));
       }
+    };
+    const clickButton = async (label: string) => {
+      await waitForUI(() =>
+        Array.from(document.querySelectorAll("button")).some(
+          (b) => b.textContent?.trim() === label && !b.disabled,
+        ),
+      );
+      (
+        Array.from(document.querySelectorAll("button")).find(
+          (b) => b.textContent?.trim() === label && !b.disabled,
+        ) as HTMLButtonElement
+      ).click();
     };
     const webSkill =
       pages.find((page) => page.source === "company")?.skills?.[0] ??
@@ -244,6 +271,11 @@ export async function runNativeSmoke() {
     check(
       document.querySelectorAll(".skill-social-actions button").length === 4,
       "like save comment and report are visible beside installation",
+    );
+    check(
+      getComputedStyle(document.querySelector(".skill-install-aside")!)
+        .position === "static",
+      "desktop version information shares the document scroll flow",
     );
     Array.from(
       document.querySelectorAll<HTMLButtonElement>(
@@ -570,7 +602,7 @@ export async function runNativeSmoke() {
     );
     await waitForUI(() => document.querySelectorAll(".queue-item").length >= 2);
     const reviewDocument = document.querySelector(".review-document");
-    const reviewScroll = window.scrollY;
+    const reviewScroll = pageScroller().scrollTop;
     const publishedRow = Array.from(
       document.querySelectorAll<HTMLButtonElement>(".queue-item"),
     ).find((row) => row.textContent?.includes("v1.0.0"))!;
@@ -583,7 +615,7 @@ export async function runNativeSmoke() {
     );
     check(
       document.querySelector(".review-document") === reviewDocument &&
-        Math.abs(window.scrollY - reviewScroll) < 2,
+        Math.abs(pageScroller().scrollTop - reviewScroll) < 2,
       "version switching preserves document frame and page position",
     );
     check(
@@ -926,7 +958,7 @@ export async function runNativeSmoke() {
           .click();
         await waitForUI(
           () =>
-            !document.querySelector("dialog[open]") &&
+            document.querySelectorAll("dialog[open]").length === 1 &&
             !!Array.from(document.querySelectorAll("article")).find(
               (r) =>
                 r.textContent?.includes(name) &&
@@ -937,6 +969,10 @@ export async function runNativeSmoke() {
           (await API.PlatformAccess("public", user.id)).can_read_audit,
           "platform duty confirmation persists through native bridge",
         );
+        document
+          .querySelector<HTMLButtonElement>("dialog[open] .modal-head button")!
+          .click();
+        await waitForUI(() => !document.querySelector("dialog[open]"));
         await API.SetPlatformRole(
           "public",
           user.id,
@@ -1414,6 +1450,17 @@ export async function runNativeSmoke() {
           ".connection-preferences button.primary",
         )!.disabled,
     );
+    let identityDisappeared = false;
+    const accountObserver = new MutationObserver(() => {
+      identityDisappeared ||= Array.from(
+        document.querySelectorAll(".connection-account p"),
+      ).some((row) => row.textContent !== "admin");
+    });
+    accountObserver.observe(document.querySelector(".connection-list")!, {
+      subtree: true,
+      childList: true,
+      characterData: true,
+    });
     document
       .querySelector<HTMLButtonElement>(
         ".connection-preferences button.primary",
@@ -1421,6 +1468,11 @@ export async function runNativeSmoke() {
       .click();
     await waitForUI(
       () => !!document.querySelector('.connection-preferences [role="status"]'),
+    );
+    accountObserver.disconnect();
+    check(
+      !identityDisappeared,
+      "saving a connection keeps the verified account visible throughout refresh",
     );
     const renamedConnection = ((await API.ListSources()) ?? []).find(
       (source) => source.alias === "company",
@@ -1490,7 +1542,144 @@ export async function runNativeSmoke() {
       "review outcome persisted for submitting identity",
     );
     location.hash = "submissions?source=limited";
+    await waitForUI(
+      () =>
+        !!document.querySelector(".review-heading") &&
+        !!document
+          .querySelector('summary[aria-label="Switch Hub"]')
+          ?.getAttribute("title")
+          ?.endsWith(" · limited"),
+    );
+    check(
+      !Array.from(document.querySelectorAll(".queue-item")).some((row) =>
+        row.textContent?.includes("v1.0.1"),
+      ),
+      `current submissions exclude rejected history on first load (${document.querySelector(".review-toolbar .ui-select")?.textContent}; ${location.hash})`,
+    );
+    const historyVersion = (
+      await API.FilterSubmissions(
+        "limited",
+        "1.0.1",
+        Status.ReleaseStatus_RELEASE_STATUS_REJECTED,
+        true,
+        "",
+        false,
+      )
+    ).releases?.[0];
+    if (!historyVersion) throw new Error("history cleanup fixture missing");
+    location.hash = `submissions?source=limited&release=${historyVersion.id}`;
+    await waitForUI(
+      () =>
+        document
+          .querySelector(".review-heading")
+          ?.textContent?.includes("v1.0.1") ?? false,
+    );
+    await clickButton("Delete version…");
+    await waitForUI(() => !!document.querySelector("dialog[open]"));
+    check(
+      document
+        .querySelector("dialog[open]")
+        ?.textContent?.includes(
+          "Skill discussion, likes, saves, audit records and installed copies remain.",
+        ),
+      "history cleanup explains the retained audit trail and installed copies",
+    );
+    document
+      .querySelector<HTMLButtonElement>("dialog[open] .modal-head button")!
+      .click();
+    await waitForUI(() => !document.querySelector("dialog[open]"));
+    check(
+      (await API.PreviewSubmission("limited", historyVersion.id)).release.id ===
+        historyVersion.id,
+      "canceling history cleanup preserves the version",
+    );
+    await clickButton("Delete version…");
+    await waitForUI(() => !!document.querySelector("dialog[open]"));
+    const deleteConfirmation = Array.from(
+      document.querySelectorAll<HTMLButtonElement>("dialog[open] button"),
+    ).find((button) => button.textContent === "Confirm")!;
+    deleteConfirmation.click();
+    await waitForUI(
+      () =>
+        !document.querySelector("dialog[open]") &&
+        !Array.from(document.querySelectorAll(".queue-item")).some((row) =>
+          row.textContent?.includes("v1.0.1"),
+        ),
+    );
+    check(
+      !(await API.FilterSubmissions("limited", "1.0.1", 0, true, "", false))
+        .releases?.length,
+      "history cleanup removes the rejected version through the native product flow",
+    );
     await waitForUI(() => !!document.querySelector(".review-heading"));
+    location.hash = "review?source=company";
+    await waitForUI(
+      () =>
+        document.querySelector(".review-workspace .empty h2")?.textContent ===
+        "All caught up",
+    );
+    const emptyWorkspace = document.querySelector(".review-workspace")!;
+    check(
+      emptyWorkspace.querySelectorAll(".empty").length === 1 &&
+        !emptyWorkspace.querySelector(".review-queue") &&
+        !!emptyWorkspace.querySelector(".review-toolbar"),
+      "empty review queue has one full-width state and keeps its filters in a toolbar",
+    );
+    const emptyBounds = emptyWorkspace
+      .querySelector(".empty")!
+      .getBoundingClientRect();
+    const workspaceBounds = emptyWorkspace.getBoundingClientRect();
+    check(
+      Math.abs(emptyBounds.width - workspaceBounds.width) < 4 &&
+        workspaceBounds.height < 420,
+      "empty review layout fills the panel width without an oversized two-column frame",
+    );
+    inputValue(
+      document.querySelector<HTMLInputElement>(".review-toolbar input")!,
+      "missing-fixture-submission",
+    );
+    await waitForUI(
+      () =>
+        document.querySelector(".review-workspace .empty h2")?.textContent ===
+        "No matching submissions",
+    );
+    check(
+      !document
+        .querySelector(".review-workspace")!
+        .textContent?.includes("All caught up"),
+      "filtered empty reviews never claim all review work is complete",
+    );
+    document
+      .querySelector<HTMLButtonElement>(
+        ".review-workspace .empty-actions button",
+      )!
+      .click();
+    await waitForUI(
+      () =>
+        document.querySelector(".review-workspace .empty h2")?.textContent ===
+        "All caught up",
+    );
+    check(
+      document.querySelector<HTMLInputElement>(".review-toolbar input")!
+        .value === "",
+      "clearing review filters restores the default queue",
+    );
+    await clickButton("View all versions");
+    await waitForUI(() => !!document.querySelector(".review-heading"));
+    check(
+      !!document.querySelector(".review-queue .queue-item") &&
+        !document.querySelector(".review-workspace .empty"),
+      "empty-state history action restores the submission list and detail",
+    );
+    location.hash = "submissions?source=limited";
+    await waitForUI(
+      () =>
+        !!document.querySelector(".review-heading") &&
+        !!document
+          .querySelector('summary[aria-label="Switch Hub"]')
+          ?.getAttribute("title")
+          ?.endsWith(" · limited"),
+    );
     await waitForUI(() =>
       Array.from(document.querySelectorAll("button")).some((b) =>
         b.getAttribute("aria-label")?.startsWith("Inbox"),
@@ -1500,6 +1689,10 @@ export async function runNativeSmoke() {
       .find((b) => b.getAttribute("aria-label")?.startsWith("Inbox"))!
       .click();
     await waitForUI(() => !!document.querySelector(".review-outcomes button"));
+    check(
+      !document.querySelector(".inbox-context span"),
+      "inbox shows the connection name without repeating its CLI identifier",
+    );
     const inboxTrigger =
       document.querySelector<HTMLButtonElement>(".utility-inbox")!;
     check(
@@ -1641,18 +1834,6 @@ export async function runNativeSmoke() {
       document.querySelector<HTMLInputElement>(".publish-main input")!,
       projects[0].replace(/[\\/]demo-project$/, "/incident-brief"),
     );
-    const clickButton = async (label: string) => {
-      await waitForUI(() =>
-        Array.from(document.querySelectorAll("button")).some(
-          (b) => b.textContent?.trim() === label && !b.disabled,
-        ),
-      );
-      (
-        Array.from(document.querySelectorAll("button")).find(
-          (b) => b.textContent?.trim() === label && !b.disabled,
-        ) as HTMLButtonElement
-      ).click();
-    };
     await clickButton("Preview folder");
     await waitForUI(
       () => !!document.querySelector(".publish-main .document-prose"),
@@ -1687,11 +1868,11 @@ export async function runNativeSmoke() {
           ?.textContent?.includes("Native draft editor verification.") ?? false,
     );
     check(true, "saved draft is revalidated and previewed before publication");
-    window.scrollTo(0, document.body.scrollHeight);
+    pageScroller().scrollTo(0, pageScroller().scrollHeight);
     await clickButton("Continue to details");
     await waitForUI(() => !!document.querySelector('input[lang="en"]'));
     check(
-      window.scrollY === 0,
+      pageScroller().scrollTop === 0,
       "publish step starts at the top of the new form",
     );
     inputValue(
@@ -1709,6 +1890,30 @@ export async function runNativeSmoke() {
     document
       .querySelector<HTMLInputElement>('input[name="skill-icon"][value="3"]')!
       .click();
+    await chooseSelect(
+      '.publish-main [role="combobox"][aria-label="Audience"]',
+      "1",
+    );
+    location.hash = "installed";
+    await waitForUI(() => !!document.querySelector(".library-toolbar"));
+    location.hash = "publish?source=public";
+    await waitForUI(
+      () =>
+        document
+          .querySelector(".publish-main .document-prose")
+          ?.textContent?.includes("Native draft editor verification.") ?? false,
+    );
+    await clickButton("Continue to details");
+    await waitForUI(
+      () =>
+        document.querySelector<HTMLInputElement>('input[lang="en"]')?.value ===
+        "Incident Brief",
+    );
+    check(
+      document.querySelector<HTMLInputElement>(".publish-main input[pattern]")
+        ?.value === "1.2.0",
+      "publication draft restores files, names and version after leaving the page",
+    );
     await clickButton("Review submission");
     await waitForUI(
       () =>
@@ -1721,6 +1926,14 @@ export async function runNativeSmoke() {
         .querySelector(".publish-main")
         ?.textContent?.includes("事件简报"),
       "publish confirmation includes both names and exact package ID",
+    );
+    check(
+      document
+        .querySelector(".publish-main")
+        ?.textContent?.includes(
+          "Publishing makes this skill, its published history and discussion public.",
+        ),
+      "restored publication audience explains the policy for the whole skill",
     );
     await clickButton("Publish version");
     await waitForUI(() => !!document.querySelector(".publish-result"));

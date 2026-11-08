@@ -1,3 +1,4 @@
+import { SkillMetadata } from "./SkillMetadata";
 import { ProvenanceDetails } from "./ProvenancePanel";
 import { skillWebURL } from "./official";
 import { ProjectLink } from "./Downloads";
@@ -286,7 +287,7 @@ export function Discover() {
     if (!releases.releases?.length)
       throw new Error(t("No accessible versions.", "没有可访问的版本。"));
     setSelected({ coordinate, skill, releases });
-    setVersion(requestedVersion || releases.releases[0].version);
+    setVersion(requestedVersion || skill.version);
   }
   useEffect(() => {
     let active = true;
@@ -304,6 +305,18 @@ export function Discover() {
       active = false;
     };
   }, [selected?.coordinate, version, ui.revision, previewAttempt]);
+  const hasSearchFilter = !!(
+    last.current.query ||
+    last.current.category ||
+    tag
+  );
+  const clearCatalogFilters = () => {
+    const params = new URLSearchParams(
+      catalogRoute("", "", allSources, "").split("?")[1],
+    );
+    params.set("featured", "false");
+    ui.navigate(`discover?${params}`);
+  };
   const browseControl = (
     <Select
       aria-label={t("Browse skills", "浏览技能")}
@@ -498,8 +511,38 @@ export function Discover() {
             {p.error ? (
               <AccessState error={p.error} retry={() => void search()} />
             ) : (p.skills ?? []).length === 0 ? (
-              <Empty title={t("No matching skills")}>
-                {t("Try a different search, or share a skill with your team.")}
+              <Empty
+                title={
+                  hasSearchFilter
+                    ? t("No matching skills")
+                    : featuredOnly
+                      ? t("No featured skills yet", "暂无精选技能")
+                      : t("No skills published yet", "暂无已发布技能")
+                }
+              >
+                {hasSearchFilter
+                  ? t(
+                      "Try another search or clear the filters.",
+                      "尝试其他搜索词，或清除筛选条件。",
+                    )
+                  : featuredOnly
+                    ? t(
+                        "Explore all skills in this hub.",
+                        "浏览此 Hub 的全部技能。",
+                      )
+                    : t(
+                        "Published skills will appear here.",
+                        "技能发布后将显示在这里。",
+                      )}
+                {(hasSearchFilter || featuredOnly) && (
+                  <span className="empty-actions">
+                    <button onClick={clearCatalogFilters}>
+                      {hasSearchFilter
+                        ? t("Clear filters", "清除筛选")
+                        : t("Browse all skills", "浏览全部技能")}
+                    </button>
+                  </span>
+                )}
               </Empty>
             ) : (
               <SkillList
@@ -639,6 +682,20 @@ export function Discover() {
                 }}
               />
             )}
+            <SkillMetadata
+              source={selected.coordinate.split("/")[0]}
+              skill={selected.skill}
+              saved={() => {
+                void ui.run(async () => {
+                  const skill = await API.GetSkill(
+                    selected.coordinate.split("/")[0],
+                    selected.skill.namespace,
+                    selected.skill.name,
+                  );
+                  setSelected({ ...selected, skill });
+                });
+              }}
+            />
             {detailSummary.error && (
               <button onClick={detailSummary.reload}>
                 {t("Retry community actions", "重新加载社区操作")}
@@ -688,7 +745,7 @@ export function Discover() {
               <h3>{t("About this version", "关于当前版本")}</h3>
               <p className="version-context">
                 {t(
-                  "Likes, saves and comments belong to this version.",
+                  "Likes, saves and discussion belong to this skill.",
                   "点赞、收藏和评论属于当前版本。",
                 )}
               </p>

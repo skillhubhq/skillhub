@@ -182,6 +182,10 @@ func TestMissingSavedCredentialDoesNotFallBackToAnonymous(t *testing.T) {
 	if _, err = core.LoginPassword(context.Background(), "public", "admin", "a-strong-test-password"); err != nil {
 		t.Fatal(err)
 	}
+	source, err = core.Source(context.Background(), "public")
+	if err != nil {
+		t.Fatal(err)
+	}
 	if err = credentials.Delete(source.CredentialRef); err != nil {
 		t.Fatal(err)
 	}

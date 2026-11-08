@@ -145,6 +145,10 @@ export function CommunityParticipation(source: string): $CancellablePromise<comm
     return $Call.ByID(3012397075, source);
 }
 
+export function CommunityRemoveBookmark(source: string, $namespace: string, name: string, key: string): $CancellablePromise<void> {
+    return $Call.ByID(3928139306, source, $namespace, name, key);
+}
+
 export function CommunityReport(source: string, id: string, comment: string, reason: string, key: string): $CancellablePromise<string> {
     return $Call.ByID(2730199804, source, id, comment, reason, key);
 }
@@ -252,6 +256,10 @@ export function ListSources(): $CancellablePromise<client$0.Source[] | null> {
     return $Call.ByID(3601002237);
 }
 
+export function LoadPublicationDraft(source: string, account: string): $CancellablePromise<string> {
+    return $Call.ByID(2563309976, source, account);
+}
+
 export function LockProject(path: string): $CancellablePromise<client$0.ProjectState> {
     return $Call.ByID(2782419939, path);
 }
@@ -266,6 +274,10 @@ export function Logout(alias: string): $CancellablePromise<void> {
 
 export function LookupUsers(source: string, $namespace: string, query: string, token: string): $CancellablePromise<$models.AdminPage> {
     return $Call.ByID(3201508161, source, $namespace, query, token);
+}
+
+export function MarkAllNotificationsRead(source: string): $CancellablePromise<void> {
+    return $Call.ByID(3306567725, source);
 }
 
 export function MarkNotificationRead(source: string, id: string): $CancellablePromise<void> {
@@ -379,6 +391,10 @@ export function RemoveSource(alias: string): $CancellablePromise<void> {
     return $Call.ByID(1070275136, alias);
 }
 
+export function RenewSkillConfiguration(target: string, digest: string): $CancellablePromise<void> {
+    return $Call.ByID(1336199975, target, digest);
+}
+
 export function RetractEvaluation(source: string, id: string, key: string): $CancellablePromise<void> {
     return $Call.ByID(3844365116, source, id, key);
 }
@@ -393,6 +409,10 @@ export function ReviewTasks(source: string, token: string): $CancellablePromise<
 
 export function SaveDraftFile(id: string, path: string, digest: string, text: string): $CancellablePromise<client$0.DraftFile> {
     return $Call.ByID(1558642741, id, path, digest, text);
+}
+
+export function SavePublicationDraft(source: string, account: string, payload: string): $CancellablePromise<void> {
+    return $Call.ByID(528874689, source, account, payload);
 }
 
 export function ScanRelease(source: string, id: string, key: string): $CancellablePromise<client$0.ScanInfo> {
@@ -437,6 +457,10 @@ export function Submissions(source: string, $namespace: string, token: string): 
 
 export function UnsetSkillConfiguration(target: string, name: string): $CancellablePromise<void> {
     return $Call.ByID(712285395, target, name);
+}
+
+export function UpdateSkillMetadata(source: string, change: client$0.SkillMetadataChange): $CancellablePromise<void> {
+    return $Call.ByID(900101020, source, change);
 }
 
 export function UpdateSourcePreferences(alias: string, label: string, note: string): $CancellablePromise<client$0.Source> {

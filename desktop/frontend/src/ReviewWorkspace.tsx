@@ -1,3 +1,4 @@
+import { AccessState } from "./AccessState";
 import { ProvenanceDetails } from "./ProvenancePanel";
 import { EvaluationPanel } from "./EvaluationPanel";
 import { ScanPanel } from "./Governance";
@@ -127,7 +128,9 @@ export function ReviewWorkspace({
   const appliedFilter = useRef(JSON.stringify([query, filter]));
   const generation = useRef(0),
     mutation = useRef<{ key: string; id: string } | null>(null);
+  const waitingForFilter = filter === "active" && cleanup.loading;
   useEffect(() => {
+    if (waitingForFilter) return;
     let active = true;
     setLoadError("");
     const filterKey = JSON.stringify([query, effectiveFilter]);
@@ -135,6 +138,7 @@ export function ReviewWorkspace({
     if (appliedFilter.current !== filterKey) {
       appliedFilter.current = filterKey;
       selectedID.current = "";
+      setPage(null);
       setSelected(null);
       setReason("");
     }
@@ -161,6 +165,7 @@ export function ReviewWorkspace({
           selectedID.current === requestedID
         ) {
           selectedID.current = target;
+          setSelecting(target);
           const preview = await API.PreviewSubmission(source, target);
           if (mine && preview.release.submitted_by !== identity.id)
             throw new Error(
@@ -175,6 +180,7 @@ export function ReviewWorkspace({
             selectedID.current === target
           ) {
             setSelected(preview);
+            setSelecting("");
             setPage((current) =>
               current
                 ? {
@@ -199,7 +205,15 @@ export function ReviewWorkspace({
       active = false;
       generation.current++;
     };
-  }, [source, ui.revision, reload, query, effectiveFilter, mine]);
+  }, [
+    source,
+    ui.revision,
+    reload,
+    query,
+    effectiveFilter,
+    mine,
+    waitingForFilter,
+  ]);
   const rows = page?.releases ?? [];
   const select = async (id: string) => {
     if (id === selected?.release.id && !selecting) return;
@@ -245,8 +259,8 @@ export function ReviewWorkspace({
       coordinate +
         " — " +
         t(
-          "Delete its files, comments and evaluation reports. Audit records and installed copies remain.",
-          "删除该版本的文件、评论和评测报告。保留审计记录和已安装副本。",
+          "Remove this package and its evaluation reports. Skill discussion, likes, saves, audit records and installed copies remain.",
+          "清理该版本的文件和评测报告。保留技能讨论、点赞、收藏、审计记录和已安装副本。",
         ),
       async () => {
         const key = JSON.stringify([source, snapshot.id, "delete"]);
@@ -363,16 +377,27 @@ export function ReviewWorkspace({
       },
     );
   }
+  const defaultFilter = mine
+    ? cleanup.value === true
+      ? "active"
+      : "all"
+    : String(Status.ReleaseStatus_RELEASE_STATUS_PENDING);
+  const filtered = !!query.trim() || effectiveFilter !== defaultFilter;
+  const resetFilters = () => {
+    setSearchText("");
+    setQuery("");
+    setFilter(defaultFilter);
+  };
   return (
     <div
-      className={`review-workspace ${page && rows.length === 0 && !selected ? "is-empty" : ""}`}
+      className={`review-workspace ${rows.length === 0 ? "single-pane" : ""} ${page && rows.length === 0 && !selected ? "is-empty" : ""}`}
     >
-      <section className="review-queue">
+      <div className="review-toolbar">
         <div className="queue-heading">
           <h2>
-            {t("Versions", "版本")}{" "}
+            {mine ? t("Versions", "版本") : t("Submissions", "提交")}{" "}
             <small>
-              {rows.length}
+              {page ? rows.length : "…"}
               {page?.next_page ? "+" : ""}
             </small>
           </h2>
@@ -412,21 +437,15 @@ export function ReviewWorkspace({
             {t("Changes requested")}
           </option>
         </Select>
-        {loadError ? (
-          <p role="alert">{loadError}</p>
-        ) : !page ? (
-          <p className="muted">{t("Loading submissions…")}</p>
-        ) : rows.length === 0 ? (
-          <div className="queue-empty">
-            <p className="muted">{t("No submissions match this filter.")}</p>
-            {mine && (
-              <button onClick={() => ui.navigate("publish")}>
-                {t("Publish a skill", "发布技能")}
-              </button>
-            )}
-          </div>
-        ) : (
-          rows.map((r) => (
+        {filtered && rows.length > 0 && (
+          <button onClick={resetFilters}>
+            {t("Clear filters", "清除筛选")}
+          </button>
+        )}
+      </div>
+      {rows.length > 0 && (
+        <section className="review-queue" aria-label={t("Submissions", "提交")}>
+          {rows.map((r) => (
             <button
               className={`queue-item ${(selecting || selected?.release.id) === r.id ? "active" : ""}`}
               key={r.id}
@@ -445,37 +464,44 @@ export function ReviewWorkspace({
                 </span>
               </span>
             </button>
-          ))
-        )}
-        {page?.next_page && (
-          <button
-            disabled={ui.busy}
-            onClick={() =>
-              void ui.run(async () => {
-                const n = generation.current;
-                const p = await API.FilterSubmissions(
-                  source,
-                  query,
-                  effectiveFilter === "all" || effectiveFilter === "active"
-                    ? 0
-                    : Number(effectiveFilter),
-                  mine,
-                  page.next_page,
-                  effectiveFilter === "active",
-                );
-                if (n !== generation.current) return;
-                setPage({
-                  releases: [...(page.releases ?? []), ...(p.releases ?? [])],
-                  next_page: p.next_page,
-                });
-              })
-            }
-          >
-            {t("Load more submissions")}
-          </button>
-        )}
-      </section>
-      {selected ? (
+          ))}
+          {page?.next_page && (
+            <button
+              disabled={ui.busy}
+              onClick={() =>
+                void ui.run(async () => {
+                  const n = generation.current;
+                  const p = await API.FilterSubmissions(
+                    source,
+                    query,
+                    effectiveFilter === "all" || effectiveFilter === "active"
+                      ? 0
+                      : Number(effectiveFilter),
+                    mine,
+                    page.next_page,
+                    effectiveFilter === "active",
+                  );
+                  if (n !== generation.current) return;
+                  setPage({
+                    releases: [...(page.releases ?? []), ...(p.releases ?? [])],
+                    next_page: p.next_page,
+                  });
+                })
+              }
+            >
+              {t("Load more submissions")}
+            </button>
+          )}
+        </section>
+      )}
+      {loadError ? (
+        <div className="review-load-error">
+          <AccessState
+            error={loadError}
+            retry={() => setReload((n) => n + 1)}
+          />
+        </div>
+      ) : selected ? (
         <>
           <section
             ref={documentRef}
@@ -718,35 +744,74 @@ export function ReviewWorkspace({
             </div>
           </section>
         </>
+      ) : (!page || selecting) && !loadError ? (
+        <section className="review-document" aria-busy="true">
+          <div
+            className="loading-skeleton"
+            role="status"
+            aria-label={t("Loading submissions…")}
+          >
+            <i />
+            <i />
+            <i />
+          </div>
+        </section>
       ) : (
         <Empty
           title={
-            page && rows.length === 0
-              ? mine
-                ? t("No releases here", "暂无发布")
-                : t("All caught up", "暂无待审核内容")
-              : t("Choose a submission")
+            rows.length > 0
+              ? t("Choose a submission")
+              : filtered
+                ? t("No matching submissions", "没有匹配的提交")
+                : mine
+                  ? t("No current releases", "暂无当前发布")
+                  : t("All caught up", "暂无待审核内容")
           }
         >
-          {page && rows.length === 0
-            ? mine
+          {rows.length > 0
+            ? t(
+                "Select a version to see its content, status and review feedback.",
+                "选择一个版本，查看内容、状态与审核反馈。",
+              )
+            : filtered
               ? t(
-                  "Publish a skill or choose another filter.",
-                  "发布技能，或调整筛选条件。",
+                  "Try another search or clear the filters.",
+                  "尝试其他搜索词，或清除筛选条件。",
                 )
-              : t(
-                  "New submissions will appear here.",
-                  "有新的提交时会显示在这里。",
-                )
-            : mine
-              ? t(
-                  "Select a version to see its content, status and review feedback.",
-                  "选择一个版本，查看内容、状态与审核反馈。",
-                )
-              : t(
-                  "New submissions will appear here.",
-                  "有新的提交时会显示在这里。",
-                )}
+              : mine
+                ? t(
+                    "Your submissions and review feedback will appear here.",
+                    "提交的技能及审核反馈将显示在这里。",
+                  )
+                : t(
+                    "New submissions will appear here.",
+                    "有新的提交时会显示在这里。",
+                  )}
+          {rows.length === 0 && (
+            <span className="empty-actions">
+              {filtered ? (
+                <button onClick={resetFilters}>
+                  {t("Clear filters", "清除筛选")}
+                </button>
+              ) : (
+                <>
+                  {mine && (
+                    <button
+                      className="primary"
+                      onClick={() => ui.navigate("publish")}
+                    >
+                      {t("Publish a skill", "发布技能")}
+                    </button>
+                  )}
+                  {effectiveFilter !== "all" && (
+                    <button onClick={() => setFilter("all")}>
+                      {t("View all versions", "查看全部版本")}
+                    </button>
+                  )}
+                </>
+              )}
+            </span>
+          )}
         </Empty>
       )}
     </div>

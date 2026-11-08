@@ -17,6 +17,7 @@
 
 @import "./select.css";
 @import "./app-updates.css";
+@import "./page-scroll.css";
 
 .saved-draft-list {
   display: grid;

@@ -33,6 +33,9 @@ const (
 // reflection-formatted method names, remove the leading slash and convert the remaining slash to a
 // period.
 const (
+	// CommunityServiceRemoveBookmarkProcedure is the fully-qualified name of the CommunityService's
+	// RemoveBookmark RPC.
+	CommunityServiceRemoveBookmarkProcedure = "/api.community.v1.CommunityService/RemoveBookmark"
 	// CommunityServiceGetParticipationProcedure is the fully-qualified name of the CommunityService's
 	// GetParticipation RPC.
 	CommunityServiceGetParticipationProcedure = "/api.community.v1.CommunityService/GetParticipation"
@@ -91,6 +94,8 @@ const (
 
 // CommunityServiceClient is a client for the api.community.v1.CommunityService service.
 type CommunityServiceClient interface {
+	// RemoveBookmark 即使技能不可访问也允许移除本人的收藏。
+	RemoveBookmark(context.Context, *connect.Request[v1.RemoveBookmarkRequest]) (*connect.Response[v1.RemoveBookmarkResponse], error)
 	// GetParticipation 返回当前用户的投稿空间和模式配额。
 	GetParticipation(context.Context, *connect.Request[v1.GetParticipationRequest]) (*connect.Response[v1.GetParticipationResponse], error)
 	// ReportContent 举报当前可访问的已发布版本或评论。
@@ -140,6 +145,12 @@ func NewCommunityServiceClient(httpClient connect.HTTPClient, baseURL string, op
 	baseURL = strings.TrimRight(baseURL, "/")
 	communityServiceMethods := v1.File_api_community_v1_community_service_proto.Services().ByName("CommunityService").Methods()
 	return &communityServiceClient{
+		removeBookmark: connect.NewClient[v1.RemoveBookmarkRequest, v1.RemoveBookmarkResponse](
+			httpClient,
+			baseURL+CommunityServiceRemoveBookmarkProcedure,
+			connect.WithSchema(communityServiceMethods.ByName("RemoveBookmark")),
+			connect.WithClientOptions(opts...),
+		),
 		getParticipation: connect.NewClient[v1.GetParticipationRequest, v1.GetParticipationResponse](
 			httpClient,
 			baseURL+CommunityServiceGetParticipationProcedure,
@@ -253,6 +264,7 @@ func NewCommunityServiceClient(httpClient connect.HTTPClient, baseURL string, op
 
 // communityServiceClient implements CommunityServiceClient.
 type communityServiceClient struct {
+	removeBookmark    *connect.Client[v1.RemoveBookmarkRequest, v1.RemoveBookmarkResponse]
 	getParticipation  *connect.Client[v1.GetParticipationRequest, v1.GetParticipationResponse]
 	reportContent     *connect.Client[v1.ReportContentRequest, v1.ReportContentResponse]
 	listReports       *connect.Client[v1.ListReportsRequest, v1.ListReportsResponse]
@@ -271,6 +283,11 @@ type communityServiceClient struct {
 	deleteComment     *connect.Client[v1.DeleteCommentRequest, v1.DeleteCommentResponse]
 	setReaction       *connect.Client[v1.SetReactionRequest, v1.SetReactionResponse]
 	listBookmarks     *connect.Client[v1.ListBookmarksRequest, v1.ListBookmarksResponse]
+}
+
+// RemoveBookmark calls api.community.v1.CommunityService.RemoveBookmark.
+func (c *communityServiceClient) RemoveBookmark(ctx context.Context, req *connect.Request[v1.RemoveBookmarkRequest]) (*connect.Response[v1.RemoveBookmarkResponse], error) {
+	return c.removeBookmark.CallUnary(ctx, req)
 }
 
 // GetParticipation calls api.community.v1.CommunityService.GetParticipation.
@@ -365,6 +382,8 @@ func (c *communityServiceClient) ListBookmarks(ctx context.Context, req *connect
 
 // CommunityServiceHandler is an implementation of the api.community.v1.CommunityService service.
 type CommunityServiceHandler interface {
+	// RemoveBookmark 即使技能不可访问也允许移除本人的收藏。
+	RemoveBookmark(context.Context, *connect.Request[v1.RemoveBookmarkRequest]) (*connect.Response[v1.RemoveBookmarkResponse], error)
 	// GetParticipation 返回当前用户的投稿空间和模式配额。
 	GetParticipation(context.Context, *connect.Request[v1.GetParticipationRequest]) (*connect.Response[v1.GetParticipationResponse], error)
 	// ReportContent 举报当前可访问的已发布版本或评论。
@@ -410,6 +429,12 @@ type CommunityServiceHandler interface {
 // and JSON codecs. They also support gzip compression.
 func NewCommunityServiceHandler(svc CommunityServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
 	communityServiceMethods := v1.File_api_community_v1_community_service_proto.Services().ByName("CommunityService").Methods()
+	communityServiceRemoveBookmarkHandler := connect.NewUnaryHandler(
+		CommunityServiceRemoveBookmarkProcedure,
+		svc.RemoveBookmark,
+		connect.WithSchema(communityServiceMethods.ByName("RemoveBookmark")),
+		connect.WithHandlerOptions(opts...),
+	)
 	communityServiceGetParticipationHandler := connect.NewUnaryHandler(
 		CommunityServiceGetParticipationProcedure,
 		svc.GetParticipation,
@@ -520,6 +545,8 @@ func NewCommunityServiceHandler(svc CommunityServiceHandler, opts ...connect.Han
 	)
 	return "/api.community.v1.CommunityService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
+		case CommunityServiceRemoveBookmarkProcedure:
+			communityServiceRemoveBookmarkHandler.ServeHTTP(w, r)
 		case CommunityServiceGetParticipationProcedure:
 			communityServiceGetParticipationHandler.ServeHTTP(w, r)
 		case CommunityServiceReportContentProcedure:
@@ -564,6 +591,10 @@ func NewCommunityServiceHandler(svc CommunityServiceHandler, opts ...connect.Han
 
 // UnimplementedCommunityServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedCommunityServiceHandler struct{}
+
+func (UnimplementedCommunityServiceHandler) RemoveBookmark(context.Context, *connect.Request[v1.RemoveBookmarkRequest]) (*connect.Response[v1.RemoveBookmarkResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("api.community.v1.CommunityService.RemoveBookmark is not implemented"))
+}
 
 func (UnimplementedCommunityServiceHandler) GetParticipation(context.Context, *connect.Request[v1.GetParticipationRequest]) (*connect.Response[v1.GetParticipationResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("api.community.v1.CommunityService.GetParticipation is not implemented"))

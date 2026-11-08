@@ -146,6 +146,15 @@ func TestLocalConfigurationIsolationRedactionAndUpgrade(t *testing.T) {
 	if err = c.SetSkillConfiguration(ctx, first.Target, "DEMO_REGION", "value", "new"); err == nil {
 		t.Fatal("changed binding accepted")
 	}
+	if err = c.RenewSkillConfiguration(ctx, first.Target, "sha256:wrong"); err == nil {
+		t.Fatal("accepted stale digest")
+	}
+	if err = c.RenewSkillConfiguration(ctx, first.Target, report.Installation.Digest); err != nil {
+		t.Fatal(err)
+	}
+	if renewed, e := c.SkillConfiguration(ctx, first.Target); e != nil || !renewed.Ready || renewed.Changed {
+		t.Fatal("renewal lost values", e)
+	}
 	if err = c.ClearSkillConfiguration(ctx, first.Target); err != nil {
 		t.Fatal(err)
 	}
@@ -258,5 +267,38 @@ func TestLocalConfigurationRejectsSymlinkDirectory(t *testing.T) {
 	files, err := os.ReadDir(outside)
 	if err != nil || len(files) != 0 {
 		t.Fatal("wrote outside local store", err)
+	}
+}
+
+func TestConfigurationRenewalDoesNotCrossAccounts(t *testing.T) {
+	ctx := context.Background()
+	store := testStore(t)
+	vault := &configCredentials{values: map[string]string{}}
+	core := NewClient(store, ClientOptions{Credentials: vault})
+	first := installConfigFixture(t, store, filepath.Join(t.TempDir(), "check"), "1.0.0")
+	if e := core.SetSkillConfiguration(ctx, first.Target, "DEMO_TOKEN", "keychain", "fixture-secret"); e != nil {
+		t.Fatal(e)
+	}
+	archive, _, e := packageformat.Pack(first.Target)
+	if e != nil {
+		t.Fatal(e)
+	}
+	first.SourceRef = "another-account"
+	plan, e := store.PlanInstall(ctx, first, archive)
+	if e != nil {
+		t.Fatal(e)
+	}
+	if e = store.Apply(ctx, *plan, archive); e != nil {
+		t.Fatal(e)
+	}
+	report, e := core.SkillConfiguration(ctx, first.Target)
+	if e != nil || !report.Changed {
+		t.Fatal("account change retained authorization", e)
+	}
+	if e = core.RenewSkillConfiguration(ctx, first.Target, first.Digest); e == nil {
+		t.Fatal("credentials crossed accounts")
+	}
+	if len(vault.values) != 1 {
+		t.Fatal("account change erased the original secret")
 	}
 }

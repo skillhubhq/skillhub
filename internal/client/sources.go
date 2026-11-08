@@ -37,6 +37,7 @@ var (
 )
 
 type Source struct {
+	AccountID     string `json:"account_id"`
 	Label         string `json:"label"`
 	Note          string `json:"note"`
 	Official      bool   `json:"official"`
@@ -132,7 +133,7 @@ func (c *Client) probe(ctx context.Context, address string) (*registryv1.GetRegi
 	if err != nil {
 		return nil, err
 	}
-	if response.Msg.ProtocolMajor != 1 || len(response.Msg.RegistryId) < 1 || len(response.Msg.RegistryId) > 128 {
+	if response.Msg.ProtocolMajor != 2 || len(response.Msg.RegistryId) < 1 || len(response.Msg.RegistryId) > 128 {
 		return nil, errors.New("unsupported registry protocol or identity")
 	}
 	return response.Msg, nil
@@ -302,7 +303,13 @@ func (c *Client) saveSession(ctx context.Context, remote *Remote, response *auth
 		if err != nil || current != remote.Source {
 			return errors.New("source changed during login")
 		}
-		if err = c.credentials.Set(remote.Source.CredentialRef, response.AccessToken); err != nil {
+		// 账号变化时分离凭据引用，安装和配置不会自动切换到另一身份。
+		previousRef := current.CredentialRef
+		if current.AccountID != response.Identity.UserId {
+			current.CredentialRef = uuid.NewString()
+		}
+		current.AccountID = response.Identity.UserId
+		if err = c.credentials.Set(current.CredentialRef, response.AccessToken); err != nil {
 			return err
 		}
 		current.HasCredential = true
@@ -311,6 +318,9 @@ func (c *Client) saveSession(ctx context.Context, remote *Remote, response *auth
 			return err
 		}
 		_, err = c.store.db.ExecContext(ctx, "UPDATE sources SET record=? WHERE alias=?", string(raw), current.Alias)
+		if err == nil && previousRef != current.CredentialRef {
+			_ = c.credentials.Delete(previousRef)
+		}
 		return err
 	})
 	if err != nil {

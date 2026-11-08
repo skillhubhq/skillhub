@@ -38,14 +38,18 @@ type ScanInfo struct {
 	ScannedAt string        `json:"scanned_at"`
 }
 type Notification struct {
-	ID         string `json:"id"`
-	ReleaseID  string `json:"release_id"`
-	Coordinate string `json:"coordinate"`
-	Approved   bool   `json:"approved"`
-	Read       bool   `json:"read"`
-	CreatedAt  string `json:"created_at"`
+	Kind        string `json:"kind"`
+	CommentID   string `json:"comment_id"`
+	Unavailable bool   `json:"unavailable"`
+	ID          string `json:"id"`
+	ReleaseID   string `json:"release_id"`
+	Coordinate  string `json:"coordinate"`
+	Approved    bool   `json:"approved"`
+	Read        bool   `json:"read"`
+	CreatedAt   string `json:"created_at"`
 }
 type NotificationPage struct {
+	Unread    uint32         `json:"unread"`
 	Supported bool           `json:"supported"`
 	Items     []Notification `json:"items"`
 	NextPage  string         `json:"next_page"`
@@ -136,12 +140,13 @@ func (c *Client) Notifications(ctx context.Context, source, token string) (Notif
 		return out, err
 	}
 	out.NextPage = v.Msg.GetPage().GetNextPageToken()
+	out.Unread = v.Msg.Unread
 	for _, n := range v.Msg.Notifications {
 		at := ""
 		if n.CreatedAt != nil {
 			at = n.CreatedAt.AsTime().UTC().Format(time.RFC3339)
 		}
-		out.Items = append(out.Items, Notification{n.NotificationId, n.ReleaseId, n.Coordinate, n.Approved, n.Read, at})
+		out.Items = append(out.Items, Notification{ID: n.NotificationId, ReleaseID: n.ReleaseId, Coordinate: n.Coordinate, Approved: n.Approved, Read: n.Read, CreatedAt: at, Kind: n.Kind, CommentID: n.CommentId, Unavailable: n.Unavailable})
 	}
 	return out, nil
 }
@@ -204,5 +209,14 @@ func (c *Client) SetFeaturedSkill(ctx context.Context, source, namespace, name s
 		return errors.New("hub does not support curated discovery")
 	}
 	_, err = r.Governance.SetFeaturedSkill(ctx, connect.NewRequest(&governancev1.SetFeaturedSkillRequest{Mutation: &commonv1.Mutation{IdempotencyKey: key}, Namespace: namespace, Name: name, Featured: featured}))
+	return err
+}
+
+func (c *Client) MarkAllNotificationsRead(ctx context.Context, source string) error {
+	r, err := c.Remote(ctx, source)
+	if err != nil {
+		return err
+	}
+	_, err = r.Governance.MarkNotificationRead(ctx, connect.NewRequest(&governancev1.MarkNotificationReadRequest{All: true}))
 	return err
 }

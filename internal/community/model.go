@@ -30,6 +30,7 @@ type Member struct {
 	Roles   []taxonomy.NamespaceRole `json:"roles"`
 }
 type Contribution struct {
+	Unavailable   bool               `json:"unavailable"`
 	Provenance    *provenance.Record `json:"provenance,omitempty"`
 	DisplayNameEN string             `json:"display_name_en"`
 	DisplayNameZH string             `json:"display_name_zh"`
@@ -42,6 +43,7 @@ type Contribution struct {
 	Author        Profile            `json:"author"`
 }
 type Comment struct {
+	Version   string    `json:"version"`
 	CommentID string    `json:"comment_id"`
 	ReleaseID string    `json:"release_id"`
 	ParentID  string    `json:"parent_id"`

@@ -44,3 +44,10 @@ func TestPostgresSchemaAndQueries(t *testing.T) {
 		t.Fatal("invalid DSN was not safely rejected")
 	}
 }
+
+func TestPostgresSkillPolicyJSON(t *testing.T) {
+	q := postgresSQL("SELECT CASE WHEN r.status=2 THEN s.groups ELSE json_group_array(group_id) END FROM json_each(skill.audience_groups) a JOIN json_each(m.tags) t ON a.value=t.value")
+	if strings.Contains(q, "json_each") || !strings.Contains(q, "CAST(json_agg(group_id) AS TEXT)") || !strings.Contains(q, "json_array_elements_text(CAST(skill.audience_groups AS json)) AS a(value)") {
+		t.Fatal(q)
+	}
+}

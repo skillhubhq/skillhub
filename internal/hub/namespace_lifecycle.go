@@ -89,12 +89,12 @@ func (s *Store) PurgeNamespace(ctx context.Context, actor Identity, key string, 
 		if _, err = tx.ExecContext(ctx, "INSERT INTO package_cleanup(digest) SELECT DISTINCT digest FROM releases WHERE namespace=? ON CONFLICT DO NOTHING", cmd.Name); err != nil {
 			return v, err
 		}
-		for _, table := range []string{"community_reports", "evaluation_evidence", "review_notifications", "release_scans", "reactions", "comments", "release_groups", "release_tags"} {
+		for _, table := range []string{"community_reports", "evaluation_evidence", "review_notifications", "release_scans", "comments", "release_groups", "release_tags"} {
 			if _, err = tx.ExecContext(ctx, "DELETE FROM "+table+" WHERE release_id IN (SELECT id FROM releases WHERE namespace=?)", cmd.Name); err != nil {
 				return v, err
 			}
 		}
-		for _, table := range []string{"releases", "featured_skills", "namespace_grants", "team_profiles", "personal_namespaces"} {
+		for _, table := range []string{"releases", "reactions", "skills", "featured_skills", "namespace_grants", "team_profiles", "personal_namespaces"} {
 			if _, err = tx.ExecContext(ctx, "DELETE FROM "+table+" WHERE namespace=?", cmd.Name); err != nil {
 				return v, err
 			}
@@ -146,7 +146,7 @@ func (s *Store) CollectNamespacePackages(ctx context.Context) error {
 			return errors.New("invalid cleanup digest")
 		}
 		var referenced bool
-		if err = tx.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM releases WHERE digest=?)", d).Scan(&referenced); err != nil {
+		if err = tx.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM releases WHERE digest=? AND cleaned=0)", d).Scan(&referenced); err != nil {
 			return err
 		}
 		if !referenced {
@@ -215,7 +215,7 @@ func purgeNamespaceResponses(ctx context.Context, tx *hubdb.Tx, name string) err
 		return err
 	}
 	for _, k := range remove {
-		if _, err = tx.ExecContext(ctx, "DELETE FROM mutations WHERE actor=? AND method=? AND key=?", k.actor, k.method, k.key); err != nil {
+		if _, err = tx.ExecContext(ctx, "UPDATE mutations SET result=?,invalidated=1 WHERE actor=? AND method=? AND key=?", []byte("null"), k.actor, k.method, k.key); err != nil {
 			return err
 		}
 	}

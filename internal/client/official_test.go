@@ -43,7 +43,7 @@ func TestOfficialOnboardingRetryAndOptOut(t *testing.T) {
 		if offline {
 			return nil, errors.New("offline")
 		}
-		raw, _ := proto.Marshal(&registryv1.GetRegistryResponse{RegistryId: "official-fixture", DisplayName: "SkillHub", ProtocolMajor: 1})
+		raw, _ := proto.Marshal(&registryv1.GetRegistryResponse{RegistryId: "official-fixture", DisplayName: "SkillHub", ProtocolMajor: 2})
 		return &http.Response{StatusCode: 200, Header: http.Header{"Content-Type": {"application/proto"}}, Body: io.NopCloser(bytes.NewReader(raw)), Request: r}, nil
 	})}})
 	ctx := context.Background()

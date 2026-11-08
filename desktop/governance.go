@@ -30,3 +30,7 @@ func (s *DesktopService) ReviewTasks(source, token string) (client.ReviewTaskPag
 func (s *DesktopService) SetFeaturedSkill(source, namespace, name string, featured bool, key string) error {
 	return s.core.SetFeaturedSkill(s.ctx, source, namespace, name, featured, key)
 }
+
+func (s *DesktopService) MarkAllNotificationsRead(source string) error {
+	return s.core.MarkAllNotificationsRead(s.ctx, source)
+}

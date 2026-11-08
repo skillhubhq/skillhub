@@ -1,3 +1,5 @@
+import { registerDraftSave } from "./pendingDraft";
+import { scrollPageToTop } from "./pageScroll";
 import { validProvenance, type Provenance } from "./provenance";
 import { ProvenanceDetails, ProvenanceEditor } from "./ProvenancePanel";
 import { SkillEditor } from "./SkillEditor";
@@ -8,7 +10,7 @@ import { t } from "./i18n";
 import { useResource } from "./community-ui";
 import { Icon } from "./Icon";
 import { SkillDocument } from "./SkillDocument";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   API,
   DirectoryField,
@@ -128,11 +130,179 @@ export function PublishWizard({ source }: { source: string }) {
     } | null>(null),
     [reload, setReload] = useState(0),
     [result, setResult] = useState<ReleaseInfo | null>(null);
+  const draftIdentity = useResource(() => API.Identity(source), [source]);
+  const [restored, setRestored] = useState("");
+  const [draftSave, setDraftSave] = useState("");
+  const savedPayload = useRef("");
+  const saveQueue = useRef(Promise.resolve());
+  const account = draftIdentity.value?.id || "";
+  const draftScope = `${source}/${account}/${previousID}`;
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "instant" });
+    if (!options || !account || restored === draftScope) return;
+    let active = true;
+    void ui.run(async () => {
+      const raw = await API.LoadPublicationDraft(source, account);
+      if (!active) return;
+      if (raw) {
+        const saved = JSON.parse(raw);
+        if (saved.previousID === previousID) {
+          setNamespace(
+            options.namespaces.some((n) => n.name === saved.namespace)
+              ? saved.namespace
+              : "",
+          );
+          setCategory(
+            options.categories.some((c) => c.name === saved.category)
+              ? saved.category
+              : "",
+          );
+          setGroups(
+            (saved.groups || []).filter((g: string) =>
+              options.groups.some((item) => item.id === g),
+            ),
+          );
+          setOrigin(saved.origin || null);
+          setDisplayNameEN(saved.displayNameEN || "");
+          setDisplayNameZH(saved.displayNameZH || "");
+          setIcon(saved.icon || 0);
+          setVersion(saved.version || "1.0.0");
+          setTags(saved.tags || "");
+          setVisibility(saved.visibility || 2);
+          if (isWeb && saved.archive) {
+            const bytes = Uint8Array.from(atob(saved.archive), (c) =>
+              c.charCodeAt(0),
+            );
+            const bundle = await (
+              await import("./web-api")
+            ).inspectArchive(bytes);
+            if (!active) return;
+            setArchive(bytes);
+            setDraft({
+              name: bundle.name,
+              description: bundle.description,
+              markdown: bundle.markdown,
+              digest: bundle.digest,
+              files: Object.keys(bundle.files),
+            });
+          } else if (!isWeb && saved.directory) {
+            setDirectory(saved.directory);
+            if (saved.workspace?.id) {
+              const work = await API.OpenDraft(saved.workspace.id);
+              setWorkspace({ ...work, files: work.files ?? [] });
+            }
+            try {
+              setDraft(await API.InspectDirectory(saved.directory));
+            } catch {
+              setDraftSave(
+                t(
+                  "Open the editor to repair this draft.",
+                  "请打开编辑器修复此草稿。",
+                ),
+              );
+            }
+          }
+        }
+      }
+      if (active) setRestored(draftScope);
+    });
+    return () => {
+      active = false;
+    };
+  }, [options, account, draftScope]);
+  const encodedArchive = useMemo(
+    () =>
+      archive
+        ? btoa(
+            Array.from({ length: Math.ceil(archive.length / 32768) }, (_, i) =>
+              String.fromCharCode(
+                ...archive.subarray(i * 32768, (i + 1) * 32768),
+              ),
+            ).join(""),
+          )
+        : "",
+    [archive],
+  );
+  const snapshot = useMemo(
+    () =>
+      JSON.stringify({
+        previousID,
+        directory,
+        workspace,
+        namespace,
+        category,
+        origin,
+        displayNameEN,
+        displayNameZH,
+        icon,
+        version,
+        tags,
+        visibility,
+        groups,
+        archive: encodedArchive,
+      }),
+    [
+      previousID,
+      directory,
+      workspace,
+      namespace,
+      category,
+      origin,
+      displayNameEN,
+      displayNameZH,
+      icon,
+      version,
+      tags,
+      visibility,
+      groups,
+      encodedArchive,
+    ],
+  );
+  useEffect(() => {
+    if (restored !== draftScope || result) return;
+    const payload = snapshot;
+    const save = async () => {
+      if (savedPayload.current === payload) return;
+      saveQueue.current = saveQueue.current
+        .catch(() => {})
+        .then(async () => {
+          await API.SavePublicationDraft(source, account, payload);
+          savedPayload.current = payload;
+        });
+      await saveQueue.current;
+    };
+    const unregister = registerDraftSave(save);
+    const timer = setTimeout(() => {
+      void save()
+        .then(() =>
+          setDraftSave(t("Draft saved on this device", "草稿已保存在此设备")),
+        )
+        .catch(() =>
+          setDraftSave(
+            t(
+              "Draft could not be saved. Retry before leaving.",
+              "草稿保存失败，请重试后再离开。",
+            ),
+          ),
+        );
+    }, 500);
+    const beforeUnload = (event: BeforeUnloadEvent) => {
+      if (savedPayload.current !== payload) {
+        event.preventDefault();
+        event.returnValue = "";
+      }
+    };
+    window.addEventListener("beforeunload", beforeUnload);
+    return () => {
+      clearTimeout(timer);
+      unregister();
+      window.removeEventListener("beforeunload", beforeUnload);
+    };
+  }, [snapshot, restored, draftScope, result]);
+  useEffect(() => {
+    scrollPageToTop();
   }, [step]);
   useEffect(() => {
-    if (!options) return;
+    if (!options || restored === draftScope) return;
     if (previous.value) {
       const r = previous.value.release;
       setNamespace(
@@ -140,7 +310,12 @@ export function PublishWizard({ source }: { source: string }) {
           ? r.namespace
           : "",
       );
-      setVersion("");
+      setVersion(
+        r.status === ReleaseStatus.ReleaseStatus_RELEASE_STATUS_PUBLISHED ||
+          r.status === ReleaseStatus.ReleaseStatus_RELEASE_STATUS_YANKED
+          ? ""
+          : r.version,
+      );
       setOrigin(r.provenance || null);
       setDisplayNameEN(r.display_name_en || "");
       setDisplayNameZH(r.display_name_zh || "");
@@ -235,13 +410,19 @@ export function PublishWizard({ source }: { source: string }) {
       version,
     ) &&
     (!previousID ||
-      (!!previous.value && version !== previous.value.release.version)) &&
+      (!!previous.value &&
+        (version !== previous.value.release.version ||
+          previous.value.release.status ===
+            ReleaseStatus.ReleaseStatus_RELEASE_STATUS_PENDING ||
+          previous.value.release.status ===
+            ReleaseStatus.ReleaseStatus_RELEASE_STATUS_REJECTED))) &&
     !!options?.namespaces.some((n) => n.name === namespace) &&
     (!category || !!options.categories.some((c) => c.name === category)) &&
     (visibility !== Visibility.Visibility_VISIBILITY_GROUPS ||
       groups.length > 0);
   async function submit() {
     if (!valid || !draft) return;
+    await saveQueue.current.catch(() => {});
     const form: PublishForm = {
       provenance: origin,
       display_name_en: identity.display_name_en,
@@ -264,6 +445,8 @@ export function PublishWizard({ source }: { source: string }) {
     const release = isWeb
       ? await (await import("./web-api")).publishPackage(form, archive!)
       : await API.PublishChecked(form, draft.digest);
+    await saveQueue.current.catch(() => {});
+    await API.SavePublicationDraft(source, account, "");
     setResult(release);
     mutation.current = null;
   }
@@ -325,6 +508,9 @@ export function PublishWizard({ source }: { source: string }) {
     );
   return (
     <div className="publishing-journey">
+      <p className="muted" role="status">
+        {draftSave}
+      </p>
       {previousID && (
         <section className="revision-context">
           <h2>{t("Submit an updated version", "提交修改后的版本")}</h2>
@@ -622,7 +808,7 @@ export function PublishWizard({ source }: { source: string }) {
                 label={t("Exact version")}
                 hint={
                   previous.value
-                    ? `${t("Previous version", "上次版本")}: ${previous.value.release.version}. ${t("Use a new version number.", "请使用新版本号。")}`
+                    ? `${t("Previous version", "上次版本")}: ${previous.value.release.version}. ${t("Published versions require a new version number.", "已发布版本需使用新版本号。")}`
                     : t(
                         "Use a version such as 1.0.0. Each version is a separate submission.",
                         "例如 1.0.0。每个版本都是独立提交。",
@@ -746,7 +932,17 @@ export function PublishWizard({ source }: { source: string }) {
                 <dt>{t("Category")}</dt>
                 <dd>{category || t("Uncategorized")}</dd>
                 <dt>{t("Audience")}</dt>
-                <dd>{visibilityLabel(visibility)}</dd>
+                <dd>
+                  {visibilityLabel(visibility)}
+                  {visibility === Visibility.Visibility_VISIBILITY_PUBLIC && (
+                    <p className="notice">
+                      {t(
+                        "Publishing makes this skill, its published history and discussion public.",
+                        "发布后，此技能、已发布历史和讨论将公开。",
+                      )}
+                    </p>
+                  )}
+                </dd>
                 <dt>{t("Files")}</dt>
                 <dd>{draft?.files?.length}</dd>
                 <dt>{t("Review policy")}</dt>

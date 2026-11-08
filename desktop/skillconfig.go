@@ -21,3 +21,7 @@ func (s *DesktopService) UnsetSkillConfiguration(target, name string) error {
 func (s *DesktopService) EnvironmentInstructions(target, shell string) (string, error) {
 	return s.core.EnvironmentInstructions(s.ctx, target, shell)
 }
+
+func (s *DesktopService) RenewSkillConfiguration(target, digest string) error {
+	return s.core.RenewSkillConfiguration(s.ctx, target, digest)
+}

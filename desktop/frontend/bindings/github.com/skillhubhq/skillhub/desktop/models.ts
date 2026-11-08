@@ -64,6 +64,7 @@ export interface AppInfo {
 }
 
 export interface ChangePlan {
+    "lock_update": boolean;
     "handle": string;
     "changes": client$0.InstallPlan[] | null;
     "expires_at": string;
@@ -126,6 +127,8 @@ export interface SearchPage {
 }
 
 export interface SkillView {
+    "revision": number;
+    "can_edit": boolean;
     "provenance"?: provenance$0.Record | null;
     "featured": boolean;
     "display_name_en": string;

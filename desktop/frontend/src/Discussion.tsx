@@ -207,6 +207,7 @@ function CommentThread({
       <div className="comment-meta">
         <Person source={source} person={value.author} />
         <time dateTime={value.created_at}>{dateLabel(value.created_at)}</time>
+        {value.version && <small>v{value.version}</small>}
       </div>
       <p className={`comment-text ${value.deleted ? "deleted" : ""}`}>
         {value.deleted

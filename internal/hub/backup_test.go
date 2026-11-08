@@ -18,7 +18,10 @@ import (
 
 func backupFixture(t *testing.T) (*Store, Session, SubmitRelease, Release) {
 	t.Helper()
-	s := testStore(t)
+	return backupFixtureStore(t, testStore(t))
+}
+func backupFixtureStore(t *testing.T, s *Store) (*Store, Session, SubmitRelease, Release) {
+	t.Helper()
 	ctx := context.Background()
 	session, err := s.Login(ctx, "admin", "a-strong-test-password")
 	if err != nil {

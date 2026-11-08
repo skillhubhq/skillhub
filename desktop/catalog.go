@@ -16,6 +16,8 @@ import (
 )
 
 type SkillView struct {
+	Revision      uint64             `json:"revision"`
+	CanEdit       bool               `json:"can_edit"`
 	Provenance    *provenance.Record `json:"provenance,omitempty"`
 	Featured      bool               `json:"featured"`
 	DisplayNameEN string             `json:"display_name_en"`
@@ -56,7 +58,7 @@ func (s *DesktopService) Search(source, query, category string, tags []string, t
 			if tags == nil {
 				tags = []string{}
 			}
-			page.Skills = append(page.Skills, SkillView{Namespace: skill.Namespace, Name: skill.Name, DisplayNameEN: skill.DisplayNameEn, DisplayNameZH: skill.DisplayNameZh, Icon: skill.Icon, Provenance: provenancewire.Decode(skill.Provenance), Description: skill.Description, Category: skill.Category, Tags: tags, Version: skill.LatestVersion, Featured: skill.Featured})
+			page.Skills = append(page.Skills, SkillView{Revision: skill.Revision, CanEdit: skill.CanEdit, Namespace: skill.Namespace, Name: skill.Name, DisplayNameEN: skill.DisplayNameEn, DisplayNameZH: skill.DisplayNameZh, Icon: skill.Icon, Provenance: provenancewire.Decode(skill.Provenance), Description: skill.Description, Category: skill.Category, Tags: tags, Version: skill.LatestVersion, Featured: skill.Featured})
 		}
 		pages = append(pages, page)
 	}
@@ -220,7 +222,7 @@ func (s *DesktopService) GetSkill(source, namespace, name string) (SkillView, er
 	if v == nil {
 		return SkillView{}, errors.New("skill unavailable")
 	}
-	return SkillView{Namespace: v.Namespace, Name: v.Name, DisplayNameEN: v.DisplayNameEn, DisplayNameZH: v.DisplayNameZh, Icon: v.Icon, Provenance: provenancewire.Decode(v.Provenance), Description: v.Description, Category: v.Category, Tags: v.Tags, Version: v.LatestVersion, Featured: v.Featured}, nil
+	return SkillView{Revision: v.Revision, CanEdit: v.CanEdit, Namespace: v.Namespace, Name: v.Name, DisplayNameEN: v.DisplayNameEn, DisplayNameZH: v.DisplayNameZh, Icon: v.Icon, Provenance: provenancewire.Decode(v.Provenance), Description: v.Description, Category: v.Category, Tags: v.Tags, Version: v.LatestVersion, Featured: v.Featured}, nil
 }
 func (s *DesktopService) FilterSubmissions(source, query string, status taxonomy.ReleaseStatus, mine bool, token string, activeOnly bool) (ReleasePage, error) {
 	remote, err := s.core.Remote(s.ctx, source)
@@ -252,4 +254,8 @@ func (s *DesktopService) SubmissionCleanupSupported(source string) (bool, error)
 		return false, err
 	}
 	return slices.Contains(remote.Capabilities, "publishing.cleanup.v1"), nil
+}
+
+func (s *DesktopService) UpdateSkillMetadata(source string, change client.SkillMetadataChange) error {
+	return s.core.UpdateSkillMetadata(s.ctx, source, change)
 }

@@ -113,8 +113,8 @@ func testCommunityPolicy(t *testing.T, s *Store, admin Identity, cmd SubmitRelea
 	if len(resolvedReports.Items) != 2 || resolvedReports.Items[0].Resolution != "remove_content: Withdrawn after review" {
 		t.Fatal("private decision note was not retained for administrators")
 	}
-	if _, e = s.GetDiscussion(ctx, Identity{}, r.ID); !errors.Is(e, ErrNotFound) {
-		t.Fatal("withdrawn content visible", e)
+	if _, e = s.GetDiscussion(ctx, Identity{}, r.ID); e != nil {
+		t.Fatal("withdrawal erased skill discussion", e)
 	}
 	participation, e = s.GetParticipation(ctx, u)
 	mustGovernance(t, e)

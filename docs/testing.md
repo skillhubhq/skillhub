@@ -49,6 +49,8 @@ MACOSX_DEPLOYMENT_TARGET=13.0 go test -race ./...
 
 The opt-in `SKILLHUB_TEST_OS_CREDENTIALS=1` test uses the real credential store, unique temporary references and disposable Hubs to verify App/CLI session sharing and isolation. Run it only under an isolated OS account with an accessible credential store and a built CLI at `../bin/skillhub` (or `.exe`).
 
+The native fixture also verifies that an empty review queue uses one compact, full-width state, search misses do not imply a completed review queue, clearing filters restores the default queue, and opening history restores the list and detail. When checking empty states manually, distinguish loading, request failure, no data and no matching results; test the recovery action as well as the text.
+
 For manual checks, build the production App and run `scripts/desktop_fixture.py --app PATH_TO_APP_EXECUTABLE`. Inspect light/dark themes, English/Chinese, narrow windows, keyboard focus, menus, dialogs, native pickers and error/empty states. Verify discovery → exact version → install/update/remove, publication → independent review → feedback, and account/permission management. Native credentials/pickers and clean-device installation require actual platform testing; a browser build is insufficient.
 
 ## Database and capacity
@@ -118,4 +120,6 @@ The native fixture exercises the local configuration dialog, save and clear. Sys
 
 ## Team lifecycle
 
-`TestNamespaceLifecycle` and `TestPostgresNamespaceLifecycle` cover administrator-only preview and changes, revision/confirmation conflicts, archive visibility, restore, shared package retention, permanent cleanup, shared-account preservation, tombstones and idempotent retries. `TestNamespaceCleanupFailureCanRetry` simulates a failed filesystem deletion. Schema tests include schema 11 → 12 with preserved identity. Transport and CLI tests verify unauthorized and unconfirmed operations fail. The native smoke fixture opens the shared lifecycle dialog, archives a disposable team, checks typed-name gating and permanently cleans it up. Test only disposable fixtures, not live company or public Hubs.
+`TestNamespaceLifecycle` and `TestPostgresNamespaceLifecycle` cover administrator-only preview and changes, revision/confirmation conflicts, archive visibility, restore, shared package retention, permanent cleanup, shared-account preservation, tombstones and idempotent retries. `TestNamespaceCleanupFailureCanRetry` simulates a failed filesystem deletion. Schema tests cover atomic initialization and unsupported-schema rejection. Transport and CLI tests verify unauthorized and unconfirmed operations fail. The native smoke fixture opens the shared lifecycle dialog, archives a disposable team, checks typed-name gating and permanently cleans it up. Test only disposable fixtures, not live company or public Hubs.
+
+The native fixture verifies both desktop content scrolling and Web document scrolling: navigation stays outside the desktop scroll region, modal tabs keep stable bounds, nested dialogs retain the background lock, and closing the last dialog restores position and focus. Review version changes preserve reading position; publication steps begin at the new form.

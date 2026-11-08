@@ -58,12 +58,12 @@ func TestGovernanceRPCIsolationAndNotificationRevocation(t *testing.T) {
 			}
 			f.grant(t, publisherID, taxonomy.PrincipalKind_PRINCIPAL_KIND_USER, taxonomy.NamespaceRole_NAMESPACE_ROLE_MAINTAINER, false)
 			hidden, e := g.ListNotifications(ctx, authenticated(&governancev1.ListNotificationsRequest{}, publisher))
-			if e != nil || len(hidden.Msg.Notifications) != 0 {
+			if e != nil || len(hidden.Msg.Notifications) != 1 || !hidden.Msg.Notifications[0].Unavailable || hidden.Msg.Notifications[0].ReleaseId != "" || hidden.Msg.Notifications[0].Coordinate != "" {
 				t.Fatal("revoked notification leak", e)
 			}
 			_, e = g.MarkNotificationRead(ctx, authenticated(&governancev1.MarkNotificationReadRequest{NotificationId: n.NotificationId}, publisher))
-			if connect.CodeOf(e) != connect.CodeNotFound {
-				t.Fatal("revoked read", e)
+			if e != nil {
+				t.Fatal("owner cannot mark unavailable notification read", e)
 			}
 			_, e = g.SetPlatformRole(ctx, authenticated(&governancev1.SetPlatformRoleRequest{Mutation: mutation(), UserId: publisherID, Role: taxonomy.PlatformRole_PLATFORM_ROLE_USER_ADMIN, Granted: true}, f.owner))
 			if e != nil {

@@ -243,7 +243,7 @@ func readBackupInfo(root string) (BackupInfo, error) {
 		return info, errors.New("invalid backup manifest trailer")
 	}
 	_, timeErr := time.Parse(time.RFC3339, info.CreatedAt)
-	if info.Format != 1 || (info.Schema < 1 || info.Schema > currentSchema) || info.RegistryID == "" || info.DatabaseBytes <= 0 || info.Packages < 0 || !validBackupDigest(info.DatabaseDigest) || timeErr != nil {
+	if info.Format != 1 || info.Schema != currentSchema || info.RegistryID == "" || info.DatabaseBytes <= 0 || info.Packages < 0 || !validBackupDigest(info.DatabaseDigest) || timeErr != nil {
 		return info, errors.New("unsupported or invalid backup metadata")
 	}
 	return info, nil
@@ -306,7 +306,7 @@ func checkSnapshotDatabase(ctx context.Context, db *sql.DB, info BackupInfo) err
 }
 
 func copySnapshotPackages(ctx context.Context, db *sql.DB, source, destination string) (int, error) {
-	rows, err := db.QueryContext(ctx, "SELECT DISTINCT digest FROM releases ORDER BY digest")
+	rows, err := db.QueryContext(ctx, "SELECT DISTINCT digest FROM releases WHERE cleaned=0 ORDER BY digest")
 	if err != nil {
 		return 0, err
 	}

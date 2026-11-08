@@ -32,13 +32,13 @@ func CommunityContribution(v *api.Contribution) c.Contribution {
 	if v == nil {
 		return c.Contribution{}
 	}
-	return c.Contribution{Provenance: provenancewire.Decode(v.Provenance), ReleaseID: v.ReleaseId, Namespace: v.Namespace, Name: v.Name, DisplayNameEN: v.DisplayNameEn, DisplayNameZH: v.DisplayNameZh, Icon: v.Icon, Version: v.Version, Description: v.Description, Author: CommunityProfile(v.Author)}
+	return c.Contribution{Unavailable: v.Unavailable, Provenance: provenancewire.Decode(v.Provenance), ReleaseID: v.ReleaseId, Namespace: v.Namespace, Name: v.Name, DisplayNameEN: v.DisplayNameEn, DisplayNameZH: v.DisplayNameZh, Icon: v.Icon, Version: v.Version, Description: v.Description, Author: CommunityProfile(v.Author)}
 }
 func CommunityComment(v *api.Comment) c.Comment {
 	if v == nil {
 		return c.Comment{}
 	}
-	return c.Comment{CommentID: v.CommentId, ReleaseID: v.ReleaseId, ParentID: v.ParentId, Author: CommunityProfile(v.Author), Body: v.Body, CreatedAt: v.CreatedAt.AsTime(), Deleted: v.Deleted, CanDelete: v.CanDelete}
+	return c.Comment{CommentID: v.CommentId, ReleaseID: v.ReleaseId, ParentID: v.ParentId, Author: CommunityProfile(v.Author), Body: v.Body, CreatedAt: v.CreatedAt.AsTime(), Deleted: v.Deleted, CanDelete: v.CanDelete, Version: v.Version}
 }
 func CommunityDiscussion(v *api.Discussion) c.Discussion {
 	if v == nil {
@@ -221,4 +221,13 @@ func (client *Client) CommunityUpdateAvatar(ctx context.Context, source string, 
 		return c.Profile{}, err
 	}
 	return CommunityProfile(response.Msg.Profile), nil
+}
+
+func (client *Client) CommunityRemoveBookmark(ctx context.Context, source, namespace, name, key string) error {
+	r, err := client.Remote(ctx, source)
+	if err != nil {
+		return err
+	}
+	_, err = r.Community.RemoveBookmark(ctx, connect.NewRequest(&api.RemoveBookmarkRequest{Mutation: &common.Mutation{IdempotencyKey: key}, Namespace: namespace, Name: name}))
+	return err
 }

@@ -389,15 +389,38 @@ const supported: Partial<PlatformAPI> = {
         })
       ).report,
     ),
+  LoadPublicationDraft: async (_source, account) => {
+    const me = await clients.auth.getIdentity({});
+    if (me.identity?.userId !== account)
+      throw new Error("Draft account changed");
+    return (await import("./publicationDraftStore")).publicationDraft(
+      `${location.origin}/${account}`,
+    );
+  },
+  SavePublicationDraft: async (_source, account, payload) => {
+    const me = await clients.auth.getIdentity({});
+    if (me.identity?.userId !== account)
+      throw new Error("Draft account changed");
+    await (
+      await import("./publicationDraftStore")
+    ).publicationDraft(`${location.origin}/${account}`, payload);
+  },
+  MarkAllNotificationsRead: async () => {
+    await clients.governance.markNotificationRead({ all: true });
+  },
   Notifications: async (_source, token) => {
     if (!(await governanceSupported()))
-      return { supported: false, items: [], next_page: "" };
+      return { supported: false, items: [], next_page: "", unread: 0 };
     const r = await clients.governance.listNotifications({ page: page(token) });
     return {
       supported: true,
+      unread: r.unread,
       next_page: r.page?.nextPageToken ?? "",
       items: r.notifications.map((n) => ({
         id: n.notificationId,
+        kind: n.kind,
+        comment_id: n.commentId,
+        unavailable: n.unavailable,
         release_id: n.releaseId,
         coordinate: n.coordinate,
         approved: n.approved,
@@ -458,6 +481,8 @@ const supported: Partial<PlatformAPI> = {
           source: "hub",
           skills: r.skills.map((s) => ({
             featured: s.featured,
+            revision: Number(s.revision),
+            can_edit: s.canEdit,
             provenance: provenanceInfo(s.provenance),
             namespace: s.namespace,
             name: s.name,
@@ -484,11 +509,27 @@ const supported: Partial<PlatformAPI> = {
       ];
     }
   },
+  UpdateSkillMetadata: async (_source, v) => {
+    await clients.catalog.updateSkillMetadata({
+      mutation: { idempotencyKey: crypto.randomUUID() },
+      namespace: v.namespace,
+      name: v.name,
+      expectedRevision: BigInt(v.expected_revision),
+      displayNameEn: v.display_name_en,
+      displayNameZh: v.display_name_zh,
+      description: v.description,
+      icon: Number(v.icon),
+      category: v.category,
+      tags: v.tags ?? [],
+    });
+  },
   GetSkill: async (_source, namespace, name) => {
     const s = (await clients.catalog.getSkill({ namespace, name })).skill;
     if (!s) throw new Error("Skill unavailable");
     return {
       featured: s.featured,
+      revision: Number(s.revision),
+      can_edit: s.canEdit,
       provenance: provenanceInfo(s.provenance),
       namespace: s.namespace,
       name: s.name,

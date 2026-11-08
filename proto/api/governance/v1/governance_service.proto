@@ -119,6 +119,12 @@ message ReviewNotification {
   bool read = 5;
   // 发生时间。
   google.protobuf.Timestamp created_at = 6;
+  // 通知类型：review 或 reply。
+  string kind = 7;
+  // 回复目标；只在仍有访问权时返回。
+  string comment_id = 8;
+  // 目标已清理或访问权已失效。
+  bool unavailable = 9;
 }
 // ListNotificationsRequest 的游标绑定当前身份。
 message ListNotificationsRequest {
@@ -131,11 +137,15 @@ message ListNotificationsResponse {
   repeated ReviewNotification notifications = 1;
   // 下一页。
   .api.common.v1.PageResult page = 2;
+  // 当前身份全部未读通知数量。
+  uint32 unread = 3;
 }
 // MarkNotificationReadRequest 不能操作他人的通知。
 message MarkNotificationReadRequest {
   // 通知标识。
   string notification_id = 1;
+  // 将本人所有通知标记为已读。
+  bool all = 2;
 }
 // MarkNotificationReadResponse 表示已读状态已提交。
 message MarkNotificationReadResponse {}

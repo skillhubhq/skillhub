@@ -60,8 +60,12 @@ type ProjectState struct {
 	NeedsLock bool            `json:"needs_lock"`
 }
 type ProjectRestorePlan struct {
-	Project string        `json:"project"`
-	Plans   []InstallPlan `json:"plans"`
+	LockUpdate         bool          `json:"lock_update"`
+	Removals           []InstallPlan `json:"removals"`
+	proposedLock       *ProjectLock
+	previousLockDigest string
+	Project            string        `json:"project"`
+	Plans              []InstallPlan `json:"plans"`
 	// 快照只留在内核中；前端保存计划句柄，不能改写已确认的目标。
 	manifestDigest string
 	lockDigest     string
@@ -374,25 +378,9 @@ func (c *Client) LockProject(ctx context.Context, path string) (ProjectLock, err
 		if err != nil {
 			return err
 		}
-		lock.ManifestDigest = metadataDigest(m)
-		for _, skill := range m.Skills {
-			remote, err := c.Remote(ctx, skill.Source)
-			if err != nil {
-				return fmt.Errorf("%s: %w", skill.Source, err)
-			}
-			archive, digest, err := c.downloadExact(ctx, remote, Coordinate{skill.Source, skill.Namespace, skill.Name, skill.Version})
-			if err != nil {
-				return fmt.Errorf("%s/%s: %w", skill.Source, skill.Name, err)
-			}
-			bundle, err := packageformat.Inspect(archive)
-			if err != nil {
-				return err
-			}
-			if bundle.Metadata.Name != skill.Name {
-				return errors.New("package does not match skill name")
-			}
-			target, _ := relativeSkillTarget(skill)
-			lock.Skills = append(lock.Skills, LockedSkill{ProjectSkill: skill, RegistryID: remote.Source.RegistryID, RegistryURL: remote.Source.URL, Digest: digest, Target: target})
+		lock, err = c.resolveProjectLock(ctx, m)
+		if err != nil {
+			return err
 		}
 		// 编辑器不遵守进程锁；写锁文件前再检查期望清单。
 		current, err := readManifest(root)
@@ -471,10 +459,19 @@ func (c *Client) PlanProjectRestore(ctx context.Context, path string) (*ProjectR
 	if err != nil {
 		return nil, err
 	}
-	if state.NeedsLock || state.Lock == nil {
-		return nil, errors.New("project requires a matching lock; run project lock")
+	previousLockDigest := metadataDigest(state.Lock)
+	changed := state.NeedsLock || state.Lock == nil
+	if changed {
+		lock, err := c.resolveProjectLock(ctx, state.Manifest)
+		if err != nil {
+			return nil, err
+		}
+		state.Lock = &lock
 	}
-	plan := &ProjectRestorePlan{Project: state.Root, Plans: []InstallPlan{}, manifestDigest: metadataDigest(state.Manifest), lockDigest: metadataDigest(state.Lock)}
+	plan := &ProjectRestorePlan{Project: state.Root, Plans: []InstallPlan{}, Removals: []InstallPlan{}, manifestDigest: metadataDigest(state.Manifest), lockDigest: metadataDigest(state.Lock), previousLockDigest: previousLockDigest, LockUpdate: changed}
+	if changed {
+		plan.proposedLock = state.Lock
+	}
 	targets := map[string]bool{}
 	for _, skill := range state.Lock.Skills {
 		target, err := projectTarget(state.Root, skill)
@@ -496,11 +493,24 @@ func (c *Client) PlanProjectRestore(ctx context.Context, path string) (*ProjectR
 		}
 		plan.Plans = append(plan.Plans, *next)
 	}
+	installed, err := c.store.ListInstallations(ctx)
+	if err != nil {
+		return nil, err
+	}
+	for _, i := range installed {
+		if i.Scope == "project" && i.Project == state.Root && !targets[i.Target] {
+			removal, err := c.store.PlanRemove(ctx, i.Target)
+			if err != nil {
+				return nil, err
+			}
+			plan.Removals = append(plan.Removals, *removal)
+		}
+	}
 	current, err := c.ReadProject(ctx, state.Root)
 	if err != nil {
 		return nil, err
 	}
-	if metadataDigest(current.Manifest) != plan.manifestDigest || metadataDigest(current.Lock) != plan.lockDigest {
+	if metadataDigest(current.Manifest) != plan.manifestDigest || metadataDigest(current.Lock) != plan.previousLockDigest {
 		return nil, ErrProjectChanged
 	}
 	if err = c.rememberProject(ctx, state.Root); err != nil {
@@ -521,13 +531,31 @@ func (c *Client) ApplyProjectRestore(ctx context.Context, plan *ProjectRestorePl
 			return err
 		}
 		var lock ProjectLock
-		if err = readProjectJSON(filepath.Join(plan.Project, ProjectLockFile), &lock); err != nil {
-			return err
+		lockErr := readProjectJSON(filepath.Join(plan.Project, ProjectLockFile), &lock)
+		var existing *ProjectLock
+		if lockErr == nil {
+			existing = &lock
+		} else if !errors.Is(lockErr, os.ErrNotExist) {
+			return lockErr
 		}
-		if err = validateLock(m, lock); err != nil {
-			return err
+		if metadataDigest(m) != plan.manifestDigest {
+			return ErrProjectChanged
 		}
-		if metadataDigest(m) != plan.manifestDigest || metadataDigest(lock) != plan.lockDigest || len(plan.Plans) != len(lock.Skills) {
+		if plan.proposedLock != nil {
+			if metadataDigest(existing) != plan.previousLockDigest {
+				return ErrProjectChanged
+			}
+			lock = *plan.proposedLock
+			if err = validateLock(m, lock); err != nil {
+				return err
+			}
+			if err = writeProjectJSON(plan.Project, ProjectLockFile, lock); err != nil {
+				return err
+			}
+		} else if existing == nil || metadataDigest(lock) != plan.lockDigest {
+			return ErrProjectChanged
+		}
+		if len(plan.Plans) != len(lock.Skills) {
 			return ErrProjectChanged
 		}
 		for i, skill := range lock.Skills {
@@ -571,6 +599,31 @@ func (c *Client) ApplyProjectRestore(ctx context.Context, plan *ProjectRestorePl
 			}()
 			if applyErr != nil {
 				item.Error = applyErr.Error()
+			} else {
+				item.Applied = true
+			}
+			results = append(results, item)
+		}
+		for _, removal := range plan.Removals {
+			item := ProjectRestoreResult{Target: removal.Target}
+			current, err := readManifest(plan.Project)
+			if err == nil && metadataDigest(current) != plan.manifestDigest {
+				err = ErrProjectChanged
+			}
+			if err == nil {
+				var currentLock ProjectLock
+				lockErr := readProjectJSON(filepath.Join(plan.Project, ProjectLockFile), &currentLock)
+				if lockErr != nil {
+					err = lockErr
+				} else if metadataDigest(currentLock) != plan.lockDigest {
+					err = ErrProjectChanged
+				}
+			}
+			if err == nil {
+				err = c.store.Apply(ctx, removal, nil)
+			}
+			if err != nil {
+				item.Error = err.Error()
 			} else {
 				item.Applied = true
 			}
@@ -622,4 +675,29 @@ func (c *Client) ForgetProject(ctx context.Context, path string) error {
 	}
 	_, err = c.store.db.ExecContext(ctx, "DELETE FROM projects WHERE root=?", filepath.Clean(root))
 	return err
+}
+
+func (c *Client) resolveProjectLock(ctx context.Context, m ProjectManifest) (ProjectLock, error) {
+	lock := ProjectLock{Schema: 1, Skills: []LockedSkill{}}
+	lock.ManifestDigest = metadataDigest(m)
+	for _, skill := range m.Skills {
+		remote, err := c.Remote(ctx, skill.Source)
+		if err != nil {
+			return lock, fmt.Errorf("%s: %w", skill.Source, err)
+		}
+		archive, digest, err := c.downloadExact(ctx, remote, Coordinate{skill.Source, skill.Namespace, skill.Name, skill.Version})
+		if err != nil {
+			return lock, fmt.Errorf("%s/%s: %w", skill.Source, skill.Name, err)
+		}
+		bundle, err := packageformat.Inspect(archive)
+		if err != nil {
+			return lock, err
+		}
+		if bundle.Metadata.Name != skill.Name {
+			return lock, errors.New("package does not match skill name")
+		}
+		target, _ := relativeSkillTarget(skill)
+		lock.Skills = append(lock.Skills, LockedSkill{ProjectSkill: skill, RegistryID: remote.Source.RegistryID, RegistryURL: remote.Source.URL, Digest: digest, Target: target})
+	}
+	return lock, nil
 }

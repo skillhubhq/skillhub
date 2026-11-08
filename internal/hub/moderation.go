@@ -66,7 +66,7 @@ func (s *Store) ReportContent(ctx context.Context, actor Identity, key string, c
 		}
 		if cmd.CommentID != "" {
 			var exists bool
-			if e := tx.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM comments WHERE id=? AND release_id=? AND deleted=0)", cmd.CommentID, cmd.ReleaseID).Scan(&exists); e != nil {
+			if e := tx.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM comments c JOIN releases r ON r.id=c.release_id JOIN releases selected ON selected.id=? WHERE c.id=? AND r.namespace=selected.namespace AND r.name=selected.name AND c.deleted=0)", cmd.ReleaseID, cmd.CommentID).Scan(&exists); e != nil {
 				return e
 			}
 			if !exists {
@@ -75,6 +75,11 @@ func (s *Store) ReportContent(ctx context.Context, actor Identity, key string, c
 		}
 		return nil
 	}, func(tx *hubdb.Tx, u Identity) (string, error) {
+		if cmd.CommentID != "" {
+			if err := tx.QueryRowContext(ctx, "SELECT release_id FROM comments WHERE id=?", cmd.CommentID).Scan(&cmd.ReleaseID); err != nil {
+				return "", err
+			}
+		}
 		var id string
 		e := tx.QueryRowContext(ctx, "SELECT id FROM community_reports WHERE reporter=? AND release_id=? AND comment_id=?", u.ID, cmd.ReleaseID, cmd.CommentID).Scan(&id)
 		if e == nil {

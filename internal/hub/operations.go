@@ -159,9 +159,10 @@ func mutate[T any](s *Store, ctx context.Context, user Identity, method, key str
 	}
 	var previous string
 	var response []byte
-	err = tx.QueryRowContext(ctx, "SELECT fingerprint,result FROM mutations WHERE actor=? AND method=? AND key=?", user.ID, method, key).Scan(&previous, &response)
+	var invalidated bool
+	err = tx.QueryRowContext(ctx, "SELECT fingerprint,result,invalidated FROM mutations WHERE actor=? AND method=? AND key=?", user.ID, method, key).Scan(&previous, &response, &invalidated)
 	if err == nil {
-		if previous != fingerprint {
+		if invalidated || previous != fingerprint {
 			return zero, ErrConflict
 		}
 		var result T
@@ -251,4 +252,15 @@ func isUnique(err error) bool {
 	type coder interface{ Code() int }
 	var value coder
 	return errors.As(err, &value) && (value.Code() == 1555 || value.Code() == 2067)
+}
+
+func requireActiveNamespace(ctx context.Context, tx *hubdb.Tx, namespace string) error {
+	var active bool
+	if err := tx.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM namespaces WHERE name=? AND archived=0)", namespace).Scan(&active); err != nil {
+		return err
+	}
+	if !active {
+		return ErrConflict
+	}
+	return nil
 }
