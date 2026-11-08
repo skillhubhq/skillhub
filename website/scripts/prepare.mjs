@@ -82,30 +82,6 @@ export function rewriteLinks(src, markdown, locale = "en") {
     .join("");
 }
 export async function prepare() {
-  const titles = [
-    "概览",
-    "使用技能",
-    "创建与测试技能",
-    "评测证据",
-    "桌面 App",
-    "App 更新",
-    "配置",
-    "企业登录",
-    "社区与登录适配器",
-    "身份与权限",
-    "发布与审核",
-    "数据库",
-    "备份与运维",
-    "部署检查",
-    "产品边界",
-    "架构",
-    "TypeScript SDK",
-    "测试",
-    "分发",
-    "维护文档",
-    "参与贡献",
-    "安全",
-  ];
   for (const locale of ["en", "zh"]) {
     const output = path.join(
       root,
@@ -113,15 +89,17 @@ export async function prepare() {
     );
     await rm(output, { recursive: true, force: true });
     await mkdir(output, { recursive: true });
-    for (const [index, [src, slug, title]] of pages.entries()) {
+    for (const [src, slug, title] of pages) {
       const input = locale === "en" ? src : `docs/zh/${slug}.md`;
       let body = await readFile(path.join(repo, input), "utf8");
+      const translatedTitle = body.match(/^# ([^\n]+)/)?.[1];
+      if (!translatedTitle) throw new Error(`Missing document title: ${input}`);
       body = body.replace(/^# [^\n]+\n+/, "");
       // 两种语言使用相同的规范文档相对链接，生成时转换为对应语言路由。
       body = rewriteLinks(input, body, locale);
       await writeFile(
         path.join(output, `${slug}.md`),
-        `---\ntitle: ${JSON.stringify(locale === "en" ? title : titles[index])}\n---\n\n${body}`,
+        `---\ntitle: ${JSON.stringify(locale === "en" ? title : translatedTitle)}\n---\n\n${body}`,
       );
     }
     const labels =
