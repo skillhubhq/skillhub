@@ -1022,12 +1022,44 @@ export async function runNativeSmoke() {
     await waitForUI(
       () =>
         document.querySelector(".configuration-variable [role=status]")
-          ?.textContent === "Available",
+          ?.textContent === "Available locally",
     );
     const configured = await API.SkillConfiguration(final[0].target);
     check(
       configured.ready && !JSON.stringify(configured).includes("test-region"),
       "App saves shared local configuration and diagnostics omit values",
+    );
+    Array.from(document.querySelectorAll<HTMLButtonElement>("dialog button"))
+      .find((button) => button.textContent === "Use in terminal")!
+      .click();
+    await waitForUI(() => !!document.querySelector(".configuration-guide pre"));
+    const guide = document.querySelector(".configuration-guide")!;
+    check(
+      guide.textContent!.includes("skillhub_env use") &&
+        !guide.textContent!.includes("test-region"),
+      "terminal handoff displays commands without stored values",
+    );
+    check(
+      Array.from(guide.querySelectorAll("button, pre")).every(
+        (element) =>
+          element.getBoundingClientRect().right <=
+          document.querySelector("dialog")!.getBoundingClientRect().right,
+      ),
+      "terminal guide keeps copy controls inside the dialog",
+    );
+    const guideHeight = document
+      .querySelector("dialog")!
+      .getBoundingClientRect().height;
+    Array.from(document.querySelectorAll<HTMLButtonElement>("dialog button"))
+      .find((button) => button.textContent === "Back to configuration")!
+      .click();
+    await waitForUI(() => !!document.querySelector(".configuration-variable"));
+    check(
+      Math.abs(
+        document.querySelector("dialog")!.getBoundingClientRect().height -
+          guideHeight,
+      ) < 2,
+      "configuration guide preserves dialog height",
     );
     await API.ClearSkillConfiguration(final[0].target);
     check(

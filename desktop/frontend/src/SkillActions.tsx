@@ -80,7 +80,7 @@ export function SkillActions({
   );
 }
 
-function CopyValue({ label, value }: { label: string; value: string }) {
+export function CopyValue({ label, value }: { label: string; value: string }) {
   const [copied, setCopied] = useState(false),
     [failed, setFailed] = useState(false);
   useEffect(() => {

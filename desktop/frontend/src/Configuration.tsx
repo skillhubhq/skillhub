@@ -5,6 +5,7 @@ import type {
   ConfigVariableStatus,
 } from "../bindings/github.com/skillhubhq/skillhub/internal/client/models";
 import { API, Empty, Field, Modal, useUI, toolLabel } from "./ui";
+import { CopyValue } from "./SkillActions";
 import { Select } from "./Select";
 import { skillTitle } from "./SkillIdentity";
 import { t } from "./i18n";
@@ -12,7 +13,7 @@ import "./configuration.css";
 
 const statusLabel = (status: string) =>
   ({
-    available: t("Available", "可用"),
+    available: t("Available locally", "本地可读取"),
     missing: t("Not configured", "未配置"),
     "review-required": t("Review required", "需要重新确认"),
     "store-unavailable": t(
@@ -94,6 +95,7 @@ function ConfigurationDialog({
 }) {
   const ui = useUI();
   const [report, setReport] = useState<SkillConfiguration>();
+  const [using, setUsing] = useState(false);
   const [editing, setEditing] = useState<ConfigVariableStatus>();
   const [mode, setMode] = useState("keychain");
   const [value, setValue] = useState("");
@@ -125,23 +127,27 @@ function ConfigurationDialog({
       onClose={onClose}
     >
       <div className="configuration-dialog">
-        <p>
-          {t(
-            "Saved on this device. Configure your agent separately to use these values.",
-            "配置值仅保存在本机。请另外配置 Agent 的使用方式。",
-          )}
-        </p>
-        <details className="configuration-help">
-          <summary>
-            {t("Storage and agent access", "保存方式与 Agent 使用")}
-          </summary>
-          <p className="muted">
-            {t(
-              "Environment references use this process's environment. An already-running App or agent may need restarting. This is configuration management, not a runtime sandbox.",
-              "环境变量引用读取当前进程环境，已运行的 App 或 Agent 可能需要重启。此功能管理配置，不提供运行时沙箱。",
-            )}
-          </p>
-        </details>
+        {!using && (
+          <>
+            <p>
+              {t(
+                "Save here, then load selected configuration in your own terminal. SkillHub never starts an agent.",
+                "在这里保存，再将所选配置加载到自己的终端。SkillHub 不会启动 Agent。",
+              )}
+            </p>
+            <details className="configuration-help">
+              <summary>
+                {t("Storage and agent access", "保存方式与 Agent 使用")}
+              </summary>
+              <p className="muted">
+                {t(
+                  "Environment references use this process's environment. An already-running App or agent may need restarting. This is configuration management, not a runtime sandbox.",
+                  "环境变量引用读取当前进程环境，已运行的 App 或 Agent 可能需要重启。此功能管理配置，不提供运行时沙箱。",
+                )}
+              </p>
+            </details>
+          </>
+        )}
         {!report ? (
           <p role="status">{t("Loading…", "加载中…")}</p>
         ) : (
@@ -154,6 +160,21 @@ function ConfigurationDialog({
                 {report.installation.version}
               </small>
             </div>
+            {report.installed &&
+              report.declared &&
+              !report.changed &&
+              !editing && (
+                <button
+                  className={
+                    using ? "configuration-back" : "primary configuration-use"
+                  }
+                  onClick={() => setUsing(!using)}
+                >
+                  {using
+                    ? t("Back to configuration", "返回配置")
+                    : t("Use in terminal", "在终端中使用")}
+                </button>
+              )}
             {report.changed && (
               <p role="status" className="notice">
                 {t(
@@ -176,6 +197,8 @@ function ConfigurationDialog({
                   "此技能未声明配置要求。作者可添加可选的 skillhub.config.json；使用技能本身不要求此格式。",
                 )}
               </p>
+            ) : using ? (
+              <EnvironmentGuide target={target} report={report} />
             ) : editing ? null : (
               <div className="configuration-variables">
                 {(report.variables || []).map((variable) => (
@@ -332,5 +355,81 @@ function ConfigurationDialog({
         )}
       </div>
     </Modal>
+  );
+}
+
+function EnvironmentGuide({
+  target,
+  report,
+}: {
+  target: string;
+  report: SkillConfiguration;
+}) {
+  const ui = useUI();
+  const [shell, setShell] = useState(() =>
+    /Windows/i.test(navigator.userAgent) ? "powershell" : "zsh",
+  );
+  const [instructions, setInstructions] = useState("");
+  useEffect(() => {
+    let active = true;
+    setInstructions("");
+    void ui.run(async () => {
+      const value = await API.EnvironmentInstructions(target, shell);
+      if (active) setInstructions(value);
+    });
+    return () => {
+      active = false;
+    };
+  }, [target, shell]);
+  return (
+    <div className="configuration-guide">
+      <p>
+        {t(
+          "Requires the SkillHub CLI on this device. Only the selected variables are loaded.",
+          "需要本机已安装 SkillHub CLI，仅加载所选变量。",
+        )}
+      </p>
+      <p className="muted">
+        {(report.variables || []).map((v) => v.name).join(" · ")}
+      </p>
+      <Field label={t("Your terminal shell", "终端 Shell")}>
+        <Select
+          value={shell}
+          onChange={(event) => setShell(event.target.value)}
+        >
+          <option value="zsh">Zsh</option>
+          <option value="bash">Bash</option>
+          <option value="powershell">PowerShell 7+</option>
+        </Select>
+      </Field>
+      {instructions && (
+        <CopyValue
+          label={t(
+            "1. Load and check in your terminal",
+            "1. 在终端中加载并检查",
+          )}
+          value={instructions}
+        />
+      )}
+      <p>
+        {t(
+          "2. Start Codex or Claude Code yourself in the same terminal.",
+          "2. 在同一终端自行启动 Codex 或 Claude Code。",
+        )}
+      </p>
+      <CopyValue
+        label={t("3. Clear when finished", "3. 使用结束后清理")}
+        value="skillhub_env deactivate"
+      />
+      <details className="configuration-help">
+        <summary>{t("Scope and verification", "生效范围与验证")}</summary>
+        <p className="muted">
+          {t(
+            "The check confirms only this process’s environment, not service authentication. No secret appears in these commands. Existing apps are unchanged. Tool environment filters still apply. All code in the receiving process may read its environment; clearing here cannot revoke copies in running processes.",
+            "检查仅确认当前进程环境，不代表服务认证成功。这些命令不包含密钥，已运行的 App 不受影响。目标工具仍会应用自己的环境过滤规则。接收进程中的代码可能读取其环境；在此清理无法撤回运行中进程持有的副本。",
+          )}
+        </p>
+      </details>
+    </div>
   );
 }
