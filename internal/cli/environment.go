@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -27,14 +28,18 @@ func (a *application) environmentCommand() *cobra.Command {
 		quote := func(s string) string { return "'" + strings.ReplaceAll(s, "'", "'\"'\"'") + "'" }
 		switch args[0] {
 		case "bash", "zsh":
+			exe = filepath.ToSlash(exe)
 		case "powershell":
 			script = environmentPowerShell
 			quote = func(s string) string { return "'" + strings.ReplaceAll(s, "'", "''") + "'" }
 		default:
 			return errors.New("supported shells: bash, zsh, powershell")
 		}
-		script = strings.ReplaceAll(script, "@EXECUTABLE@", quote(exe))
-		script = strings.ReplaceAll(script, "@DATA@", quote(a.data))
+		data, err := filepath.Abs(a.data)
+		if err != nil {
+			return err
+		}
+		script = strings.NewReplacer("@EXECUTABLE@", quote(exe), "@DATA@", quote(data)).Replace(script)
 		_, err = fmt.Fprint(cmd.OutOrStdout(), script)
 		return err
 	}}

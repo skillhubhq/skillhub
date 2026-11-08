@@ -92,7 +92,11 @@ func TestShellEnvironmentRoundTripAndRemoval(t *testing.T) {
 				quote = func(v string) string { return "'" + strings.ReplaceAll(v, "'", "''") + "'" }
 				template = environmentPowerShell
 			}
-			script := strings.ReplaceAll(strings.ReplaceAll(template, "@EXECUTABLE@", quote(executable)+" -test.run=TestEnvironmentProcessHelper --"), "@DATA@", quote(root))
+			helper := executable
+			if shell != "pwsh" {
+				helper = filepath.ToSlash(helper)
+			}
+			script := strings.NewReplacer("@EXECUTABLE@", quote(helper)+" -test.run=TestEnvironmentProcessHelper --", "@DATA@", quote(root)).Replace(template)
 			var checks string
 			if shell == "pwsh" {
 				checks = "\nskillhub_env use " + quote(target) + "\nskillhub_env doctor " + quote(target) + "\nif ($LASTEXITCODE -ne 0) {throw 'doctor failed'}\nskillhub_env deactivate\nif (Test-Path Env:SERVICE_VALUE) {throw 'value retained'}\nif ($env:SERVICE_REGION -ne 'fixture-region') {throw 'existing environment changed'}\n$env:SERVICE_VALUE='conflict'\ntry { skillhub_env use " + quote(target) + "; throw 'accepted conflict' } catch { if ($_.Exception.Message -eq 'accepted conflict') {throw} }\nif ($env:SERVICE_VALUE -ne 'conflict') {throw 'conflict overwritten'}\n"
@@ -129,5 +133,25 @@ func TestShellEnvironmentRoundTripAndRemoval(t *testing.T) {
 	err = Execute(ctx, []string{"--data", root, "env", "_read", target}, strings.NewReader(""), &output, io.Discard, Options{})
 	if err == nil || output.Len() != 0 {
 		t.Fatal("transfer accepted diagnostic writer")
+	}
+}
+
+func TestEnvironmentInitBindsAbsoluteDataDirectory(t *testing.T) {
+	directory := filepath.Join(t.TempDir(), "data-@EXECUTABLE@")
+	cwd, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	relative, err := filepath.Rel(cwd, directory)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var output bytes.Buffer
+	err = Execute(context.Background(), []string{"--data", relative, "env", "init", "bash"}, strings.NewReader(""), &output, io.Discard, Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(output.String(), directory) || strings.Contains(output.String(), "'"+relative+"'") {
+		t.Fatal("shell integration changed databases after changing working directory")
 	}
 }
