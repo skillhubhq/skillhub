@@ -96,7 +96,7 @@ func TestShellEnvironmentRoundTripAndRemoval(t *testing.T) {
 			if shell != "pwsh" {
 				helper = filepath.ToSlash(helper)
 			}
-			script := strings.NewReplacer("@EXECUTABLE@", quote(helper)+" -test.run=TestEnvironmentProcessHelper --", "@DATA@", quote(root)).Replace(template)
+			script := strings.NewReplacer("@EXECUTABLE@", quote(helper)+" "+quote("-test.run=TestEnvironmentProcessHelper")+" --", "@DATA@", quote(root)).Replace(template)
 			var checks string
 			if shell == "pwsh" {
 				checks = "\nskillhub_env use " + quote(target) + "\nskillhub_env doctor " + quote(target) + "\nif ($LASTEXITCODE -ne 0) {throw 'doctor failed'}\nskillhub_env deactivate\nif (Test-Path Env:SERVICE_VALUE) {throw 'value retained'}\nif ($env:SERVICE_REGION -ne 'fixture-region') {throw 'existing environment changed'}\n$env:SERVICE_VALUE='conflict'\ntry { skillhub_env use " + quote(target) + "; throw 'accepted conflict' } catch { if ($_.Exception.Message -eq 'accepted conflict') {throw} }\nif ($env:SERVICE_VALUE -ne 'conflict') {throw 'conflict overwritten'}\n"
@@ -137,7 +137,9 @@ func TestShellEnvironmentRoundTripAndRemoval(t *testing.T) {
 }
 
 func TestEnvironmentInitBindsAbsoluteDataDirectory(t *testing.T) {
-	directory := filepath.Join(t.TempDir(), "data-@EXECUTABLE@")
+	parent := t.TempDir()
+	t.Chdir(parent)
+	directory := filepath.Join(parent, "data-@EXECUTABLE@")
 	cwd, err := os.Getwd()
 	if err != nil {
 		t.Fatal(err)
