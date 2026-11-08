@@ -65,7 +65,7 @@ The `.skillhub-maintenance` marker blocks service startup while a destination is
 3. Check startup, login, catalog permissions and a download. Empty databases are initialized transactionally. Existing instance identity is preserved; unsupported database versions are rejected.
 4. To roll back a schema change, stop the new process and restore the pre-upgrade backup into a new directory using a compatible binary. Do not run an old binary against a newer schema. Reconcile writes accepted after the backup before selecting the rollback point.
 
-The Hub and shared client both use schema baseline 1. Backup manifest format 1 verifies that supported Hub schema. Restore preserves the snapshot structure and identity; verification never rewrites a snapshot.
+The Hub and shared client validate their own schema versions. The backup manifest records the actual Hub schema. Restore preserves the snapshot structure and identity; verification never rewrites a snapshot.
 
 ## Diagnostics and limits
 
