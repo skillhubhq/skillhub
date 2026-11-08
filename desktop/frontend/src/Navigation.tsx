@@ -1,4 +1,5 @@
 import { OfficialBadge } from "./official";
+import { GitHubStar } from "./GitHubStar";
 import { HeaderFrame } from "./HeaderFrame";
 import { ReviewInbox } from "./ReviewInbox";
 import { Select } from "./Select";
@@ -109,14 +110,14 @@ export function Navigation({ page }: { page: string }) {
                 {t("My library", "本地技能")}
               </button>
             )}
-            {!privateGate && (
+            {
               <button
                 aria-current={group === "studio" ? "page" : undefined}
                 onClick={() => ui.navigate("submissions")}
               >
                 {t("Studio", "创作")}
               </button>
-            )}
+            }
             {isWeb && (
               <button
                 aria-current={page === "downloads" ? "page" : undefined}
@@ -137,6 +138,7 @@ export function Navigation({ page }: { page: string }) {
         }
         utilities={
           <>
+            {isWeb && <GitHubStar language={language} />}
             <QuickPreferences />
             <button
               className="utility-settings"

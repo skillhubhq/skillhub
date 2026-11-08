@@ -25,7 +25,7 @@
   --color-fd-accent: var(--accent-light);
   --color-fd-accent-foreground: var(--link);
   --fd-layout-width: 1280px;
-  --fd-banner-height: var(--site-header-height, 72px);
+  --fd-banner-height: var(--site-header-height, 56px);
   font-family:
     Inter,
     -apple-system,
@@ -46,7 +46,7 @@
 .docs-site-header .home-link {
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 10px;
   text-decoration: none;
   color: var(--ink);
 }
@@ -140,7 +140,7 @@
   line-height: 1.75;
 }
 .docs-shell #nd-page :is(h1, h2, h3) {
-  scroll-margin-top: calc(var(--site-header-height, 72px) + 64px);
+  scroll-margin-top: calc(var(--site-header-height, 56px) + 64px);
 }
 .docs-shell #nd-sidebar :is(a, button) {
   font-size: 13px;
@@ -152,9 +152,6 @@
   font-size: 12px;
 }
 @media (max-width: 760px) {
-  .docs-shell .global-navigation {
-    min-height: 108px;
-  }
   .docs-shell #nd-page {
     padding-top: 24px;
   }
@@ -200,4 +197,14 @@
   .docs-shell #nd-docs-layout {
     --fd-toc-popover-height: 40px;
   }
+}
+
+/* 固定桌面目录列，防止内容表格把章节导航挤成零宽。 */
+@media (min-width: 1280px) {
+  .docs-shell #nd-docs-layout {
+    --fd-toc-width: 220px;
+  }
+}
+.docs-shell #nd-page {
+  min-width: 0;
 }

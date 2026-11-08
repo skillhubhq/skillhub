@@ -325,10 +325,6 @@
 }
 
 /* 阅读优先：缩短全局 chrome 与详情导语，把空间交给技能内容。 */
-.community-shell .global-navigation {
-  min-height: 56px;
-  gap: 22px;
-}
 .community-shell .context-navigation {
   min-height: 44px;
 }
@@ -338,11 +334,6 @@
 .community-shell .navigation-shell .brand-logo {
   width: 114px;
   height: 30px;
-}
-.community-shell .primary-navigation button {
-  min-height: 36px;
-  padding: 6px 11px;
-  font-size: 13px;
 }
 .community-shell main:has(.community-detail) {
   padding-top: 16px;
@@ -527,10 +518,6 @@
   }
 }
 @media (max-width: 760px) {
-  .community-shell .global-navigation {
-    gap: 6px;
-    padding-top: 4px;
-  }
   .community-shell .detail-hero {
     gap: 10px;
   }
@@ -578,14 +565,6 @@
   .community-shell > .navigation-shell {
     position: static;
   }
-  .community-shell .primary-navigation {
-    margin-top: 4px;
-  }
-  .community-shell .primary-navigation button {
-    min-height: 44px;
-    background: transparent;
-    border-radius: 0;
-  }
   .community-shell .hub-context {
     margin-top: 0;
   }
@@ -600,9 +579,6 @@
 @media (max-width: 400px) {
   .community-shell .navigation-shell .brand-logo {
     width: 100px;
-  }
-  .community-shell .global-navigation {
-    gap: 0;
   }
 }
 /* 管理表单使用同一套可搜索的目录选项，内部标识不占据任务界面。 */

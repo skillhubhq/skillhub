@@ -6,6 +6,7 @@ import { useTheme } from "next-themes";
 import { Code } from "@connectrpc/connect";
 import { createConnectTransport } from "@connectrpc/connect-web";
 import { createHubClients } from "../../sdk/typescript/src/index";
+import { GitHubStar } from "../../desktop/frontend/src/GitHubStar";
 import { HeaderFrame } from "../../desktop/frontend/src/HeaderFrame";
 import { PreferenceControls } from "../../desktop/frontend/src/PreferenceControls";
 import { Icon } from "../../desktop/frontend/src/Icon";
@@ -40,7 +41,6 @@ export function DocsHeader({ locale }: { locale: "en" | "zh" }) {
   const [identity, setIdentity] = useState<
     "checking" | "guest" | "member" | "unavailable"
   >("checking");
-  const [privateHub, setPrivateHub] = useState(true);
   const [failedAvatar, setFailedAvatar] = useState(false);
   const header = useRef<HTMLElement>(null);
   const account = useRef<HTMLDetailsElement>(null);
@@ -59,7 +59,6 @@ export function DocsHeader({ locale }: { locale: "en" | "zh" }) {
       .getRegistry({}, options)
       .then((r) => {
         setSite(r.displayName || "SkillHub");
-        setPrivateHub(r.privateMode);
       })
       .catch(() => {});
     void clients.auth
@@ -135,9 +134,7 @@ export function DocsHeader({ locale }: { locale: "en" | "zh" }) {
             aria-label={tr("Main navigation", "主导航")}
           >
             <a href="/#discover">{tr("Community", "社区")}</a>
-            {(!privateHub || identity === "member") && (
-              <a href="/#submissions">{tr("Studio", "创作")}</a>
-            )}
+            <a href="/#submissions">{tr("Studio", "创作")}</a>
             <a href="/#downloads">{tr("Downloads", "下载")}</a>
             <a
               href={locale === "zh" ? "/docs/zh/" : "/docs/"}
@@ -149,6 +146,7 @@ export function DocsHeader({ locale }: { locale: "en" | "zh" }) {
         }
         utilities={
           <>
+            <GitHubStar language={locale} />
             <PreferenceControls
               language={locale}
               theme={theme ?? "system"}
