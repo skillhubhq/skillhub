@@ -66,17 +66,26 @@ func TestDesktopUsesSystemCredentialStore(t *testing.T) {
 		if _, exists := os.LookupEnv("SKILLHUB_TOKEN_" + strings.ToUpper(strings.ReplaceAll(alias, "-", "_"))); exists {
 			t.Fatal("injected source credentials would bypass system credential acceptance")
 		}
-		source, err := service.AddSource(alias, url)
+		_, err := service.AddSource(alias, url)
 		if err != nil {
 			t.Fatal(err)
 		}
-		sources[alias] = source
 		t.Cleanup(func() {
-			if err := credentials.Delete(source.CredentialRef); err != nil {
+			current, err := service.core.Source(context.Background(), alias)
+			if err != nil {
+				t.Errorf("cannot resolve isolated credential cleanup: %v", err)
+				return
+			}
+			if err := credentials.Delete(current.CredentialRef); err != nil {
 				t.Errorf("isolated credential cleanup failed: %v", err)
 			}
 		})
 		if _, err = service.LoginPassword(alias, "admin", "desktop-test-password"); err != nil {
+			t.Fatal(err)
+		}
+		// 首次验证身份会分配账号绑定的凭据引用，测试读取持久化后的引用。
+		sources[alias], err = service.core.Source(context.Background(), alias)
+		if err != nil {
 			t.Fatal(err)
 		}
 		if !bytes.Contains(runCLI("", "whoami", "--source", alias), []byte("admin")) {
