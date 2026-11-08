@@ -103,7 +103,7 @@ func (s *Server) ListSubmissions(ctx context.Context, req *connect.Request[publi
 	if err != nil {
 		return nil, err
 	}
-	result, err := s.store.ListSubmissions(ctx, user, req.Msg.Namespace, pageDomain(req.Msg.Page), hub.SubmissionFilter{Mine: req.Msg.Mine, Status: req.Msg.Status, Query: req.Msg.Query})
+	result, err := s.store.ListSubmissions(ctx, user, req.Msg.Namespace, pageDomain(req.Msg.Page), hub.SubmissionFilter{ActiveOnly: req.Msg.ActiveOnly, Mine: req.Msg.Mine, Status: req.Msg.Status, Query: req.Msg.Query})
 	if err != nil {
 		return nil, err
 	}
@@ -141,4 +141,16 @@ func (s *Server) YankRelease(ctx context.Context, req *connect.Request[publishin
 		return nil, err
 	}
 	return connect.NewResponse(&publishingv1.YankReleaseResponse{Release: releaseDTO(result)}), nil
+}
+
+func (s *Server) DeleteRelease(ctx context.Context, req *connect.Request[publishingv1.DeleteReleaseRequest]) (*connect.Response[publishingv1.DeleteReleaseResponse], error) {
+	user, err := s.identity(ctx, req.Header())
+	if err != nil {
+		return nil, err
+	}
+	result, err := s.store.DeleteRelease(ctx, user, req.Msg.Mutation.IdempotencyKey, hub.DeleteRelease{ReleaseID: req.Msg.ReleaseId, ConfirmCoordinate: req.Msg.ConfirmCoordinate})
+	if err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(&publishingv1.DeleteReleaseResponse{ReleaseId: result.ReleaseID}), nil
 }

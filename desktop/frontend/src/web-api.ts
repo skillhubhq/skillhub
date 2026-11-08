@@ -543,8 +543,16 @@ const supported: Partial<PlatformAPI> = {
       newPassword: password,
     });
   },
-  FilterSubmissions: async (_source, query, status, mine, token) => {
+  FilterSubmissions: async (
+    _source,
+    query,
+    status,
+    mine,
+    token,
+    activeOnly,
+  ) => {
     const r = await clients.publishing.listSubmissions({
+      activeOnly,
       query,
       status: Number(status),
       mine,
@@ -616,6 +624,17 @@ const supported: Partial<PlatformAPI> = {
         })
       ).release,
     ),
+  SubmissionCleanupSupported: async () =>
+    (await clients.registry.getRegistry({})).capabilities.includes(
+      "publishing.cleanup.v1",
+    ),
+  DeleteSubmission: async (_source, id, coordinate, key) => {
+    await clients.publishing.deleteRelease({
+      releaseId: id,
+      confirmCoordinate: coordinate,
+      mutation: { idempotencyKey: key },
+    });
+  },
   Yank: async (_s, id, reason, key) =>
     info(
       (

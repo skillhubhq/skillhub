@@ -13,6 +13,7 @@ CREATE TABLE groups (id TEXT PRIMARY KEY, name TEXT NOT NULL UNIQUE);
 CREATE TABLE group_members (group_id TEXT NOT NULL REFERENCES groups(id), user_id TEXT NOT NULL REFERENCES users(id), PRIMARY KEY(group_id,user_id));
 CREATE TABLE namespaces (name TEXT PRIMARY KEY, review_required INTEGER NOT NULL, revision INTEGER NOT NULL, archived INTEGER NOT NULL DEFAULT 0);
 CREATE TABLE namespace_tombstones (name TEXT PRIMARY KEY, deleted_at INTEGER NOT NULL);
+CREATE TABLE release_tombstones (id TEXT PRIMARY KEY, namespace TEXT NOT NULL, name TEXT NOT NULL, version TEXT NOT NULL, digest TEXT NOT NULL, deleted_at INTEGER NOT NULL, UNIQUE(namespace,name,version));
 CREATE TABLE package_cleanup (digest TEXT PRIMARY KEY);
 CREATE TABLE namespace_grants (namespace TEXT NOT NULL REFERENCES namespaces(name), kind INTEGER NOT NULL CHECK(kind IN (1,2)), subject_id TEXT NOT NULL, role INTEGER NOT NULL CHECK(role IN (1,2,3,4)), PRIMARY KEY(namespace,kind,subject_id,role));
 CREATE TABLE categories (name TEXT PRIMARY KEY, title TEXT NOT NULL, archived INTEGER NOT NULL, revision INTEGER NOT NULL);

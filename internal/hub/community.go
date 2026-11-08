@@ -95,8 +95,8 @@ func (s *Store) UpdateProfile(ctx context.Context, actor Identity, key string, c
 	})
 }
 
-// 团队公开页只由可见的已发布资源或当前成员资格发现，权限群组不成为公开团队。
-const teamVisibleSQL = `n.archived=0 AND (@admin=1 OR EXISTS(SELECT 1 FROM releases r WHERE r.namespace=n.name AND r.status=2 AND ` + readableSQL + `) OR (@actor<>'' AND EXISTS(SELECT 1 FROM namespace_grants g WHERE g.namespace=n.name AND ((g.kind=1 AND g.subject_id=@actor) OR (g.kind=2 AND EXISTS(SELECT 1 FROM group_members gm WHERE gm.group_id=g.subject_id AND gm.user_id=@actor))))))`
+// 企业成员可发现团队简介；成员名单和技能仍分别校验权限。
+const teamVisibleSQL = `n.archived=0 AND (@admin=1 OR (@directory=1 AND @actor<>'') OR EXISTS(SELECT 1 FROM releases r WHERE r.namespace=n.name AND r.status=2 AND ` + readableSQL + `) OR (@actor<>'' AND EXISTS(SELECT 1 FROM namespace_grants g WHERE g.namespace=n.name AND ((g.kind=1 AND g.subject_id=@actor) OR (g.kind=2 AND EXISTS(SELECT 1 FROM group_members gm WHERE gm.group_id=g.subject_id AND gm.user_id=@actor))))))`
 const teamColumns = `n.name,COALESCE(NULLIF(t.display_name,''),n.name),COALESCE(t.bio,''),COALESCE(t.revision,0)`
 
 func teamScan(row scanner) (c.Team, error) {
@@ -114,7 +114,7 @@ func (s *Store) GetTeam(ctx context.Context, actor Identity, namespace string) (
 		return c.Team{}, err
 	}
 	defer tx.Rollback()
-	args := append(principalArgs(user), sql.Named("namespace", namespace))
+	args := append(principalArgs(user), sql.Named("directory", !s.policy.IsCommunity()), sql.Named("namespace", namespace))
 	v, err := teamScan(tx.QueryRowContext(ctx, `SELECT `+teamColumns+` FROM namespaces n LEFT JOIN team_profiles t ON t.namespace=n.name WHERE n.name=@namespace AND `+teamVisibleSQL, args...))
 	if err == nil {
 		teamCapabilities(ctx, tx, user, &v)
@@ -127,7 +127,7 @@ func (s *Store) ListTeams(ctx context.Context, actor Identity, page Page) (PageR
 		return PageResult[c.Team]{}, err
 	}
 	defer tx.Rollback()
-	result, err := pageQuery(s, ctx, tx, page, scope(user.ID, "community.teams", nil), `SELECT `+teamColumns+` FROM namespaces n LEFT JOIN team_profiles t ON t.namespace=n.name WHERE n.name>@after AND `+teamVisibleSQL+` ORDER BY n.name LIMIT @limit`, principalArgs(user), func(rows *sql.Rows) (c.Team, string, error) { v, e := teamScan(rows); return v, v.Namespace, e })
+	result, err := pageQuery(s, ctx, tx, page, scope(user.ID, "community.teams", s.policy.Mode), `SELECT `+teamColumns+` FROM namespaces n LEFT JOIN team_profiles t ON t.namespace=n.name WHERE n.name>@after AND `+teamVisibleSQL+` ORDER BY n.name LIMIT @limit`, append(principalArgs(user), sql.Named("directory", !s.policy.IsCommunity())), func(rows *sql.Rows) (c.Team, string, error) { v, e := teamScan(rows); return v, v.Namespace, e })
 	if err == nil {
 		for i := range result.Items {
 			teamCapabilities(ctx, tx, user, &result.Items[i])

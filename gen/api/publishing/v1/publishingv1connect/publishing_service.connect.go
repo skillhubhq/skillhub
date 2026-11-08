@@ -48,6 +48,9 @@ const (
 	// PublishingServiceYankReleaseProcedure is the fully-qualified name of the PublishingService's
 	// YankRelease RPC.
 	PublishingServiceYankReleaseProcedure = "/api.publishing.v1.PublishingService/YankRelease"
+	// PublishingServiceDeleteReleaseProcedure is the fully-qualified name of the PublishingService's
+	// DeleteRelease RPC.
+	PublishingServiceDeleteReleaseProcedure = "/api.publishing.v1.PublishingService/DeleteRelease"
 )
 
 // PublishingServiceClient is a client for the api.publishing.v1.PublishingService service.
@@ -62,6 +65,8 @@ type PublishingServiceClient interface {
 	ReviewRelease(context.Context, *connect.Request[v1.ReviewReleaseRequest]) (*connect.Response[v1.ReviewReleaseResponse], error)
 	// YankRelease 禁止版本继续分发并保留证据。
 	YankRelease(context.Context, *connect.Request[v1.YankReleaseRequest]) (*connect.Response[v1.YankReleaseResponse], error)
+	// DeleteRelease 清理已拒绝或已撤下版本的内容，保留版本占位与审计。
+	DeleteRelease(context.Context, *connect.Request[v1.DeleteReleaseRequest]) (*connect.Response[v1.DeleteReleaseResponse], error)
 }
 
 // NewPublishingServiceClient constructs a client for the api.publishing.v1.PublishingService
@@ -105,6 +110,12 @@ func NewPublishingServiceClient(httpClient connect.HTTPClient, baseURL string, o
 			connect.WithSchema(publishingServiceMethods.ByName("YankRelease")),
 			connect.WithClientOptions(opts...),
 		),
+		deleteRelease: connect.NewClient[v1.DeleteReleaseRequest, v1.DeleteReleaseResponse](
+			httpClient,
+			baseURL+PublishingServiceDeleteReleaseProcedure,
+			connect.WithSchema(publishingServiceMethods.ByName("DeleteRelease")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -115,6 +126,7 @@ type publishingServiceClient struct {
 	getSubmission   *connect.Client[v1.GetSubmissionRequest, v1.GetSubmissionResponse]
 	reviewRelease   *connect.Client[v1.ReviewReleaseRequest, v1.ReviewReleaseResponse]
 	yankRelease     *connect.Client[v1.YankReleaseRequest, v1.YankReleaseResponse]
+	deleteRelease   *connect.Client[v1.DeleteReleaseRequest, v1.DeleteReleaseResponse]
 }
 
 // SubmitRelease calls api.publishing.v1.PublishingService.SubmitRelease.
@@ -142,6 +154,11 @@ func (c *publishingServiceClient) YankRelease(ctx context.Context, req *connect.
 	return c.yankRelease.CallUnary(ctx, req)
 }
 
+// DeleteRelease calls api.publishing.v1.PublishingService.DeleteRelease.
+func (c *publishingServiceClient) DeleteRelease(ctx context.Context, req *connect.Request[v1.DeleteReleaseRequest]) (*connect.Response[v1.DeleteReleaseResponse], error) {
+	return c.deleteRelease.CallUnary(ctx, req)
+}
+
 // PublishingServiceHandler is an implementation of the api.publishing.v1.PublishingService service.
 type PublishingServiceHandler interface {
 	// SubmitRelease 对固定内容创建一次幂等提交。
@@ -154,6 +171,8 @@ type PublishingServiceHandler interface {
 	ReviewRelease(context.Context, *connect.Request[v1.ReviewReleaseRequest]) (*connect.Response[v1.ReviewReleaseResponse], error)
 	// YankRelease 禁止版本继续分发并保留证据。
 	YankRelease(context.Context, *connect.Request[v1.YankReleaseRequest]) (*connect.Response[v1.YankReleaseResponse], error)
+	// DeleteRelease 清理已拒绝或已撤下版本的内容，保留版本占位与审计。
+	DeleteRelease(context.Context, *connect.Request[v1.DeleteReleaseRequest]) (*connect.Response[v1.DeleteReleaseResponse], error)
 }
 
 // NewPublishingServiceHandler builds an HTTP handler from the service implementation. It returns
@@ -193,6 +212,12 @@ func NewPublishingServiceHandler(svc PublishingServiceHandler, opts ...connect.H
 		connect.WithSchema(publishingServiceMethods.ByName("YankRelease")),
 		connect.WithHandlerOptions(opts...),
 	)
+	publishingServiceDeleteReleaseHandler := connect.NewUnaryHandler(
+		PublishingServiceDeleteReleaseProcedure,
+		svc.DeleteRelease,
+		connect.WithSchema(publishingServiceMethods.ByName("DeleteRelease")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/api.publishing.v1.PublishingService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case PublishingServiceSubmitReleaseProcedure:
@@ -205,6 +230,8 @@ func NewPublishingServiceHandler(svc PublishingServiceHandler, opts ...connect.H
 			publishingServiceReviewReleaseHandler.ServeHTTP(w, r)
 		case PublishingServiceYankReleaseProcedure:
 			publishingServiceYankReleaseHandler.ServeHTTP(w, r)
+		case PublishingServiceDeleteReleaseProcedure:
+			publishingServiceDeleteReleaseHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -232,4 +259,8 @@ func (UnimplementedPublishingServiceHandler) ReviewRelease(context.Context, *con
 
 func (UnimplementedPublishingServiceHandler) YankRelease(context.Context, *connect.Request[v1.YankReleaseRequest]) (*connect.Response[v1.YankReleaseResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("api.publishing.v1.PublishingService.YankRelease is not implemented"))
+}
+
+func (UnimplementedPublishingServiceHandler) DeleteRelease(context.Context, *connect.Request[v1.DeleteReleaseRequest]) (*connect.Response[v1.DeleteReleaseResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("api.publishing.v1.PublishingService.DeleteRelease is not implemented"))
 }

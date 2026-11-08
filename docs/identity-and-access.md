@@ -10,7 +10,7 @@ SkillHub prioritizes internal skill sharing. Hubs are private by default, with n
 | Hub membership | Each Hub owns user IDs, account status and sessions. Matching names across Hubs do not identify the same authorization principal. |
 | Community profile | Display name, bio and avatar are visible through readable contributions or shared teams. Login usernames are returned only to their owner and Hub administrators. |
 | Access groups | Grant content audience membership and namespace roles. Groups are not public teams and are not synchronized from an enterprise directory. |
-| Teams | Presentation profiles for namespaces. Member lists are visible only to namespace members and Hub administrators. |
+| Teams | In enterprise mode, signed-in members can discover every active team name and profile. Skill audiences and namespace roles still govern content and operations. Member lists are visible only to namespace members and Hub administrators. Community mode discovers teams through visible published skills or namespace membership. |
 | Content audience | Each immutable release has a Public, Members or Groups audience, independent of the author's sign-in method. |
 
 A profile is readable by its owner, a Hub administrator, or someone with a readable published contribution, an undeleted comment or shared namespace membership connecting them to that person. Being signed in does not permit browsing every profile by user ID. Unknown and inaccessible users both return not found. Shared profiles never fall back to another person's login username; public author links use opaque Hub-local user IDs.

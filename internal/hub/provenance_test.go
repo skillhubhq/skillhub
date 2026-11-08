@@ -104,7 +104,7 @@ func testProvenanceUpgrade(t *testing.T, cfg hubdb.Config) {
 	mustGovernance(t, e)
 	r, e := s.SubmitRelease(ctx, admin, "provenance-submit", SubmitRelease{Namespace: "original", Version: "1.0.0", Archive: governanceArchive(t, "Existing content"), Visibility: taxonomy.Visibility_VISIBILITY_PUBLIC})
 	mustGovernance(t, e)
-	_, e = s.db.Exec("ALTER TABLE releases DROP COLUMN provenance; ALTER TABLE namespaces DROP COLUMN archived; DROP TABLE namespace_tombstones; DROP TABLE package_cleanup; PRAGMA user_version=1;")
+	_, e = s.db.Exec("ALTER TABLE releases DROP COLUMN provenance; ALTER TABLE namespaces DROP COLUMN archived; DROP TABLE namespace_tombstones; DROP TABLE package_cleanup; DROP TABLE release_tombstones; PRAGMA user_version=1;")
 	mustGovernance(t, e)
 	if cfg.Driver == "sqlite" {
 		snapshot := filepath.Join(t.TempDir(), "old-backup")

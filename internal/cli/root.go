@@ -473,6 +473,17 @@ func (a *application) reviewCommand() *cobra.Command {
 			Files   []file             `json:"files"`
 		}{response.Msg.Release, files})
 	}))
+	cleanup := a.remoteCommand("delete RELEASE_ID", "Delete a rejected or withdrawn version and its contents", cobra.ExactArgs(1), func(cmd *cobra.Command, r *client.Remote, args []string) error {
+		coordinate, _ := cmd.Flags().GetString("confirm")
+		response, err := r.Publishing.DeleteRelease(cmd.Context(), connect.NewRequest(&publishingv1.DeleteReleaseRequest{Mutation: a.mutation(), ReleaseId: args[0], ConfirmCoordinate: coordinate}))
+		if err != nil {
+			return err
+		}
+		return a.output(cmd, response.Msg)
+	})
+	cleanup.Flags().String("confirm", "", "confirm namespace/name@version; audit and installed copies remain")
+	_ = cleanup.MarkFlagRequired("confirm")
+	command.AddCommand(cleanup)
 	for _, action := range []string{"approve", "reject"} {
 		approve := action == "approve"
 		child := a.remoteCommand(action+" RELEASE_ID", action+" a submission", cobra.ExactArgs(1), func(cmd *cobra.Command, r *client.Remote, args []string) error {

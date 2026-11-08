@@ -203,9 +203,6 @@ export function Sources() {
                     {t("Hub name", "站点名称")}: {source.display_name}
                   </small>
                 )}
-                {source.note && (
-                  <p className="connection-note">{source.note}</p>
-                )}
                 <small className="connection-alias">
                   {t("CLI ID", "CLI 标识")}: <code>{source.alias}</code>
                 </small>
@@ -257,12 +254,6 @@ export function Sources() {
                       {source.display_name} <OfficialBadge url={source.url} />
                     </strong>
                     <p className="connection-address">{source.url}</p>
-                    <small>
-                      {t(
-                        "This is the connected server. Its name and accounts are managed by the Hub.",
-                        "这是连接的服务端，站点名称和账号由 Hub 管理。",
-                      )}
-                    </small>
                     <button
                       className="quiet"
                       disabled={ui.busy}
@@ -278,22 +269,6 @@ export function Sources() {
                       {t("Refresh Hub information", "刷新站点信息")}
                     </button>
                   </section>
-                  <ConnectionPreferences source={source} />
-                  <details className="connection-technical">
-                    <summary>
-                      {t("Connection identifiers", "连接标识与地址")}
-                    </summary>
-                    <p>
-                      {t("CLI ID", "CLI 标识")}: <code>{source.alias}</code>
-                    </p>
-                    <p className="muted">
-                      {t(
-                        "This stable ID is used by CLI commands and project files. Editing the connection name leaves these references and your login intact. To connect another address, add a separate connection.",
-                        "稳定标识供 CLI 和项目文件引用。修改显示名不会改变这些引用或登录状态。使用其他地址时，请添加独立连接。",
-                      )}
-                    </p>
-                    <code className="path">{source.registry_id}</code>
-                  </details>
                   <h3>{t("Account and access", "账号与访问")}</h3>
                   <p>
                     {t("Signed-in account", "登录账号")}:{" "}
@@ -378,6 +353,22 @@ export function Sources() {
                       {t("Remove connection")}
                     </button>
                   </div>
+                  <ConnectionPreferences source={source} />
+                  <details className="connection-technical">
+                    <summary>
+                      {t("Connection identifiers", "连接标识与地址")}
+                    </summary>
+                    <p>
+                      {t("CLI ID", "CLI 标识")}: <code>{source.alias}</code>
+                    </p>
+                    <p className="muted">
+                      {t(
+                        "This stable ID is used by CLI commands and project files. Editing the connection name leaves these references and your login intact. To connect another address, add a separate connection.",
+                        "稳定标识供 CLI 和项目文件引用。修改显示名不会改变这些引用或登录状态。使用其他地址时，请添加独立连接。",
+                      )}
+                    </p>
+                    <code className="path">{source.registry_id}</code>
+                  </details>
                 </Modal>
               )}
             </article>

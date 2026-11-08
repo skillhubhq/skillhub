@@ -356,7 +356,7 @@ dialog::backdrop {
 }
 .team-lifecycle-impact div {
   padding: 0.75rem 0;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--line);
 }
 .team-lifecycle-impact dd {
   margin: 0.35rem 0 0;
@@ -370,7 +370,7 @@ dialog::backdrop {
 }
 
 .connection-note { overflow-wrap: anywhere; }
-.connection-server { display: grid; gap: .5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
+.connection-server { display: grid; gap: .5rem; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--line); }
 .connection-server p { margin: 0; }
 .connection-server button { justify-self: start; }
 .connection-preferences { margin-block: 1rem; }

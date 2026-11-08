@@ -151,11 +151,9 @@ export function Navigation({ page }: { page: string }) {
             >
               <Icon name="management" />
             </button>
-            {ui.access === "member" &&
-              ui.activeSource &&
-              group !== "library" && (
-                <ReviewInbox key={ui.activeSource} source={ui.activeSource} />
-              )}
+            {ui.access === "member" && ui.activeSource && (
+              <ReviewInbox key={ui.activeSource} source={ui.activeSource} />
+            )}
             <WebAccount />
           </>
         }
