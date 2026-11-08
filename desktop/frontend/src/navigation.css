@@ -20,6 +20,8 @@
   padding: 0 32px;
 }
 .global-navigation {
+  position: relative;
+  z-index: 2;
   min-height: 72px;
 }
 .navigation-shell .home-link {
@@ -115,61 +117,31 @@
   background-position: right 1px center;
 }
 .quick-theme {
-  position: relative;
+  flex: none;
 }
-.quick-theme > summary {
-  display: grid;
-  place-items: center;
-  list-style: none;
-  width: 44px;
-  height: 44px;
-  padding: 0;
-  margin: 0;
-  border-radius: 6px;
-  color: var(--muted);
-  cursor: pointer;
-}
-.quick-theme > summary::-webkit-details-marker {
-  display: none;
-}
-.quick-theme > summary:hover {
-  background: var(--surface-soft);
-}
-.theme-popover {
-  position: absolute;
-  top: calc(100% + 10px);
-  right: 0;
-  width: 192px;
+.quick-theme .ui-select {
+  width: 62px;
+  min-height: 44px;
   padding: 8px;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: var(--surface);
-  box-shadow: 0 12px 36px var(--shadow-color);
-}
-.theme-popover p {
-  margin: 5px 10px 9px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
   color: var(--muted);
-  font-size: 12px;
+  gap: 6px;
 }
-.theme-popover button {
+.quick-theme .ui-select-value {
   display: flex;
   align-items: center;
-  width: 100%;
-  gap: 10px;
-  padding: 8px 10px;
-  border: 0;
-  background: transparent;
-  font-size: 13px;
 }
-.theme-popover button span {
-  flex: 1;
-  text-align: left;
+.quick-theme .ui-select:hover {
+  background: var(--surface-soft);
 }
-.theme-popover button[aria-pressed="true"] {
-  background: var(--accent-light);
-  color: var(--link);
+.global-utilities > .utility-inbox {
+  flex: 0 0 44px;
 }
 .context-navigation {
+  position: relative;
+  z-index: 1;
   min-height: 52px;
   border-top: 1px solid var(--line);
   gap: 16px;
@@ -399,7 +371,7 @@
     margin-left: auto;
     padding: 0;
   }
-  .global-utilities .quick-theme > summary,
+  .global-utilities .quick-theme .ui-select,
   .global-utilities .utility-settings,
   .global-utilities .account-menu summary {
     min-width: 44px;
@@ -916,4 +888,150 @@
   text-decoration: none;
   font-weight: 500;
   white-space: nowrap;
+}
+
+/* 文档与社区使用同一套头部排版，不继承各宿主的重置差异。 */
+.navigation-shell {
+  font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    "PingFang SC",
+    sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  font-synthesis: none;
+}
+.navigation-shell *,
+.navigation-shell *::before,
+.navigation-shell *::after {
+  box-sizing: border-box;
+}
+.navigation-shell .primary-navigation :is(button, a) {
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.6;
+}
+.github-star {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 9px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  margin-right: 6px;
+}
+.github-star svg {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+}
+.github-star:hover {
+  color: var(--link);
+  background: var(--accent-light);
+  border-color: var(--line-strong);
+}
+@media (max-width: 1100px) {
+  .github-star span {
+    display: none;
+  }
+  .github-star {
+    width: 36px;
+    padding: 0;
+    margin-right: 0;
+  }
+  .global-navigation {
+    gap: 16px;
+  }
+}
+
+.navigation-shell .global-navigation {
+  min-height: 56px;
+  gap: 22px;
+}
+.navigation-shell .primary-navigation :is(button, a) {
+  min-height: 36px;
+  padding: 6px 11px;
+  font-size: 13px;
+}
+.navigation-shell .site-home .site-name {
+  font-size: 16px;
+  font-weight: 650;
+  line-height: 1.3;
+}
+.global-utilities .docs-account {
+  margin-left: 4px;
+}
+@media (max-width: 1100px) {
+  .navigation-shell .global-navigation {
+    gap: 16px;
+  }
+}
+@media (max-width: 760px) {
+  .navigation-shell .global-navigation {
+    gap: 6px;
+    padding-top: 4px;
+  }
+  .navigation-shell .primary-navigation {
+    margin-top: 4px;
+  }
+  .navigation-shell .primary-navigation :is(button, a) {
+    min-height: 44px;
+    padding: 9px 0 12px;
+    background: transparent;
+    border-radius: 0;
+  }
+  .navigation-shell .site-home .site-name {
+    font-size: 13px;
+  }
+  .global-utilities .docs-account {
+    margin-left: 0;
+  }
+}
+@media (max-width: 400px) {
+  .navigation-shell .global-navigation {
+    gap: 0;
+  }
+}
+.navigation-shell .primary-navigation {
+  gap: 8px;
+}
+.navigation-shell .site-home .site-name {
+  letter-spacing: -0.02em;
+}
+@media (max-width: 760px) {
+  .navigation-shell .primary-navigation {
+    gap: 18px;
+  }
+}
+.language-short {
+  display: none;
+}
+@media (max-width: 480px) {
+  .quick-language .language-full {
+    display: none;
+  }
+  .quick-language .language-short {
+    display: inline;
+  }
+  .global-utilities .quick-language .ui-select {
+    width: 52px;
+    padding-left: 5px;
+  }
+  .navigation-shell .site-home .site-name {
+    white-space: nowrap;
+    display: block;
+  }
 }

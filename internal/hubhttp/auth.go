@@ -69,7 +69,7 @@ var authorizationPage = template.Must(template.New("authorize").Parse(`<!doctype
 <style>body{font:16px system-ui,sans-serif;background:#f5f7fa;color:#182235;margin:0;padding:10vh 24px}main{max-width:420px;margin:auto;padding:32px;background:white;border:1px solid #dfe4ec;border-radius:16px}h1{font-size:24px}label{display:block;margin:20px 0 6px}input,button{box-sizing:border-box;width:100%;font:inherit;border-radius:8px;padding:12px;border:1px solid #bac3d1}button{margin-top:24px;background:#244cba;color:white;border:0;cursor:pointer}p{line-height:1.5}.error{color:#a12020}</style>
 <main><h1>{{.Name}}</h1>{{if .Done}}<p>Device authorized. Return to your SkillHub client.</p>{{else}}<p>Authorize your SkillHub client. Enter the code shown in the client you started.</p>{{if .Error}}<p class="error" role="alert">{{.Error}}</p>{{end}}<form method="post" action="/authorize">
 <input type="hidden" name="csrf" value="{{.CSRF}}"><label for="code">Device code</label><input id="code" name="code" required maxlength="8" autocomplete="off">
-{{if .SignedIn}}<p>Signed in as <strong>{{.Username}}</strong>. Only authorize a code shown in a client you started.</p>{{else}}{{if .Provider}}<p><a href="/auth/oidc/start?next=authorize">Continue with {{.Provider}}</a></p><p>Or use a local Hub account:</p>{{end}}<label for="username">Username</label><input id="username" name="username" required maxlength="128" autocomplete="username">
+{{if .SignedIn}}<p>Signed in as <strong>{{.Username}}</strong>. Only authorize a code shown in a client you started.</p>{{else}}{{range .Providers}}<p><a href="{{.URL}}">Continue with {{.Name}}</a></p>{{end}}{{if .Providers}}<p>Or use a local Hub account:</p>{{end}}<label for="username">Username</label><input id="username" name="username" required maxlength="128" autocomplete="username">
 <label for="password">Password</label><input id="password" name="password" type="password" required maxlength="1024" autocomplete="current-password">{{end}}
 <button type="submit">Authorize this device</button></form>{{end}}</main></html>`))
 
@@ -132,16 +132,12 @@ func (s *Server) authorize(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &http.Cookie{Name: cookieName, Value: token, Path: "/", HttpOnly: true, Secure: secure, SameSite: http.SameSiteStrictMode, MaxAge: maxAge})
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(status)
-	provider := ""
-	if s.config.OIDC != nil {
-		provider = s.config.OIDC.DisplayName
-	}
 	_ = authorizationPage.Execute(w, struct {
-		Name, CSRF, Error  string
-		Provider, Username string
-		SignedIn           bool
-		Done               bool
-	}{s.config.DisplayName, token, message, provider, username, sessionToken != "", done})
+		Name, CSRF, Error, Username string
+		Providers                   []loginOption
+		SignedIn, Done              bool
+	}{Name: s.config.DisplayName, CSRF: token, Error: message, Username: username,
+		Providers: s.loginOptions("authorize"), SignedIn: sessionToken != "", Done: done})
 }
 
 func (s *Server) ChangePassword(ctx context.Context, req *connect.Request[authv1.ChangePasswordRequest]) (*connect.Response[authv1.ChangePasswordResponse], error) {

@@ -55,7 +55,7 @@ Do not disable system-wide security protections.
 
 Replacing the App preserves existing connections, credentials, preferences,
 drafts and installed skills outside the app bundle. Do not delete client data
-folders. Follow version-specific migration notes before downgrading.
+folders. Check database compatibility before downgrading.
 App settings → App updates checks GitHub only when requested. Downloading and
 installing remain manual. A private repository may require GitHub access.
 

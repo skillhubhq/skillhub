@@ -1,3 +1,4 @@
+import { OfficialBadge, officialHubURL, isOfficialHub } from "./official";
 import { needsSignIn } from "./AccessState";
 import { t } from "./i18n";
 import { useEffect, useState } from "react";
@@ -103,6 +104,34 @@ export function Sources() {
           {t("Connect a hub")}
         </button>
       </div>
+      {!ui.sources.some((s) => isOfficialHub(s.url)) && (
+        <section className="official-connection">
+          <div>
+            <strong>
+              SkillHub <OfficialBadge url={officialHubURL} />
+            </strong>
+            <p>
+              {t(
+                "Discover skills from the public community. No account is needed to browse.",
+                "发现公共社区中的技能，无需登录即可浏览。",
+              )}
+            </p>
+          </div>
+          <button
+            onClick={() => {
+              setAlias(
+                ui.sources.some((s) => s.alias === "official")
+                  ? "skillhub-official"
+                  : "official",
+              );
+              setURL(officialHubURL);
+              setAdding(true);
+            }}
+          >
+            {t("Connect official Hub", "连接官方 Hub")}
+          </button>
+        </section>
+      )}
       {adding && (
         <Modal
           title={t("Connect a hub")}
@@ -162,7 +191,9 @@ export function Sources() {
           {ui.sources.map((source) => (
             <article className="source-card" key={source.alias}>
               <div className="connection-identity">
-                <h2>{source.display_name}</h2>
+                <h2>
+                  {source.display_name} <OfficialBadge url={source.url} />
+                </h2>
                 <p className="connection-address" title={source.url}>
                   {source.url}
                 </p>

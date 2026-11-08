@@ -25,6 +25,7 @@ type Props = AriaAttributes & {
   required?: boolean;
   disabled?: boolean;
   className?: string;
+  triggerContent?: ReactNode;
 };
 function text(children: ReactNode): string {
   return Children.toArray(children)
@@ -66,6 +67,7 @@ export function Select({
   required = false,
   disabled = false,
   className = "",
+  triggerContent,
   ...aria
 }: Props) {
   const id = useId();
@@ -306,9 +308,10 @@ export function Select({
         }}
       >
         <span className="ui-select-value">
-          {chosen.length
-            ? chosen.map((item) => item.label).join(", ")
-            : t("Choose…", "请选择…")}
+          {triggerContent ??
+            (chosen.length
+              ? chosen.map((item) => item.label).join(", ")
+              : t("Choose…", "请选择…"))}
         </span>
         <svg
           className="ui-select-chevron"

@@ -1,0 +1,34 @@
+# Same Hub binary and database; community mode changes admission and publication policy.
+mode: community
+data: /var/lib/skillhub/data
+listen: 127.0.0.1:8080
+public_url: https://skills.example.com
+name: SkillHub Community
+private: false
+database:
+  driver: sqlite
+trusted_proxies:
+  - 127.0.0.1/32
+auth:
+  providers:
+    - id: social
+      type: github
+      name: GitHub
+      client_id: OAUTH_APPLICATION_CLIENT_ID
+      client_secret_file: /run/secrets/skillhub-identity
+# Register https://skills.example.com/auth/providers/social/callback.
+# Replace these with the operator's actual policies and contact page.
+site:
+  privacy_url: https://skills.example.com/privacy
+  terms_url: https://skills.example.com/terms
+  contact_url: https://skills.example.com/contact
+# filing_text / filing_url are optional operator-supplied registration details.
+limits:
+  requests_per_minute: 600
+  users: 10000
+  submissions_per_day: 10
+  versions_per_user: 200
+  bytes_per_user: 209715200
+  package_bytes: 5368709120
+  comments_per_day: 100
+  reports_per_day: 10

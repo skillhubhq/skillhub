@@ -4,10 +4,10 @@ Hub 负责发布检查、独立审核、审计和平台职责。Web/App/CLI 使�
 
 ## 包检查与批准 [#package-checks-and-approval]
 
-每次提交先校验归档，再用有界离线 `builtin-static/1` 扫描。不会执行文件或发送内容给第三方。报告绑定包摘要，包含引擎版本、时间、规则、文件/行和固定修复提示，不复制命中的秘密原文。
+每次提交先校验归档，再用有界离线 `builtin-static/2` 扫描。不会执行文件或发送内容给第三方。报告绑定包摘要，包含引擎版本、时间、规则、文件/行和固定修复提示，不复制命中的秘密原文。
 
 - 私钥头和部分凭据特征阻止批准；即使管理员也不能覆盖，需修复后提交新版本。
-- 远程 shell 管道、破坏性命令、指令覆盖语言，以及未检查的二进制内容要求独立审核，即使命名空间允许直接发布。
+- 远程 shell 管道、本地进程执行或终止、HTML 外部脚本、破坏性命令、指令覆盖语言，以及未检查的二进制内容要求独立审核，即使命名空间允许直接发布。
 - 警告或不完整扫描需审核者写说明，仍禁止自审；缺失、过时或摘要不符时需重扫。
 - 无发现只表示内置规则未命中，不能证明安全；这不是杀毒、沙箱或执行授权系统。
 - 最多 100 条发现，溢出阻止批准。历史已发布包不会自动撤下；扫描失败/取消不能生成成功报告。
@@ -45,3 +45,40 @@ skillhub review reject RELEASE_ID --source work --reason "Missing verification s
 ```
 
 用 `skillhub governance --help` 查看扫描、已读和平台职责命令；修改需要相应权限，自动化使用 `--json` 和稳定请求键。复现验收见[测试](testing.md)。
+
+## 上游署名 [#upstream-attribution]
+
+收录版本区分三种身份：
+
+| 身份 | 含义 |
+| --- | --- |
+| 原作者 | 有来源依据的名称和 HTTPS 主页；不会创建 Hub 账号，也不表示作者认可此次收录 |
+| 收录维护者 | 发布命名空间及其团队主页；命名空间授权决定谁能维护这份内容 |
+| 操作账号 | 真实认证的提交或审核账号，保留在审计记录中；外部作者名称不会获得权限 |
+
+Web 和 App 统一展示来源目录、完整上游 Git commit、SPDX 许可证标识、包内许可证路径、修改声明和收录版本。卡片署名原作者，团队和本地技能页保留相同归属。版本来源面板可查看收录审核说明。这些是维护者提交并经过审核的声明，不是上游身份认证标识。
+
+发布时保留上游目录中的文件、许可证和版权声明。无需为了 Hub 署名改写 `SKILL.md`：通过发布表单或 `--provenance FILE` 单独提交元数据。CLI 只接受明确指定的来源文件，不自动信任包内声明。
+
+```json
+{
+  "author_name": "Example Authors",
+  "author_url": "https://example.org/authors",
+  "source_url": "https://example.org/source/0123456789abcdef0123456789abcdef01234567/skill",
+  "revision": "0123456789abcdef0123456789abcdef01234567",
+  "license": "Apache-2.0",
+  "license_file": "LICENSE.txt",
+  "modified": false,
+  "changes": ""
+}
+```
+
+```sh
+skillhub publish ./example-skill --source community --namespace curators \
+  --version 0.0.0-upstream.0123456789ab --visibility public \
+  --provenance ./attribution.json
+```
+
+Hub 要求包内存在对应的文本许可证。审核者仍需核实许可证适用性、来源归属、精确提交和声明保留情况；Hub 不联网抓取或独立核验上游仓库。修改过文件时必须设定 `modified: true` 并填写改动说明。所有带来源声明的提交均须独立审核，即使命名空间允许直接发布。声明随版本固定并参与幂等校验，纠正声明需提交新版本。
+
+上游没有发布版本号时，使用明确的收录快照版本，例如 `0.0.0-upstream.<commit 前缀>`，不要虚构上游 `1.0.0`。安装记录保存署名及包摘要，离线也能查看。向不支持 `catalog.provenance.v1` 的旧 Hub 发布来源声明会明确失败，避免静默丢失。

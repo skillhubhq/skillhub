@@ -13,6 +13,7 @@ import (
 	taxonomy "github.com/skillhubhq/skillhub/gen/common/registry/v1"
 	c "github.com/skillhubhq/skillhub/internal/community"
 	"github.com/skillhubhq/skillhub/internal/hubdb"
+	"github.com/skillhubhq/skillhub/internal/provenance"
 )
 
 const profileColumns = `u.id,u.username,COALESCE(NULLIF(p.display_name,''),u.username),COALESCE(p.bio,''),COALESCE(p.revision,0),COALESCE(p.avatar,'')`
@@ -182,14 +183,18 @@ func (s *Store) ListContributions(ctx context.Context, actor Identity, id, names
 	if bookmarks && user.ID == "" {
 		return PageResult[c.Contribution]{}, ErrUnauthenticated
 	}
-	query := `SELECT r.id,r.namespace,r.name,r.version,r.description,r.display_name_en,r.display_name_zh,r.icon,` + profileColumns + ` FROM releases r JOIN users u ON u.id=r.submitted_by LEFT JOIN profiles p ON p.user_id=u.id WHERE r.status=2 AND ` + readableSQL + ` AND r.id>@after AND (@subject='' OR r.submitted_by=@subject) AND (@namespace='' OR r.namespace=@namespace)`
+	query := `SELECT r.id,r.namespace,r.name,r.version,r.description,r.display_name_en,r.display_name_zh,r.icon,r.provenance,` + profileColumns + ` FROM releases r JOIN users u ON u.id=r.submitted_by LEFT JOIN profiles p ON p.user_id=u.id WHERE r.status=2 AND ` + readableSQL + ` AND r.id>@after AND (@subject='' OR r.submitted_by=@subject) AND (@namespace='' OR r.namespace=@namespace)`
 	if bookmarks {
 		query += ` AND EXISTS(SELECT 1 FROM reactions x WHERE x.release_id=r.id AND x.user_id=@actor AND x.bookmark=1)`
 	}
 	query += ` ORDER BY r.id LIMIT @limit`
 	return pageQuery(s, ctx, tx, page, scope(user.ID, "community.contributions", []any{id, namespace, bookmarks}), query, append(principalArgs(user), sql.Named("subject", id), sql.Named("namespace", namespace)), func(rows *sql.Rows) (c.Contribution, string, error) {
 		var v c.Contribution
-		e := rows.Scan(&v.ReleaseID, &v.Namespace, &v.Name, &v.Version, &v.Description, &v.DisplayNameEN, &v.DisplayNameZH, &v.Icon, &v.Author.UserID, &v.Author.Username, &v.Author.DisplayName, &v.Author.Bio, &v.Author.Revision, &v.Author.Avatar)
+		var origin string
+		e := rows.Scan(&v.ReleaseID, &v.Namespace, &v.Name, &v.Version, &v.Description, &v.DisplayNameEN, &v.DisplayNameZH, &v.Icon, &origin, &v.Author.UserID, &v.Author.Username, &v.Author.DisplayName, &v.Author.Bio, &v.Author.Revision, &v.Author.Avatar)
+		if e == nil {
+			v.Provenance, e = provenance.Decode(origin)
+		}
 		v.Author = profileForViewer(v.Author, user)
 		return v, v.ReleaseID, e
 	})
@@ -292,6 +297,15 @@ func (s *Store) CreateComment(ctx context.Context, actor Identity, key string, c
 		}
 		if recent >= 20 {
 			return c.Comment{}, ErrRateLimited
+		}
+		if s.policy.IsCommunity() {
+			var daily int
+			if err := tx.QueryRowContext(ctx, "SELECT count(*) FROM comments WHERE author_id=? AND created_at>?", user.ID, s.now().Add(-24*time.Hour).Unix()).Scan(&daily); err != nil {
+				return c.Comment{}, err
+			}
+			if daily >= s.policy.Limits.CommentsPerDay {
+				return c.Comment{}, ErrQuota
+			}
 		}
 		var parent any
 		if cmd.ParentID != "" {

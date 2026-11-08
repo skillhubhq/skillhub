@@ -7,6 +7,7 @@ export {
     PlatformRole,
     PrincipalKind,
     ReleaseStatus,
+    ReportResolution,
     SkillIcon,
     Visibility
 } from "./models.js";

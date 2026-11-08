@@ -93,3 +93,13 @@ enum CatalogOrder {
   // 最近发布优先，不按语义版本大小。
   CATALOG_ORDER_RECENT = 2;
 }
+
+// ReportResolution 表示管理员对社区举报的处理动作。
+enum ReportResolution {
+  // 未选择，拒绝处理。
+  REPORT_RESOLUTION_UNSPECIFIED = 0;
+  // 无需移除，保留处理说明。
+  REPORT_RESOLUTION_DISMISS = 1;
+  // 移除评论或撤下对应技能版本。
+  REPORT_RESOLUTION_REMOVE_CONTENT = 2;
+}

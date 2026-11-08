@@ -73,8 +73,20 @@ type GetRegistryResponse struct {
 	Capabilities []string `protobuf:"bytes,5,rep,name=capabilities,proto3" json:"capabilities,omitempty"`
 	// 接收的最大压缩包字节数。
 	MaxPackageBytes uint64 `protobuf:"varint,6,opt,name=max_package_bytes,json=maxPackageBytes,proto3" json:"max_package_bytes,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	// 社区模式采用自动准入、个人空间和强制独立审核。
+	CommunityMode bool `protobuf:"varint,7,opt,name=community_mode,json=communityMode,proto3" json:"community_mode,omitempty"`
+	// 部署方隐私说明地址。
+	PrivacyUrl string `protobuf:"bytes,8,opt,name=privacy_url,json=privacyUrl,proto3" json:"privacy_url,omitempty"`
+	// 部署方服务条款地址。
+	TermsUrl string `protobuf:"bytes,9,opt,name=terms_url,json=termsUrl,proto3" json:"terms_url,omitempty"`
+	// 部署方联系地址。
+	ContactUrl string `protobuf:"bytes,10,opt,name=contact_url,json=contactUrl,proto3" json:"contact_url,omitempty"`
+	// 部署方公开备案文本。
+	FilingText string `protobuf:"bytes,11,opt,name=filing_text,json=filingText,proto3" json:"filing_text,omitempty"`
+	// 对应备案信息链接。
+	FilingUrl     string `protobuf:"bytes,12,opt,name=filing_url,json=filingUrl,proto3" json:"filing_url,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *GetRegistryResponse) Reset() {
@@ -149,12 +161,54 @@ func (x *GetRegistryResponse) GetMaxPackageBytes() uint64 {
 	return 0
 }
 
+func (x *GetRegistryResponse) GetCommunityMode() bool {
+	if x != nil {
+		return x.CommunityMode
+	}
+	return false
+}
+
+func (x *GetRegistryResponse) GetPrivacyUrl() string {
+	if x != nil {
+		return x.PrivacyUrl
+	}
+	return ""
+}
+
+func (x *GetRegistryResponse) GetTermsUrl() string {
+	if x != nil {
+		return x.TermsUrl
+	}
+	return ""
+}
+
+func (x *GetRegistryResponse) GetContactUrl() string {
+	if x != nil {
+		return x.ContactUrl
+	}
+	return ""
+}
+
+func (x *GetRegistryResponse) GetFilingText() string {
+	if x != nil {
+		return x.FilingText
+	}
+	return ""
+}
+
+func (x *GetRegistryResponse) GetFilingUrl() string {
+	if x != nil {
+		return x.FilingUrl
+	}
+	return ""
+}
+
 var File_api_registry_v1_registry_service_proto protoreflect.FileDescriptor
 
 const file_api_registry_v1_registry_service_proto_rawDesc = "" +
 	"\n" +
 	"&api/registry/v1/registry_service.proto\x12\x0fapi.registry.v1\"\x14\n" +
-	"\x12GetRegistryRequest\"\xf3\x01\n" +
+	"\x12GetRegistryRequest\"\xb9\x03\n" +
 	"\x13GetRegistryResponse\x12\x1f\n" +
 	"\vregistry_id\x18\x01 \x01(\tR\n" +
 	"registryId\x12!\n" +
@@ -162,7 +216,18 @@ const file_api_registry_v1_registry_service_proto_rawDesc = "" +
 	"\x0eprotocol_major\x18\x03 \x01(\rR\rprotocolMajor\x12!\n" +
 	"\fprivate_mode\x18\x04 \x01(\bR\vprivateMode\x12\"\n" +
 	"\fcapabilities\x18\x05 \x03(\tR\fcapabilities\x12*\n" +
-	"\x11max_package_bytes\x18\x06 \x01(\x04R\x0fmaxPackageBytes2k\n" +
+	"\x11max_package_bytes\x18\x06 \x01(\x04R\x0fmaxPackageBytes\x12%\n" +
+	"\x0ecommunity_mode\x18\a \x01(\bR\rcommunityMode\x12\x1f\n" +
+	"\vprivacy_url\x18\b \x01(\tR\n" +
+	"privacyUrl\x12\x1b\n" +
+	"\tterms_url\x18\t \x01(\tR\btermsUrl\x12\x1f\n" +
+	"\vcontact_url\x18\n" +
+	" \x01(\tR\n" +
+	"contactUrl\x12\x1f\n" +
+	"\vfiling_text\x18\v \x01(\tR\n" +
+	"filingText\x12\x1d\n" +
+	"\n" +
+	"filing_url\x18\f \x01(\tR\tfilingUrl2k\n" +
 	"\x0fRegistryService\x12X\n" +
 	"\vGetRegistry\x12#.api.registry.v1.GetRegistryRequest\x1a$.api.registry.v1.GetRegistryResponseB\xc8\x01\n" +
 	"\x13com.api.registry.v1B\x14RegistryServiceProtoP\x01Z=github.com/skillhubhq/skillhub/gen/api/registry/v1;registryv1\xa2\x02\x03ARX\xaa\x02\x0fApi.Registry.V1\xca\x02\x0fApi\\Registry\\V1\xe2\x02\x1bApi\\Registry\\V1\\GPBMetadata\xea\x02\x11Api::Registry::V1b\x06proto3"

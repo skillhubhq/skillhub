@@ -4,6 +4,9 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
 import * as registryv1$0 from "../../gen/common/registry/v1/models.js";
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
+import * as provenance$0 from "../provenance/models.js";
 
 export interface Comment {
     "comment_id": string;
@@ -17,6 +20,7 @@ export interface Comment {
 }
 
 export interface Contribution {
+    "provenance"?: provenance$0.Record | null;
     "display_name_en": string;
     "display_name_zh": string;
     "icon": registryv1$0.SkillIcon;
@@ -46,6 +50,21 @@ export interface Page<T> {
     "next_page": string;
 }
 
+/**
+ * Participation 为账号自身的投稿配额，不暴露其他用户用量。
+ */
+export interface Participation {
+    "supported": boolean;
+    "community_mode": boolean;
+    "personal_namespace": string;
+    "versions": number;
+    "version_limit": number;
+    "submissions_today": number;
+    "submission_limit": number;
+    "storage_bytes": number;
+    "storage_limit": number;
+}
+
 export interface Profile {
     "avatar": string;
     "user_id": string;
@@ -54,6 +73,27 @@ export interface Profile {
     "bio": string;
     "revision": number;
     "can_edit": boolean;
+}
+
+export interface Report {
+    "id": string;
+    "reporter": string;
+    "release_id": string;
+    "comment_id": string;
+    "reason": string;
+    "resolved": boolean;
+    "resolution": string;
+    "coordinate": string;
+    "content": string;
+    "created_at": string;
+}
+
+export interface Site {
+    "privacy_url": string;
+    "terms_url": string;
+    "contact_url": string;
+    "filing_text": string;
+    "filing_url": string;
 }
 
 export interface Team {

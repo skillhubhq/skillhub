@@ -26,28 +26,26 @@ trusted_proxies:
 | `name` | `--name` | `SkillHub` |
 | `private` | `--private` | `true` |
 | `trusted_proxies` 列表 | `--trusted-proxies` 逗号分隔 | 空 |
-| `oidc.issuer` | `--oidc-issuer` | 空，禁用 OIDC |
-| `oidc.client_id` | `--oidc-client-id` | 空 |
-| `oidc.name` | `--oidc-name` | `Microsoft` |
-| `oidc.allow_signup` | `--oidc-allow-signup` | `false`，首次验证后等待审批 |
-| `oidc.client_secret_file` | 仅 YAML | 空 |
 
 公开地址必须是 origin，不能带部署子路径或查询参数；非回环地址要求 HTTPS。Web 内嵌，不需配置前端 API 地址。数据库可选 SQLite/PostgreSQL，包仍存本地，无 Redis/S3 依赖。参见[数据库](database.md)。
 
 ## 企业登录与密钥 [#enterprise-login-and-secrets]
 
 ```yaml
-oidc:
-  issuer: https://login.microsoftonline.com/TENANT_ID/v2.0
-  client_id: APPLICATION_CLIENT_ID
-  name: Microsoft
-  allow_signup: false
-  client_secret_file: /run/secrets/skillhub-oidc
+mode: enterprise
+auth:
+  providers:
+    - id: company
+      type: oidc
+      name: Microsoft
+      issuer: https://login.microsoftonline.com/TENANT_ID/v2.0
+      client_id: APPLICATION_CLIENT_ID
+      client_secret_file: /run/secrets/skillhub-identity
 ```
 
-替换占位符；密钥文件仅包含值，可带一个结尾换行，只允许服务账号和可信运维读取。也可省略文件配置，注入 `SKILLHUB_OIDC_CLIENT_SECRET`；二者同时配置会报错。不支持 YAML 内联 `client_secret`。密钥上限 8 KiB，永不打印。
+替换占位符；密钥文件仅包含值，可带一个结尾换行，只允许服务账号和可信运维读取。也可使用 `client_secret_env: SKILLHUB_IDENTITY_SECRET` 并注入对应环境变量；二者同时配置会报错。不支持 YAML 内联 `client_secret`。密钥上限 8 KiB，永不打印。
 
-服务管理器可注入环境变量或挂载密钥文件，Hub 本身不依赖云 SDK。修改后需重启。回调地址为 `PUBLIC_URL/auth/oidc/callback`。首次准入仍需结合身份提供方的应用分配，参见[企业登录](enterprise-login.md)。
+服务管理器可注入环境变量或挂载密钥文件，Hub 本身不依赖云 SDK。修改后需重启。回调地址为 `PUBLIC_URL/auth/providers/company/callback`。首次准入仍需结合身份提供方的应用分配，参见[企业登录](enterprise-login.md)。
 
 ## 校验、初始化、运行 [#validate-initialize-run]
 
@@ -57,7 +55,7 @@ skillhub-server init --config /etc/skillhub/hub.yaml --admin admin --password-st
 skillhub-server serve --config /etc/skillhub/hub.yaml
 ```
 
-初始化仅执行一次。`check-config` 检查格式、设置和密钥可用性，不建库、不联网，也不能证明存储权限、密钥有效性或代理路由正确。`serve` 执行 OIDC 发现，不可达会启动失败。维护命令使用同一配置，SQLite/PostgreSQL 均支持备份、校验、恢复、回退；受控 `upgrade` 当前仅支持 PostgreSQL，见[维护流程](database.md)。
+初始化仅执行一次。`check-config` 检查格式、设置和密钥可用性，不建库、不联网，也不能证明存储权限、密钥有效性或代理路由正确。`serve` 执行 OIDC 发现，不可达会启动失败。维护命令使用同一配置，SQLite/PostgreSQL 均支持备份、校验和恢复，见[维护流程](database.md)。
 
 ## 部署方可自定义什么 [#what-an-operator-can-customize]
 
@@ -66,3 +64,21 @@ skillhub-server serve --config /etc/skillhub/hub.yaml
 应用内管理用户、分组、命名空间权限、分类和标签；命名空间管理员编辑团队主页及审核策略，用户编辑个人资料。这些保存在数据库中，不是 YAML 设置。
 
 暂不提供自定义社区 Logo、首页文案/布局、法律/联系页、全站默认语言/主题或自定义下载目标。语言主题为设备偏好。软件 GitHub 项目和下载渠道独立于社区名称；分叉可按许可证改源码和构建链接，但不是运行时管理功能。
+
+## 模式与登录适配器 [#modes-and-login-adapters]
+
+`mode` 默认为 `enterprise`，也可设为 `community`；模式决定准入、投稿和配额策略，`private` 独立决定匿名可见性。登录方式通过 `auth.providers` 配置，最多八个 OIDC/GitHub 入口，任一适配器都可以用于任一模式。参见[社区部署与登录适配器](community-hosting.md)。
+
+```yaml
+mode: enterprise
+auth:
+  providers:
+    - id: company
+      type: oidc
+      name: Microsoft
+      issuer: https://login.microsoftonline.com/TENANT_ID/v2.0
+      client_id: APPLICATION_CLIENT_ID
+      client_secret_file: /run/secrets/skillhub-identity
+```
+
+回调地址为 `PUBLIC_URL/auth/providers/company/callback`。也可使用 `client_secret_env: SKILLHUB_IDENTITY_SECRET`，与密钥文件互斥。原有 `oidc` 配置/参数继续使用原回调及密钥规则，但不得与 `auth.providers` 混用。`limits` 设置社区配额，`site` 设置站点隐私、条款、联系及登记链接，均为 YAML 配置。

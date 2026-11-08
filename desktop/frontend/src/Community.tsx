@@ -244,9 +244,7 @@ function CommunityContent({
               <h2>{card.display_name}</h2>
               <p className="handle">
                 {value?.kind === "profile"
-                  ? value.profile.username
-                    ? "@" + value.profile.username
-                    : t("Community member", "社区成员")
+                  ? t("Community member", "社区成员")
                   : "/" + (card as Team).namespace}
               </p>
               <p className="profile-bio">

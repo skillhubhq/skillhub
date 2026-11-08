@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 import { isWeb } from "./platform";
+import { useResource } from "./community-ui";
+import { API } from "./platform";
 import { useUI } from "./ui";
 import { t } from "./i18n";
 import { Icon } from "./Icon";
@@ -192,7 +194,21 @@ export function Downloads() {
 
 export function ProjectFooter() {
   const ui = useUI();
+  const site = useResource(
+    () => (isWeb ? API.CommunitySite(ui.activeSource) : Promise.resolve(null)),
+    [ui.activeSource],
+  );
   if (!isWeb) return null;
+  const safeLink = (value: string | undefined) => {
+    try {
+      const u = new URL(value ?? "");
+      return u.protocol === "https:" && !u.username && !u.password
+        ? u.href
+        : "";
+    } catch {
+      return "";
+    }
+  };
   return (
     <footer className="project-footer">
       <span>SkillHub</span>
@@ -201,6 +217,18 @@ export function ProjectFooter() {
           {t("Downloads", "下载")}
         </button>
         <ProjectLink href={projectURL}>GitHub</ProjectLink>
+        {[
+          [site.value?.privacy_url, t("Privacy", "隐私")],
+          [site.value?.terms_url, t("Terms", "条款")],
+          [site.value?.contact_url, t("Contact", "联系")],
+          [site.value?.filing_url, site.value?.filing_text],
+        ].map(([url, label]) =>
+          safeLink(url) && label ? (
+            <ProjectLink key={url} href={safeLink(url)}>
+              {label}
+            </ProjectLink>
+          ) : null,
+        )}
         <ProjectLink href={`${projectURL}/blob/main/LICENSE`}>
           Apache-2.0
         </ProjectLink>

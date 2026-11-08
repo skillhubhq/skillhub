@@ -6,20 +6,21 @@ import (
 	"sync"
 	"time"
 
-	"github.com/skillhubhq/skillhub/internal/client"
 	"github.com/google/uuid"
+	"github.com/skillhubhq/skillhub/internal/client"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
 // DesktopService 只适配桌面生命周期与交互；业务状态由共享 Go 内核拥有。
 type DesktopService struct {
-	store   *client.Store
-	core    *client.Client
-	ctx     context.Context
-	options client.ClientOptions
-	mu      sync.Mutex
-	plans   map[string]pendingPlan
-	logins  map[string]*pendingLogin
+	store        *client.Store
+	core         *client.Client
+	ctx          context.Context
+	options      client.ClientOptions
+	officialOnce sync.Once
+	mu           sync.Mutex
+	plans        map[string]pendingPlan
+	logins       map[string]*pendingLogin
 }
 type pendingPlan struct {
 	install *client.InstallPlan

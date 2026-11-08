@@ -82,8 +82,8 @@ func TestSkillPresentationIsReviewedSearchableAndVersioned(t *testing.T) {
 	}
 	cmd.Mutation = mutation()
 	cmd.Icon = 0
-	legacy, err := f.publishing.SubmitRelease(ctx, authenticated(cmd, author))
-	if err != nil || legacy.Msg.Release.DisplayNameEn != "" || legacy.Msg.Release.Name != "experiment-readout" {
-		t.Fatal("legacy client rejected", err)
+	minimal, err := f.publishing.SubmitRelease(ctx, authenticated(cmd, author))
+	if err != nil || minimal.Msg.Release.DisplayNameEn != "" || minimal.Msg.Release.Name != "experiment-readout" {
+		t.Fatal("minimal client rejected", err)
 	}
 }

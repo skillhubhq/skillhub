@@ -243,7 +243,7 @@ func readBackupInfo(root string) (BackupInfo, error) {
 		return info, errors.New("invalid backup manifest trailer")
 	}
 	_, timeErr := time.Parse(time.RFC3339, info.CreatedAt)
-	if info.Format != 1 || (info.Schema < 2 || info.Schema > currentSchema) || info.RegistryID == "" || info.DatabaseBytes <= 0 || info.Packages < 0 || !validBackupDigest(info.DatabaseDigest) || timeErr != nil {
+	if info.Format != 1 || (info.Schema < 1 || info.Schema > currentSchema) || info.RegistryID == "" || info.DatabaseBytes <= 0 || info.Packages < 0 || !validBackupDigest(info.DatabaseDigest) || timeErr != nil {
 		return info, errors.New("unsupported or invalid backup metadata")
 	}
 	return info, nil

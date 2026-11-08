@@ -133,8 +133,28 @@ export function CommunityListTeams(source: string, token: string): $CancellableP
     return $Call.ByID(1579464216, source, token);
 }
 
+export function CommunityParticipation(source: string): $CancellablePromise<community$0.Participation> {
+    return $Call.ByID(3012397075, source);
+}
+
+export function CommunityReport(source: string, id: string, comment: string, reason: string, key: string): $CancellablePromise<string> {
+    return $Call.ByID(2730199804, source, id, comment, reason, key);
+}
+
+export function CommunityReports(source: string, resolved: boolean, token: string): $CancellablePromise<community$0.Page<community$0.Report>> {
+    return $Call.ByID(3157991197, source, resolved, token);
+}
+
+export function CommunityResolveReport(source: string, id: string, action: registryv1$0.ReportResolution, note: string, key: string): $CancellablePromise<boolean> {
+    return $Call.ByID(2491479804, source, id, action, note, key);
+}
+
 export function CommunitySetReaction(source: string, id: string, bookmark: boolean, active: boolean, key: string): $CancellablePromise<community$0.Discussion> {
     return $Call.ByID(1497826793, source, id, bookmark, active, key);
+}
+
+export function CommunitySite(source: string): $CancellablePromise<community$0.Site> {
+    return $Call.ByID(5717453, source);
 }
 
 export function CommunityUpdateAvatar(source: string, image: string | null, revision: number, key: string): $CancellablePromise<community$0.Profile> {
@@ -147,6 +167,13 @@ export function CommunityUpdateProfile(source: string, name: string, bio: string
 
 export function CommunityUpdateTeam(source: string, $namespace: string, name: string, bio: string, revision: number, key: string): $CancellablePromise<community$0.Team> {
     return $Call.ByID(1292972358, source, $namespace, name, bio, revision, key);
+}
+
+/**
+ * 用户确认来源后才联网或连接；只返回路由，文件安装仍需正常变更预览。
+ */
+export function ConnectOpenRequest(hub: string, alias: string): $CancellablePromise<client$0.Source> {
+    return $Call.ByID(3234646290, hub, alias);
 }
 
 export function CreateDraft(directory: string, target: client$0.PreviewTarget): $CancellablePromise<client$0.DraftWorkspace> {
@@ -231,6 +258,10 @@ export function NamespaceAccess(source: string, $namespace: string): $Cancellabl
 
 export function NewRequestID(): $CancellablePromise<string> {
     return $Call.ByID(2218452667);
+}
+
+export function NextOpenRequest(): $CancellablePromise<client$0.OpenRequest | null> {
+    return $Call.ByID(2712572657);
 }
 
 export function Notifications(source: string, token: string): $CancellablePromise<client$0.NotificationPage> {

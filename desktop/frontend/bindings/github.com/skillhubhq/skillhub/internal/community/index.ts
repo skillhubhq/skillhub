@@ -7,6 +7,9 @@ export type {
     Discussion,
     Member,
     Page,
+    Participation,
     Profile,
+    Report,
+    Site,
     Team
 } from "./models.js";

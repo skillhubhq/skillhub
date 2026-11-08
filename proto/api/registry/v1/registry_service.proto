@@ -25,4 +25,16 @@ message GetRegistryResponse {
   repeated string capabilities = 5;
   // 接收的最大压缩包字节数。
   uint64 max_package_bytes = 6;
+  // 社区模式采用自动准入、个人空间和强制独立审核。
+  bool community_mode = 7;
+  // 部署方隐私说明地址。
+  string privacy_url = 8;
+  // 部署方服务条款地址。
+  string terms_url = 9;
+  // 部署方联系地址。
+  string contact_url = 10;
+  // 部署方公开备案文本。
+  string filing_text = 11;
+  // 对应备案信息链接。
+  string filing_url = 12;
 }

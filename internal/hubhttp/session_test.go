@@ -140,6 +140,15 @@ func TestWebSessionLanguages(t *testing.T) {
 		}
 		body, _ := io.ReadAll(response.Body)
 		response.Body.Close()
+		foundLanguage := false
+		for _, cookie := range response.Cookies() {
+			if cookie.Name == "skillhub-language" {
+				foundLanguage = cookie.Value == test.language && cookie.SameSite == http.SameSiteLaxMode
+			}
+		}
+		if !foundLanguage {
+			t.Fatal("language must survive a cross-site identity callback")
+		}
 		if !strings.Contains(string(body), `lang="`+test.language+`"`) || !strings.Contains(string(body), test.text) {
 			t.Fatalf("incorrect language for %s", test.path)
 		}

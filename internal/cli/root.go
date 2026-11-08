@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
 	"strings"
 	"time"
 
@@ -18,6 +19,8 @@ import (
 	taxonomy "github.com/skillhubhq/skillhub/gen/common/registry/v1"
 	"github.com/skillhubhq/skillhub/internal/client"
 	"github.com/skillhubhq/skillhub/internal/packageformat"
+	"github.com/skillhubhq/skillhub/internal/provenance"
+	"github.com/skillhubhq/skillhub/internal/provenancewire"
 	"github.com/spf13/cobra"
 )
 
@@ -363,9 +366,28 @@ func (a *application) removeCommand() *cobra.Command {
 
 func (a *application) publishCommand() *cobra.Command {
 	command := a.remoteCommand("publish DIRECTORY", "Pack and submit a skill for publication or review", cobra.ExactArgs(1), func(cmd *cobra.Command, r *client.Remote, args []string) error {
-		archive, _, err := packageformat.Pack(args[0])
+		archive, bundle, err := packageformat.Pack(args[0])
 		if err != nil {
 			return err
+		}
+		var origin *provenance.Record
+		originFile, _ := cmd.Flags().GetString("provenance")
+		if originFile != "" {
+			if err = r.RequireProvenance(); err != nil {
+				return err
+			}
+			f, e := os.Open(originFile)
+			if e != nil {
+				return e
+			}
+			origin, e = provenance.Read(f)
+			f.Close()
+			if e != nil {
+				return e
+			}
+			if e = provenance.Validate(origin, bundle); e != nil {
+				return e
+			}
 		}
 		namespace, _ := cmd.Flags().GetString("namespace")
 		version, _ := cmd.Flags().GetString("version")
@@ -389,7 +411,7 @@ func (a *application) publishCommand() *cobra.Command {
 		if audience == 0 {
 			return errors.New("visibility must be public, members, or groups")
 		}
-		response, err := r.Publishing.SubmitRelease(cmd.Context(), connect.NewRequest(&publishingv1.SubmitReleaseRequest{Mutation: a.mutation(), Namespace: namespace, Version: version, Archive: archive, Visibility: audience, GroupIds: groups, Category: category, Tags: tags, DisplayNameEn: displayEN, DisplayNameZh: displayZH, Icon: taxonomy.SkillIcon(icon)}))
+		response, err := r.Publishing.SubmitRelease(cmd.Context(), connect.NewRequest(&publishingv1.SubmitReleaseRequest{Mutation: a.mutation(), Namespace: namespace, Version: version, Archive: archive, Visibility: audience, GroupIds: groups, Category: category, Tags: tags, DisplayNameEn: displayEN, DisplayNameZh: displayZH, Icon: taxonomy.SkillIcon(icon), Provenance: provenancewire.Encode(origin)}))
 		if err != nil {
 			return err
 		}
@@ -402,6 +424,7 @@ func (a *application) publishCommand() *cobra.Command {
 	command.Flags().String("visibility", "members", "public, members, or groups")
 	command.Flags().StringSlice("group", nil, "audience group IDs")
 	command.Flags().String("category", "", "category name")
+	command.Flags().String("provenance", "", "JSON upstream attribution file (requires independent review)")
 	command.Flags().String("display-name-en", "", "English display name (up to 80 characters)")
 	command.Flags().String("display-name-zh", "", "Simplified Chinese display name (up to 80 characters)")
 	command.Flags().String("icon", "unspecified", "unspecified, document, code, chart, writing, research, design, workflow, terminal")

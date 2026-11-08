@@ -14,6 +14,7 @@ import (
 	"github.com/google/uuid"
 	taxonomy "github.com/skillhubhq/skillhub/gen/common/registry/v1"
 	"github.com/skillhubhq/skillhub/internal/hubdb"
+	"github.com/skillhubhq/skillhub/internal/hubpolicy"
 	"github.com/skillhubhq/skillhub/internal/packageformat"
 )
 
@@ -42,7 +43,7 @@ func postgresFixture(t *testing.T) (hubdb.Config, *sql.DB) {
 	u.RawQuery = q.Encode()
 	return hubdb.Config{Driver: "postgres", DSN: u.String()}, admin
 }
-func TestPostgresOwnershipBeforeMigrationAndDisconnect(t *testing.T) {
+func TestPostgresOwnershipBeforeInitializationAndDisconnect(t *testing.T) {
 	cfg, admin := postgresFixture(t)
 	ctx := context.Background()
 	first, err := OpenDatabase(t.TempDir(), cfg)
@@ -50,16 +51,13 @@ func TestPostgresOwnershipBeforeMigrationAndDisconnect(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer first.Close()
-	if _, err = first.db.Exec("DROP TABLE evaluation_evidence; DROP TABLE featured_skills; DROP INDEX releases_review_queue; DROP TABLE review_notifications; DROP TABLE release_scans; DROP TABLE platform_roles; DROP TABLE access_requests; ALTER TABLE releases DROP COLUMN display_name_en; ALTER TABLE releases DROP COLUMN display_name_zh; ALTER TABLE releases DROP COLUMN icon; PRAGMA user_version=5;"); err != nil {
-		t.Fatal(err)
-	}
 	if second, err := OpenDatabase(t.TempDir(), cfg); err == nil {
 		second.Close()
 		t.Fatal("second store opened before ownership check")
 	}
 	var schema int
-	if err = first.db.QueryRow("PRAGMA user_version").Scan(&schema); err != nil || schema != 5 {
-		t.Fatal("rejected process migrated active schema", err)
+	if err = first.db.QueryRow("PRAGMA user_version").Scan(&schema); err != nil || schema != currentSchema {
+		t.Fatal("rejected process modified active schema", err)
 	}
 	var pid int
 	if err = first.db.QueryRow("SELECT pg_backend_pid()").Scan(&pid); err != nil {
@@ -79,7 +77,7 @@ func TestPostgresOwnershipBeforeMigrationAndDisconnect(t *testing.T) {
 	}
 	defer second.Close()
 	if err = second.db.QueryRow("PRAGMA user_version").Scan(&schema); err != nil || schema != currentSchema {
-		t.Fatal("normal migration failed", err)
+		t.Fatal("normal initialization failed", err)
 	}
 	if _, err = first.db.ExecContext(ctx, "UPDATE instance SET id=id"); err == nil {
 		t.Fatal("old store reconnected for write")
@@ -260,104 +258,6 @@ func TestPostgresPairedBackupRestoreAndFailureGuards(t *testing.T) {
 	}
 }
 
-func TestPostgresUpgradeAndRollbackPreservePreUpgradeSchema(t *testing.T) {
-	ctx := context.Background()
-	cfg, _ := postgresFixture(t)
-	rollbackCfg, _ := postgresFixture(t)
-	root := t.TempDir()
-	s, err := OpenDatabase(root, cfg)
-	if err != nil {
-		t.Fatal(err)
-	}
-	actor, err := s.Bootstrap(ctx, "admin", "a-strong-test-password")
-	if err != nil {
-		t.Fatal(err)
-	}
-	id := s.RegistryID()
-	if _, err = s.db.Exec("DROP TABLE evaluation_evidence; DROP TABLE featured_skills; DROP INDEX releases_review_queue; DROP TABLE review_notifications; DROP TABLE release_scans; DROP TABLE platform_roles; DROP TABLE access_requests; PRAGMA user_version=6;"); err != nil {
-		t.Fatal(err)
-	}
-	s.Close()
-	backup := filepath.Join(t.TempDir(), "before-upgrade")
-	after, err := UpgradePostgres(ctx, cfg, root, backup)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if after.Schema != currentSchema || after.RegistryID != id {
-		t.Fatal("upgrade identity mismatch")
-	}
-	before, err := VerifyPostgresBackup(ctx, backup)
-	if err != nil || before.Schema != 6 {
-		t.Fatal("pre-upgrade backup was migrated", err)
-	}
-	if _, err = os.Stat(filepath.Join(backup, "upgrade.json")); err != nil {
-		t.Fatal("missing upgrade receipt")
-	}
-	rollbackRoot := filepath.Join(t.TempDir(), "rollback")
-	if _, err = RestorePostgres(ctx, rollbackCfg, backup, rollbackRoot); err != nil {
-		t.Fatal(err)
-	}
-	raw, err := hubdb.Open(rollbackRoot, rollbackCfg)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer raw.Close()
-	var version int
-	var userID string
-	if err = raw.QueryRow("PRAGMA user_version").Scan(&version); err != nil || version != 6 {
-		t.Fatal("rollback did not preserve old schema", err)
-	}
-	if err = raw.QueryRow("SELECT id FROM users WHERE username='admin'").Scan(&userID); err != nil || userID != actor.ID {
-		t.Fatal("rollback identity changed", err)
-	}
-}
-
-func TestPostgresFailedMigrationAndFutureSchema(t *testing.T) {
-	ctx := context.Background()
-	cfg, _ := postgresFixture(t)
-	root := t.TempDir()
-	s, err := OpenDatabase(root, cfg)
-	if err != nil {
-		t.Fatal(err)
-	}
-	id := s.RegistryID()
-	// 留下同名表触发真实 DDL 冲突，版本和身份应保留，升级前备份仍可校验。
-	if _, err = s.db.Exec("PRAGMA user_version=6;"); err != nil {
-		t.Fatal(err)
-	}
-	s.Close()
-	backup := filepath.Join(t.TempDir(), "failed-upgrade")
-	if _, err = UpgradePostgres(ctx, cfg, root, backup); err == nil {
-		t.Fatal("conflicting migration succeeded")
-	}
-	if _, err = VerifyPostgresBackup(ctx, backup); err != nil {
-		t.Fatal(err)
-	}
-	if _, err = os.Stat(filepath.Join(backup, "upgrade.json")); !os.IsNotExist(err) {
-		t.Fatal("failed migration has success receipt")
-	}
-	raw, err := hubdb.Open(root, cfg)
-	if err != nil {
-		t.Fatal(err)
-	}
-	var version int
-	var restoredID string
-	if err = raw.QueryRow("PRAGMA user_version").Scan(&version); err != nil || version != 6 {
-		t.Fatal("failed migration changed version", err)
-	}
-	if err = raw.QueryRow("SELECT id FROM instance").Scan(&restoredID); err != nil || restoredID != id {
-		t.Fatal("failed migration changed identity", err)
-	}
-	if _, err = raw.Exec("PRAGMA user_version=999;"); err != nil {
-		t.Fatal(err)
-	}
-	raw.Close()
-	if future, err := OpenDatabase(root, cfg); err == nil {
-		future.Close()
-		t.Fatal("future schema accepted")
-	}
-}
-
 func TestPostgresBackupRejectsUnrelatedTables(t *testing.T) {
 	cfg, _ := postgresFixture(t)
 	root := t.TempDir()
@@ -378,14 +278,11 @@ func TestPostgresBackupRejectsUnrelatedTables(t *testing.T) {
 	}
 }
 
-func TestPostgresMigrationCancellation(t *testing.T) {
+func TestPostgresInitializationCancellation(t *testing.T) {
 	cfg, _ := postgresFixture(t)
 	root := t.TempDir()
 	s, err := OpenDatabase(root, cfg)
 	if err != nil {
-		t.Fatal(err)
-	}
-	if _, err = s.db.Exec("DROP TABLE evaluation_evidence; DROP TABLE featured_skills; DROP INDEX releases_review_queue; DROP TABLE review_notifications; DROP TABLE release_scans; DROP TABLE platform_roles; DROP TABLE access_requests; PRAGMA user_version=6;"); err != nil {
 		t.Fatal(err)
 	}
 	defer s.Close()
@@ -406,98 +303,58 @@ func TestPostgresMigrationCancellation(t *testing.T) {
 	defer cancel()
 	started := time.Now()
 	if err = s.initializeContext(ctx); err == nil {
-		t.Fatal("blocked migration ignored cancellation")
+		t.Fatal("blocked initialization ignored cancellation")
 	}
 	if time.Since(started) > 3*time.Second {
-		t.Fatal("migration exceeded bounded cancellation")
+		t.Fatal("initialization exceeded bounded cancellation")
 	}
 	blocker.Rollback()
 	var version int
-	if err = external.QueryRow("SELECT version FROM hub_schema").Scan(&version); err != nil || version != 6 {
-		t.Fatal("cancelled migration changed schema", err)
+	if err = external.QueryRow("SELECT version FROM hub_schema").Scan(&version); err != nil || version != currentSchema {
+		t.Fatal("cancelled initialization changed schema", err)
 	}
 }
 
-func TestPostgresGovernanceUpgradeAndRollback(t *testing.T) {
-	ctx := context.Background()
+func TestPostgresCommunityPolicyAndModeration(t *testing.T) {
 	cfg, _ := postgresFixture(t)
-	destCfg, _ := postgresFixture(t)
-	root := t.TempDir()
-	s, e := OpenDatabase(root, cfg)
+	s, e := OpenDatabase(t.TempDir(), cfg)
 	mustGovernance(t, e)
-	actor, e := s.Bootstrap(ctx, "admin", "a-strong-test-password")
+	defer s.Close()
+	admin, e := s.Bootstrap(context.Background(), "admin", "a-strong-test-password")
 	mustGovernance(t, e)
+	directory := t.TempDir()
+	mustGovernance(t, os.WriteFile(filepath.Join(directory, "SKILL.md"), []byte("---\nname: community-check\ndescription: Check community contributions.\n---\nWrite a short summary.\n"), 0600))
+	archive, _, e := packageformat.Pack(directory)
+	mustGovernance(t, e)
+	testCommunityPolicy(t, s, admin, SubmitRelease{Archive: archive})
+	// 新增社区记录必须随数据库与包一并恢复，而不只是允许空表通过校验。
+	root := s.root
 	registry := s.RegistryID()
-	_, e = s.db.Exec("DROP TABLE evaluation_evidence; DROP TABLE featured_skills; DROP INDEX releases_review_queue; DROP TABLE review_notifications; DROP TABLE release_scans; DROP TABLE platform_roles; PRAGMA user_version=7;")
-	mustGovernance(t, e)
 	mustGovernance(t, s.Close())
-	backup := filepath.Join(t.TempDir(), "schema7")
-	info, e := BackupPostgres(ctx, cfg, root, backup)
+	backup := filepath.Join(t.TempDir(), "backup")
+	_, e = BackupPostgres(context.Background(), cfg, root, backup)
 	mustGovernance(t, e)
-	if info.Schema != 7 {
-		t.Fatal("backup migrated source")
+	recoveryConfig, _ := postgresFixture(t)
+	recoveryRoot := filepath.Join(t.TempDir(), "restored")
+	_, e = RestorePostgres(context.Background(), recoveryConfig, backup, recoveryRoot)
+	mustGovernance(t, e)
+	restored, e := OpenDatabase(recoveryRoot, recoveryConfig)
+	mustGovernance(t, e)
+	defer restored.Close()
+	mustGovernance(t, restored.ConfigurePolicy(hubpolicy.Policy{Mode: hubpolicy.Community, Limits: hubpolicy.Defaults()}))
+	if restored.RegistryID() != registry {
+		t.Fatal("community restore replaced registry identity")
 	}
-	migrated, e := OpenDatabase(root, cfg)
+	member, e := restored.FederatedLogin(context.Background(), "https://identity.example", "community-author", "Author", false)
 	mustGovernance(t, e)
-	a, e := migrated.GetPlatformAccess(ctx, actor, "")
+	participation, e := restored.GetParticipation(context.Background(), member.Identity)
 	mustGovernance(t, e)
-	if !a.Administrator || len(a.Roles) != 0 {
-		t.Fatal("migration changed access")
+	if participation.PersonalNamespace == "" || participation.Versions != 1 || participation.StorageBytes != int64(len(archive)) {
+		t.Fatal("community restore lost namespace or accounting", participation)
 	}
-	mustGovernance(t, migrated.Close())
-	recovered := filepath.Join(t.TempDir(), "rollback")
-	_, e = RestorePostgres(ctx, destCfg, backup, recovered)
+	reports, e := restored.ListReports(context.Background(), admin, true, Page{})
 	mustGovernance(t, e)
-	old, e := hubdb.Open(filepath.Join(recovered, "hub.db"), destCfg)
-	mustGovernance(t, e)
-	defer old.Close()
-	var version int
-	var id string
-	mustGovernance(t, old.QueryRow("PRAGMA user_version").Scan(&version))
-	mustGovernance(t, old.QueryRow("SELECT id FROM instance").Scan(&id))
-	if version != 7 || id != registry {
-		t.Fatal("rollback lost original version/identity")
-	}
-}
-
-func TestPostgresDiscoveryUpgradeAndRollback(t *testing.T) {
-	ctx := context.Background()
-	cfg, _ := postgresFixture(t)
-	destCfg, _ := postgresFixture(t)
-	root := t.TempDir()
-	s, e := OpenDatabase(root, cfg)
-	mustGovernance(t, e)
-	actor, e := s.Bootstrap(ctx, "admin", "a-strong-test-password")
-	mustGovernance(t, e)
-	registry := s.RegistryID()
-	_, e = s.db.Exec("DROP TABLE evaluation_evidence; DROP TABLE featured_skills; DROP INDEX releases_review_queue; PRAGMA user_version=8;")
-	mustGovernance(t, e)
-	mustGovernance(t, s.Close())
-	backup := filepath.Join(t.TempDir(), "schema8")
-	info, e := BackupPostgres(ctx, cfg, root, backup)
-	mustGovernance(t, e)
-	if info.Schema != 8 {
-		t.Fatal("backup migrated source")
-	}
-	migrated, e := OpenDatabase(root, cfg)
-	mustGovernance(t, e)
-	a, e := migrated.GetPlatformAccess(ctx, actor, "")
-	mustGovernance(t, e)
-	if !a.Administrator || len(a.Roles) != 0 {
-		t.Fatal("migration changed access")
-	}
-	mustGovernance(t, migrated.Close())
-	recovered := filepath.Join(t.TempDir(), "rollback")
-	_, e = RestorePostgres(ctx, destCfg, backup, recovered)
-	mustGovernance(t, e)
-	old, e := hubdb.Open(filepath.Join(recovered, "hub.db"), destCfg)
-	mustGovernance(t, e)
-	defer old.Close()
-	var version int
-	var id string
-	mustGovernance(t, old.QueryRow("PRAGMA user_version").Scan(&version))
-	mustGovernance(t, old.QueryRow("SELECT id FROM instance").Scan(&id))
-	if version != 8 || id != registry {
-		t.Fatal("rollback lost original version/identity")
+	if len(reports.Items) != 2 {
+		t.Fatal("community restore lost moderation decisions")
 	}
 }

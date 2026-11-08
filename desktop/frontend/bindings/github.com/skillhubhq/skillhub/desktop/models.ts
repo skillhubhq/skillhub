@@ -7,6 +7,9 @@ import * as registryv1$0 from "../gen/common/registry/v1/models.js";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
 import * as client$0 from "../internal/client/models.js";
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
+import * as provenance$0 from "../internal/provenance/models.js";
 
 export interface AdminForm {
     "source": string;
@@ -94,6 +97,7 @@ export interface LoginView {
 }
 
 export interface PublishForm {
+    "provenance"?: provenance$0.Record | null;
     "display_name_en": string;
     "display_name_zh": string;
     "icon": registryv1$0.SkillIcon;
@@ -121,6 +125,7 @@ export interface SearchPage {
 }
 
 export interface SkillView {
+    "provenance"?: provenance$0.Record | null;
     "featured": boolean;
     "display_name_en": string;
     "display_name_zh": string;

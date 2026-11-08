@@ -33,17 +33,17 @@ func TestInstallationConnectionIsRetainedAndNeverGuessed(t *testing.T) {
 	if err = store.Apply(ctx, *plan, data); err != nil {
 		t.Fatal(err)
 	}
-	legacy := *plan.After
-	if got, err := core.installationSource(ctx, legacy, ""); err != nil || got.Alias != "author" {
-		t.Fatalf("unique legacy source: %+v %v", got, err)
+	unbound := *plan.After
+	if got, err := core.installationSource(ctx, unbound, ""); err != nil || got.Alias != "author" {
+		t.Fatalf("unique unbound source: %+v %v", got, err)
 	}
 	alternate := source
 	alternate.Alias, alternate.CredentialRef = "reviewer", "alternate"
 	put(alternate)
-	if _, err := core.installationSource(ctx, legacy, ""); !errors.Is(err, ErrUpdateConnection) {
-		t.Fatalf("ambiguous legacy source: %v", err)
+	if _, err := core.installationSource(ctx, unbound, ""); !errors.Is(err, ErrUpdateConnection) {
+		t.Fatalf("ambiguous unbound source: %v", err)
 	}
-	saved, err := store.rememberInstallationSource(ctx, legacy, source)
+	saved, err := store.rememberInstallationSource(ctx, unbound, source)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -55,7 +55,7 @@ func TestInstallationConnectionIsRetainedAndNeverGuessed(t *testing.T) {
 	if got, err := core.installationSource(ctx, *persisted, ""); err != nil || got.Alias != "author" {
 		t.Fatalf("remembered source: %+v %v", got, err)
 	}
-	if _, err = store.rememberInstallationSource(ctx, legacy, alternate); !errors.Is(err, ErrStalePlan) {
+	if _, err = store.rememberInstallationSource(ctx, unbound, alternate); !errors.Is(err, ErrStalePlan) {
 		t.Fatalf("stale metadata overwrote source: %v", err)
 	}
 	if _, err = store.PlanRemove(ctx, saved.Target); err != nil {

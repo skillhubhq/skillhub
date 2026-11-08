@@ -19,11 +19,13 @@ import (
 	taxonomy "github.com/skillhubhq/skillhub/gen/common/registry/v1"
 	"github.com/skillhubhq/skillhub/internal/hubdb"
 	"github.com/skillhubhq/skillhub/internal/packageformat"
+	"github.com/skillhubhq/skillhub/internal/provenance"
 	"github.com/skillhubhq/skillhub/internal/skillscan"
 	"golang.org/x/mod/semver"
 )
 
 type Release struct {
+	Provenance    *provenance.Record `json:"provenance,omitempty"`
 	DisplayNameEN string             `json:"display_name_en"`
 	DisplayNameZH string             `json:"display_name_zh"`
 	Icon          taxonomy.SkillIcon `json:"icon"`
@@ -46,6 +48,7 @@ type Release struct {
 }
 
 type Skill struct {
+	Provenance    *provenance.Record `json:"provenance,omitempty"`
 	Featured      bool               `json:"featured"`
 	DisplayNameEN string             `json:"display_name_en"`
 	DisplayNameZH string             `json:"display_name_zh"`
@@ -67,6 +70,7 @@ type Search struct {
 	Tags         []string
 }
 type SubmitRelease struct {
+	Provenance    *provenance.Record `json:"provenance,omitempty"`
 	DisplayNameEN string             `json:"display_name_en"`
 	DisplayNameZH string             `json:"display_name_zh"`
 	Icon          taxonomy.SkillIcon `json:"icon"`
@@ -94,7 +98,7 @@ const readableSQL = `(@admin=1 OR r.visibility=1 OR (@actor<>'' AND (r.visibilit
  EXISTS(SELECT 1 FROM release_groups a JOIN group_members m ON a.group_id=m.group_id WHERE a.release_id=r.id AND m.user_id=@actor) OR
  EXISTS(SELECT 1 FROM namespace_grants g WHERE g.namespace=r.namespace AND g.role IN (2,3,4) AND ((g.kind=1 AND g.subject_id=@actor) OR (g.kind=2 AND EXISTS(SELECT 1 FROM group_members m WHERE m.group_id=g.subject_id AND m.user_id=@actor)))))))`
 const manageableSQL = `(@admin=1 OR (@actor<>'' AND EXISTS(SELECT 1 FROM namespace_grants g WHERE g.namespace=r.namespace AND g.role IN (2,3,4) AND ((g.kind=1 AND g.subject_id=@actor) OR (g.kind=2 AND EXISTS(SELECT 1 FROM group_members m WHERE m.group_id=g.subject_id AND m.user_id=@actor))))))`
-const releaseColumns = `r.id,r.namespace,r.name,r.version,r.digest,r.status,r.visibility,r.submitted_by,r.created_at,r.review_reason,r.markdown,r.description,r.category,r.sequence,r.display_name_en,r.display_name_zh,r.icon,
+const releaseColumns = `r.id,r.namespace,r.name,r.version,r.digest,r.status,r.visibility,r.submitted_by,r.created_at,r.review_reason,r.markdown,r.description,r.category,r.sequence,r.display_name_en,r.display_name_zh,r.icon,r.provenance,
  COALESCE((SELECT json_group_array(group_id) FROM (SELECT group_id FROM release_groups WHERE release_id=r.id ORDER BY group_id) AS ordered_groups),'[]'),
  COALESCE((SELECT json_group_array(tag) FROM (SELECT tag FROM release_tags WHERE release_id=r.id ORDER BY tag) AS ordered_tags),'[]')`
 
@@ -103,8 +107,12 @@ type scanner interface{ Scan(...any) error }
 func scanRelease(row scanner) (Release, error) {
 	var r Release
 	var timestamp int64
-	var groups, tags string
-	err := row.Scan(&r.ID, &r.Namespace, &r.Name, &r.Version, &r.Digest, &r.Status, &r.Visibility, &r.SubmittedBy, &timestamp, &r.ReviewReason, &r.Markdown, &r.Description, &r.Category, &r.Sequence, &r.DisplayNameEN, &r.DisplayNameZH, &r.Icon, &groups, &tags)
+	var groups, tags, origin string
+	err := row.Scan(&r.ID, &r.Namespace, &r.Name, &r.Version, &r.Digest, &r.Status, &r.Visibility, &r.SubmittedBy, &timestamp, &r.ReviewReason, &r.Markdown, &r.Description, &r.Category, &r.Sequence, &r.DisplayNameEN, &r.DisplayNameZH, &r.Icon, &origin, &groups, &tags)
+	if err != nil {
+		return r, err
+	}
+	r.Provenance, err = provenance.Decode(origin)
 	if err != nil {
 		return r, err
 	}
@@ -176,8 +184,14 @@ func (s *Store) SubmitRelease(ctx context.Context, actor Identity, key string, c
 	return mutate(s, ctx, actor, "release.submit", key, cmd, func(tx *hubdb.Tx, user Identity) error {
 		return requireRole(ctx, tx, user, cmd.Namespace, taxonomy.NamespaceRole_NAMESPACE_ROLE_MAINTAINER)
 	}, func(tx *hubdb.Tx, user Identity) (Release, error) {
+		if err := s.checkSubmissionQuota(ctx, tx, user, cmd); err != nil {
+			return Release{}, err
+		}
 		bundle, err := packageformat.Inspect(cmd.Archive)
 		if err != nil || len(bundleMarkdown(bundle)) > 256<<10 {
+			return Release{}, ErrInvalid
+		}
+		if err = provenance.Validate(cmd.Provenance, bundle); err != nil {
 			return Release{}, ErrInvalid
 		}
 		var review bool
@@ -206,13 +220,13 @@ func (s *Store) SubmitRelease(ctx context.Context, actor Identity, key string, c
 		if err != nil {
 			return Release{}, err
 		}
-		review = review || report.Blocking || !report.Complete || len(report.Findings) > 0
+		review = cmd.Provenance != nil || review || s.policy.IsCommunity() || report.Blocking || !report.Complete || len(report.Findings) > 0
 		status := taxonomy.ReleaseStatus_RELEASE_STATUS_PUBLISHED
 		if review {
 			status = taxonomy.ReleaseStatus_RELEASE_STATUS_PENDING
 		}
 		id := uuid.NewString()
-		_, err = tx.ExecContext(ctx, `INSERT INTO releases(id,namespace,name,version,digest,description,markdown,status,visibility,submitted_by,created_at,category,display_name_en,display_name_zh,icon) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, id, cmd.Namespace, bundle.Metadata.Name, cmd.Version, bundle.Digest, bundle.Metadata.Description, bundle.Markdown, status, cmd.Visibility, user.ID, s.now().Unix(), cmd.Category, cmd.DisplayNameEN, cmd.DisplayNameZH, cmd.Icon)
+		_, err = tx.ExecContext(ctx, `INSERT INTO releases(id,namespace,name,version,digest,description,markdown,status,visibility,submitted_by,created_at,category,display_name_en,display_name_zh,icon,provenance) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, id, cmd.Namespace, bundle.Metadata.Name, cmd.Version, bundle.Digest, bundle.Metadata.Description, bundle.Markdown, status, cmd.Visibility, user.ID, s.now().Unix(), cmd.Category, cmd.DisplayNameEN, cmd.DisplayNameZH, cmd.Icon, provenance.Encode(cmd.Provenance))
 		if isUnique(err) {
 			return Release{}, ErrConflict
 		}
@@ -228,6 +242,9 @@ func (s *Store) SubmitRelease(ctx context.Context, actor Identity, key string, c
 			if _, err = tx.ExecContext(ctx, "INSERT INTO release_tags(release_id,tag) VALUES(?,?)", id, tag); err != nil {
 				return Release{}, err
 			}
+		}
+		if _, err = tx.ExecContext(ctx, "UPDATE releases SET archive_bytes=? WHERE id=?", len(cmd.Archive), id); err != nil {
+			return Release{}, err
 		}
 		if err = s.saveScan(ctx, tx, id, report); err != nil {
 			return Release{}, err
@@ -350,7 +367,7 @@ func (s *Store) SearchSkills(ctx context.Context, actor Identity, filter Search,
 	}
 	args = append(args, sql.Named("featured", filter.FeaturedOnly))
 	query := `WITH visible AS (SELECT r.*,ROW_NUMBER() OVER(PARTITION BY namespace,name ORDER BY published_order DESC) AS rank FROM releases r WHERE status=2 AND ` + readableSQL + `)
-SELECT r.namespace,r.name,r.description,r.category,r.version,r.display_name_en,r.display_name_zh,r.icon,r.published_order,EXISTS(SELECT 1 FROM featured_skills f WHERE f.namespace=r.namespace AND f.name=r.name),COALESCE((SELECT json_group_array(tag) FROM (SELECT tag FROM release_tags WHERE release_id=r.id ORDER BY tag) AS ordered_tags),'[]') FROM visible r
+SELECT r.namespace,r.name,r.description,r.category,r.version,r.display_name_en,r.display_name_zh,r.icon,r.provenance,r.published_order,EXISTS(SELECT 1 FROM featured_skills f WHERE f.namespace=r.namespace AND f.name=r.name),COALESCE((SELECT json_group_array(tag) FROM (SELECT tag FROM release_tags WHERE release_id=r.id ORDER BY tag) AS ordered_tags),'[]') FROM visible r
 WHERE rank=1 AND ` + after + ` AND (@featured=0 OR EXISTS(SELECT 1 FROM featured_skills f WHERE f.namespace=r.namespace AND f.name=r.name)) AND (@namespace='' OR r.namespace=@namespace) AND (@name='' OR r.name=@name) AND (@category='' OR r.category=@category)
 AND (@query='' OR instr(lower(r.name||' '||r.description||' '||r.display_name_en||' '||r.display_name_zh),@query)>0)
 AND NOT EXISTS(SELECT 1 FROM json_each(@tags) wanted WHERE NOT EXISTS(SELECT 1 FROM release_tags t WHERE t.release_id=r.id AND t.tag=wanted.value))
@@ -358,10 +375,13 @@ ORDER BY ` + order + ` LIMIT @limit`
 	return pageQuery(s, ctx, tx, page, scope(user.ID, "search", filter), query, args, func(rows *sql.Rows) (Skill, string, error) {
 		var v Skill
 		var published int64
-		var tags string
-		err := rows.Scan(&v.Namespace, &v.Name, &v.Description, &v.Category, &v.LatestVersion, &v.DisplayNameEN, &v.DisplayNameZH, &v.Icon, &published, &v.Featured, &tags)
+		var tags, origin string
+		err := rows.Scan(&v.Namespace, &v.Name, &v.Description, &v.Category, &v.LatestVersion, &v.DisplayNameEN, &v.DisplayNameZH, &v.Icon, &origin, &published, &v.Featured, &tags)
 		if err == nil {
 			err = json.Unmarshal([]byte(tags), &v.Tags)
+		}
+		if err == nil {
+			v.Provenance, err = provenance.Decode(origin)
 		}
 		if filter.Order == taxonomy.CatalogOrder_CATALOG_ORDER_RECENT {
 			return v, strconv.FormatInt(published, 10), err

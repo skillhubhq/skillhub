@@ -15,9 +15,10 @@
 </p>
 
 <p align="center">
+  <a href="https://skills.codectn.com">Official community</a> ·
   <a href="#get-started">Get started</a> ·
   <a href="#self-host">Self-host</a> ·
-  <a href="docs/README.md">Documentation</a> ·
+  <a href="https://skills.codectn.com/docs/">Documentation</a> ·
   <a href="https://github.com/skillhubhq/skillhub/releases">Downloads</a> ·
   <a href="README.zh-CN.md">简体中文</a>
 </p>
@@ -36,7 +37,7 @@ SkillHub manages skill files. It does not run agents, call models or execute pac
 
 ## Get started
 
-**Desktop:** add your Hub in **Settings → Connections**, sign in, and choose a skill. Select Codex or Claude Code, choose a destination, then review the changes before installing.
+**Desktop:** a new App profile connects to the official community. Add your own Hub in **Settings → Connections**, sign in when needed, and choose a skill. Select Codex or Claude Code, choose a destination, then review the changes before installing.
 
 **CLI:** connect once, then discover and install from your terminal:
 

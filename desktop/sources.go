@@ -5,9 +5,9 @@ import (
 	"time"
 
 	"connectrpc.com/connect"
+	"github.com/google/uuid"
 	authv1 "github.com/skillhubhq/skillhub/gen/api/auth/v1"
 	"github.com/skillhubhq/skillhub/internal/client"
-	"github.com/google/uuid"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
@@ -42,7 +42,10 @@ type pendingLogin struct {
 	polling bool
 }
 
-func (s *DesktopService) ListSources() ([]client.Source, error) { return s.core.ListSources(s.ctx) }
+func (s *DesktopService) ListSources() ([]client.Source, error) {
+	s.officialOnce.Do(func() { _ = s.core.EnsureOfficialSource(s.ctx) })
+	return s.core.ListSources(s.ctx)
+}
 func (s *DesktopService) AddSource(alias, url string) (client.Source, error) {
 	return s.core.AddSource(s.ctx, alias, url)
 }

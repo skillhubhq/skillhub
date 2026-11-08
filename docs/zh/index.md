@@ -38,3 +38,5 @@ SkillHub 用于分享、审核和安装技能，不执行 Agent。文档提供�
 | [分发](distribution.md) | 安装包、校验和与发布流程 |
 
 安全问题通过[私密渠道](security.md)报告，不要提交到公开 Issue。凭据、真实部署地址、私有社区截图和测试运行报告不属于源码贡献。
+
+- [社区部署与登录适配器](community-hosting.md)

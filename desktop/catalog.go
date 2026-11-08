@@ -1,17 +1,21 @@
 package main
 
 import (
-	"connectrpc.com/connect"
 	"errors"
+
+	"connectrpc.com/connect"
 	catalogv1 "github.com/skillhubhq/skillhub/gen/api/catalog/v1"
 	commonv1 "github.com/skillhubhq/skillhub/gen/api/common/v1"
 	publishingv1 "github.com/skillhubhq/skillhub/gen/api/publishing/v1"
 	taxonomy "github.com/skillhubhq/skillhub/gen/common/registry/v1"
 	"github.com/skillhubhq/skillhub/internal/client"
 	"github.com/skillhubhq/skillhub/internal/packageformat"
+	"github.com/skillhubhq/skillhub/internal/provenance"
+	"github.com/skillhubhq/skillhub/internal/provenancewire"
 )
 
 type SkillView struct {
+	Provenance    *provenance.Record `json:"provenance,omitempty"`
 	Featured      bool               `json:"featured"`
 	DisplayNameEN string             `json:"display_name_en"`
 	DisplayNameZH string             `json:"display_name_zh"`
@@ -51,7 +55,7 @@ func (s *DesktopService) Search(source, query, category string, tags []string, t
 			if tags == nil {
 				tags = []string{}
 			}
-			page.Skills = append(page.Skills, SkillView{Namespace: skill.Namespace, Name: skill.Name, DisplayNameEN: skill.DisplayNameEn, DisplayNameZH: skill.DisplayNameZh, Icon: skill.Icon, Description: skill.Description, Category: skill.Category, Tags: tags, Version: skill.LatestVersion, Featured: skill.Featured})
+			page.Skills = append(page.Skills, SkillView{Namespace: skill.Namespace, Name: skill.Name, DisplayNameEN: skill.DisplayNameEn, DisplayNameZH: skill.DisplayNameZh, Icon: skill.Icon, Provenance: provenancewire.Decode(skill.Provenance), Description: skill.Description, Category: skill.Category, Tags: tags, Version: skill.LatestVersion, Featured: skill.Featured})
 		}
 		pages = append(pages, page)
 	}
@@ -102,6 +106,7 @@ func (s *DesktopService) ReadPreviewFile(target client.PreviewTarget, path strin
 }
 
 type PublishForm struct {
+	Provenance    *provenance.Record  `json:"provenance,omitempty"`
 	DisplayNameEN string              `json:"display_name_en"`
 	DisplayNameZH string              `json:"display_name_zh"`
 	Icon          taxonomy.SkillIcon  `json:"icon"`
@@ -155,6 +160,11 @@ func (s *DesktopService) publish(form PublishForm, expected string) (client.Rele
 	if err != nil {
 		return client.ReleaseInfo{}, err
 	}
+	if form.Provenance != nil {
+		if err = remote.RequireProvenance(); err != nil {
+			return client.ReleaseInfo{}, err
+		}
+	}
 	if form.DisplayNameEN != "" || form.DisplayNameZH != "" || form.Icon != 0 {
 		if err = remote.RequireSkillPresentation(); err != nil {
 			return client.ReleaseInfo{}, err
@@ -167,7 +177,7 @@ func (s *DesktopService) publish(form PublishForm, expected string) (client.Rele
 	if expected != "" && packageformat.Digest(archive) != expected {
 		return client.ReleaseInfo{}, errors.New("content changed after preview; inspect the directory again")
 	}
-	response, err := remote.Publishing.SubmitRelease(s.ctx, connect.NewRequest(&publishingv1.SubmitReleaseRequest{Mutation: &commonv1.Mutation{IdempotencyKey: form.RequestID}, Namespace: form.Namespace, Version: form.Version, Archive: archive, Visibility: form.Visibility, GroupIds: form.Groups, Category: form.Category, Tags: form.Tags, DisplayNameEn: form.DisplayNameEN, DisplayNameZh: form.DisplayNameZH, Icon: form.Icon}))
+	response, err := remote.Publishing.SubmitRelease(s.ctx, connect.NewRequest(&publishingv1.SubmitReleaseRequest{Mutation: &commonv1.Mutation{IdempotencyKey: form.RequestID}, Namespace: form.Namespace, Version: form.Version, Archive: archive, Visibility: form.Visibility, GroupIds: form.Groups, Category: form.Category, Tags: form.Tags, DisplayNameEn: form.DisplayNameEN, DisplayNameZh: form.DisplayNameZH, Icon: form.Icon, Provenance: provenancewire.Encode(form.Provenance)}))
 	if err != nil {
 		return client.ReleaseInfo{}, err
 	}
@@ -209,7 +219,7 @@ func (s *DesktopService) GetSkill(source, namespace, name string) (SkillView, er
 	if v == nil {
 		return SkillView{}, errors.New("skill unavailable")
 	}
-	return SkillView{Namespace: v.Namespace, Name: v.Name, DisplayNameEN: v.DisplayNameEn, DisplayNameZH: v.DisplayNameZh, Icon: v.Icon, Description: v.Description, Category: v.Category, Tags: v.Tags, Version: v.LatestVersion, Featured: v.Featured}, nil
+	return SkillView{Namespace: v.Namespace, Name: v.Name, DisplayNameEN: v.DisplayNameEn, DisplayNameZH: v.DisplayNameZh, Icon: v.Icon, Provenance: provenancewire.Decode(v.Provenance), Description: v.Description, Category: v.Category, Tags: v.Tags, Version: v.LatestVersion, Featured: v.Featured}, nil
 }
 func (s *DesktopService) FilterSubmissions(source, query string, status taxonomy.ReleaseStatus, mine bool, token string) (ReleasePage, error) {
 	remote, err := s.core.Remote(s.ctx, source)

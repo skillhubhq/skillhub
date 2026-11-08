@@ -56,7 +56,7 @@ skillhub-server restore --input /srv/skillhub-backups/before-upgrade \
 
 升级前用旧程序备份并校验；停机，保留旧程序/配置，再用新程序打开在线目录。迁移事务执行并保留实例身份，拒绝未知未来 schema。检查登录、权限和下载。
 
-回退 schema 变化时停新服务，用兼容程序从升级前备份恢复到新目录，不让旧程序直接打开新 schema。核对备份后已接受的写入再确定恢复点。Hub schema 为 10，客户端为 2；SQLite 清单格式 1 支持校验 Hub schema 2–10。恢复保持原 schema，下一次打开才执行受支持迁移，校验过程不偷偷迁移快照。
+回退 schema 变化时停新服务，用兼容程序从升级前备份恢复到新目录，不让旧程序直接打开新 schema。核对备份后已接受的写入再确定恢复点。Hub 和客户端均使用完整的初始 schema 1；备份清单格式 1 校验该 Hub 结构。恢复保留快照结构与身份，校验不改写快照。
 
 ## 诊断与限制 [#diagnostics-and-limits]
 

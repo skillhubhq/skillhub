@@ -4,10 +4,10 @@ The Hub owns publication checks, independent review, audit and platform duties. 
 
 ## Package checks and approval
 
-Every new submission is inspected with the bounded, offline `builtin-static/1` scanner after archive validation. Nothing in the package is executed or sent to a third party. A report records the immutable package digest, engine version, timestamp, rule ID, file and line, and fixed remediation text; matched secret text is never copied into findings.
+Every new submission is inspected with the bounded, offline `builtin-static/2` scanner after archive validation. Nothing in the package is executed or sent to a third party. A report records the immutable package digest, engine version, timestamp, rule ID, file and line, and fixed remediation text; matched secret text is never copied into findings.
 
 - Private-key headers and selected credential-shaped tokens block approval. Fix the package and submit a new immutable version; even administrators cannot override this gate.
-- Remote shell pipelines, destructive command patterns and instruction-override language require independent review. Binary files are explicitly uninspected. These findings force pending review even in a namespace that normally permits direct publication.
+- Remote shell pipelines, local process execution/termination, external HTML scripts, destructive command patterns and instruction-override language require independent review. Binary files are explicitly uninspected. These findings force pending review even in a namespace that normally permits direct publication.
 - A reviewer must record a note for warning/incomplete reports. The normal author/reviewer separation still applies. A missing, outdated or mismatched report blocks approval until a successful rescan.
 - A clean report means **no built-in rules matched**, not that the skill is safe. Static patterns cannot establish intent, detect all credentials or prevent prompt injection. This is not antivirus, sandboxing or an execution permission system.
 - Reports cap findings at 100. Finding overflow blocks approval rather than silently producing a clean result. Existing published packages are not retroactively withdrawn. Pending versions without a valid report require an explicit scan. Failed/cancelled scans return an error and cannot create a successful report.
@@ -62,3 +62,40 @@ skillhub governance feature platform release-check --source company --remove
 ```
 
 Audit, scan reports, notifications and curated selections participate in the Hub backup. See [testing](testing.md), [database maintenance](database.md) and [deployment checks](deployment-checklist.md).
+
+## Upstream attribution
+
+A curated version distinguishes three identities:
+
+| Identity | Meaning |
+| --- | --- |
+| Original author | A source-backed name and HTTPS homepage; this does not create a Hub account or imply endorsement |
+| Curating maintainer | The publishing namespace and its team profile; namespace grants control who maintains the copy |
+| Operator | The authenticated submitting or reviewing account, retained in audit; an external author name never grants access |
+
+Web and App show the same source directory, full upstream Git commit, SPDX license identifier, packaged license path, modification statement and Hub version. Cards credit the original author; team and local-library views retain that attribution. Curated approval notes can be read from the version's source panel. The displayed attribution is the curator's reviewed declaration, not an upstream verification badge.
+
+Publish the original directory with all license/copyright notices. Do not edit `SKILL.md` merely to add Hub attribution: submit metadata separately through the publishing form or `--provenance FILE`. The JSON file is explicit input; the CLI does not automatically trust package-provided attribution.
+
+```json
+{
+  "author_name": "Example Authors",
+  "author_url": "https://example.org/authors",
+  "source_url": "https://example.org/source/0123456789abcdef0123456789abcdef01234567/skill",
+  "revision": "0123456789abcdef0123456789abcdef01234567",
+  "license": "Apache-2.0",
+  "license_file": "LICENSE.txt",
+  "modified": false,
+  "changes": ""
+}
+```
+
+```sh
+skillhub publish ./example-skill --source community --namespace curators \
+  --version 0.0.0-upstream.0123456789ab --visibility public \
+  --provenance ./attribution.json
+```
+
+The Hub requires the referenced text license file to exist in the package. A reviewer still checks license applicability, source ownership, exact commit and preservation of notices; the Hub does not fetch or independently verify the upstream repository. Changed files require `modified: true` and a change description. Every attributed submission requires independent review, even in a namespace allowing direct publication. Metadata is immutable with its version and participates in idempotency checks. A correction requires a new version.
+
+When upstream supplies no release number, use a clearly identified Hub snapshot version such as `0.0.0-upstream.<commit-prefix>`; do not invent an upstream `1.0.0`. Installation stores the attribution alongside the exact package digest for offline display. Older Hubs lacking `catalog.provenance.v1` are rejected when publishing attribution, rather than silently losing it.

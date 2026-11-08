@@ -1,3 +1,4 @@
+mode: enterprise
 # Explicit paths are relative to the process working directory, not this file.
 data: /var/lib/skillhub/data
 listen: 127.0.0.1:8080
@@ -14,11 +15,12 @@ database:
 # Only for a directly connected, same-host reverse proxy.
 trusted_proxies:
   - 127.0.0.1/32
-# Enable only after configuring application assignment at your identity provider.
-# oidc:
-#   issuer: https://login.microsoftonline.com/TENANT_ID/v2.0
-#   client_id: APPLICATION_CLIENT_ID
-#   name: Microsoft
-#   allow_signup: false
-#   client_secret_file: /run/secrets/skillhub-oidc
-# Alternatively inject SKILLHUB_OIDC_CLIENT_SECRET; never configure both sources.
+# Providers authenticate identities; enterprise mode keeps first admission pending.
+# auth:
+#   providers:
+#     - id: company
+#       type: oidc
+#       name: Microsoft
+#       issuer: https://login.microsoftonline.com/TENANT_ID/v2.0
+#       client_id: APPLICATION_CLIENT_ID
+#       client_secret_file: /run/secrets/skillhub-identity

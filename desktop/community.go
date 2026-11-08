@@ -1,5 +1,6 @@
 package main
 
+import taxonomy "github.com/skillhubhq/skillhub/gen/common/registry/v1"
 import c "github.com/skillhubhq/skillhub/internal/community"
 
 func (s *DesktopService) CommunityGetProfile(source string, id string) (c.Profile, error) {
@@ -44,4 +45,20 @@ func (s *DesktopService) CommunityListBookmarks(source string, token string) (c.
 
 func (s *DesktopService) CommunityUpdateAvatar(source string, image []byte, revision uint64, key string) (c.Profile, error) {
 	return s.core.CommunityUpdateAvatar(s.ctx, source, image, revision, key)
+}
+
+func (s *DesktopService) CommunityParticipation(source string) (c.Participation, error) {
+	return s.core.CommunityParticipation(s.ctx, source)
+}
+func (s *DesktopService) CommunityReport(source, id, comment, reason, key string) (string, error) {
+	return s.core.CommunityReport(s.ctx, source, id, comment, reason, key)
+}
+func (s *DesktopService) CommunityReports(source string, resolved bool, token string) (c.Page[c.Report], error) {
+	return s.core.CommunityReports(s.ctx, source, resolved, token)
+}
+func (s *DesktopService) CommunityResolveReport(source, id string, action taxonomy.ReportResolution, note, key string) (bool, error) {
+	return s.core.CommunityResolveReport(s.ctx, source, id, action, note, key)
+}
+func (s *DesktopService) CommunitySite(source string) (c.Site, error) {
+	return s.core.CommunitySite(s.ctx, source)
 }

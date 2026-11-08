@@ -206,7 +206,7 @@ export function Modal({
   children: ReactNode;
   onClose: () => void;
   wide?: boolean;
-  stable?: boolean;
+  stable?: boolean | "compact";
   toolbar?: ReactNode;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
@@ -223,7 +223,11 @@ export function Modal({
       unlock();
       // 等待顶层模态状态解除，再恢复焦点；StrictMode 重新打开时不抢焦点。
       queueMicrotask(() => {
-        if (!dialog.open && trigger instanceof HTMLElement && trigger.isConnected)
+        if (
+          !dialog.open &&
+          trigger instanceof HTMLElement &&
+          trigger.isConnected
+        )
           trigger.focus({ preventScroll: true });
       });
     };
@@ -231,7 +235,7 @@ export function Modal({
   return (
     <dialog
       ref={ref}
-      className={`app-modal${wide ? " wide" : ""}${stable ? " modal-stable" : ""}`}
+      className={`app-modal${wide ? " wide" : ""}${stable ? " modal-stable" : ""}${stable === "compact" ? " modal-compact" : ""}`}
       aria-labelledby={id}
       onCancel={(e) => {
         e.preventDefault();

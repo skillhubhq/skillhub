@@ -89,33 +89,6 @@ func TestFederatedIdentityIsolationRevocationAndBackup(t *testing.T) {
 		t.Fatal("external identity lost in backup", e)
 	}
 }
-func TestFederationMigrationFromSchema4(t *testing.T) {
-	root := t.TempDir()
-	s, e := Open(root)
-	if e != nil {
-		t.Fatal(e)
-	}
-	id, e := s.Bootstrap(context.Background(), "admin", "a-strong-test-password")
-	if e != nil {
-		t.Fatal(e)
-	}
-	if _, e = s.db.Exec("DROP TABLE evaluation_evidence; DROP TABLE featured_skills; DROP INDEX releases_review_queue; DROP TABLE review_notifications; DROP TABLE release_scans; DROP TABLE platform_roles; DROP TABLE access_requests; ALTER TABLE releases DROP COLUMN display_name_en; ALTER TABLE releases DROP COLUMN display_name_zh; ALTER TABLE releases DROP COLUMN icon; DROP TABLE external_identities; PRAGMA user_version=4"); e != nil {
-		t.Fatal(e)
-	}
-	s.Close()
-	s, e = Open(root)
-	if e != nil {
-		t.Fatal(e)
-	}
-	defer s.Close()
-	session, e := s.Login(context.Background(), "admin", "a-strong-test-password")
-	if e != nil || session.Identity.ID != id.ID {
-		t.Fatal("migration lost local identity", e)
-	}
-	if _, e = s.FederatedLogin(context.Background(), "https://issuer.example", "one", "Person", true); e != nil {
-		t.Fatal(e)
-	}
-}
 
 func TestEnterpriseRequestApprovalRejectionAndRecovery(t *testing.T) {
 	s := testStore(t)

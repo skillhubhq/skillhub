@@ -1,3 +1,5 @@
+import { validProvenance, type Provenance } from "./provenance";
+import { ProvenanceDetails, ProvenanceEditor } from "./ProvenancePanel";
 import { SkillEditor } from "./SkillEditor";
 import { repackDraft } from "./draft-archive";
 import { Select } from "./Select";
@@ -32,6 +34,10 @@ import type {
 import type { ReleaseInfo } from "../bindings/github.com/skillhubhq/skillhub/internal/client/models";
 export function PublishWizard({ source }: { source: string }) {
   const ui = useUI();
+  const participation = useResource(
+    () => API.CommunityParticipation(source),
+    [source],
+  );
   const previousID =
     new URLSearchParams(location.hash.split("?")[1] ?? "").get("from") || "";
   const previous = useResource(
@@ -103,6 +109,7 @@ export function PublishWizard({ source }: { source: string }) {
     [archive, setArchive] = useState<Uint8Array | null>(null),
     [namespace, setNamespace] = useState(""),
     [category, setCategory] = useState(""),
+    [origin, setOrigin] = useState<Provenance | null>(null),
     [displayNameEN, setDisplayNameEN] = useState(""),
     [displayNameZH, setDisplayNameZH] = useState(""),
     [icon, setIcon] = useState<SkillIcon>(
@@ -134,6 +141,7 @@ export function PublishWizard({ source }: { source: string }) {
           : "",
       );
       setVersion("");
+      setOrigin(r.provenance || null);
       setDisplayNameEN(r.display_name_en || "");
       setDisplayNameZH(r.display_name_zh || "");
       setIcon(r.icon || 0);
@@ -219,6 +227,7 @@ export function PublishWizard({ source }: { source: string }) {
     [...value.trim()].length <= 80 &&
     !/[\u0000-\u001f\u007f-\u009f\u202a-\u202e\u2066-\u2069]/.test(value);
   const valid =
+    (!origin || validProvenance(origin, draft?.files ?? [])) &&
     validName(displayNameEN) &&
     validName(displayNameZH) &&
     !!draft &&
@@ -234,6 +243,7 @@ export function PublishWizard({ source }: { source: string }) {
   async function submit() {
     if (!valid || !draft) return;
     const form: PublishForm = {
+      provenance: origin,
       display_name_en: identity.display_name_en,
       display_name_zh: identity.display_name_zh,
       icon,
@@ -387,6 +397,17 @@ export function PublishWizard({ source }: { source: string }) {
       )}
       <div className="publish-layout">
         <div className="panel publish-main">
+          {participation.value?.community_mode && (
+            <p className="notice" role="status">
+              {t(
+                "Every submission is reviewed before publication.",
+                "每次提交都需审核后发布。",
+              )}{" "}
+              {t("Submitted in the last 24 hours", "过去 24 小时已提交")}:{" "}
+              {participation.value.submissions_today} /{" "}
+              {participation.value.submission_limit}
+            </p>
+          )}
           <ol className="steps">
             {[t("Preview"), t("Details"), t("Confirm")].map((label, i) => (
               <li
@@ -570,6 +591,7 @@ export function PublishWizard({ source }: { source: string }) {
                 />
               </Field>
               <SkillIconPicker value={icon} onChange={setIcon} />
+              <ProvenanceEditor value={origin} onChange={setOrigin} />
               <p className="full skill-coordinate">
                 {t("Skill ID", "技能标识")}: {namespace ? namespace + "/" : ""}
                 {draft?.name}
@@ -589,7 +611,9 @@ export function PublishWizard({ source }: { source: string }) {
                   <option value="">{t("Choose a space")}</option>
                   {options?.namespaces.map((n) => (
                     <option key={n.name} value={n.name}>
-                      {n.name}
+                      {n.name === participation.value?.personal_namespace
+                        ? t("My skills", "我的技能")
+                        : n.name}
                     </option>
                   ))}
                 </Select>
@@ -700,6 +724,11 @@ export function PublishWizard({ source }: { source: string }) {
           {step === 2 && (
             <>
               <h2>{t("Ready to share?")}</h2>
+              <ProvenanceDetails
+                value={origin}
+                version={version}
+                digest={draft?.digest}
+              />
               <div className="skill-card-heading">
                 <SkillSymbol icon={icon} />
                 <div>
@@ -722,8 +751,9 @@ export function PublishWizard({ source }: { source: string }) {
                 <dd>{draft?.files?.length}</dd>
                 <dt>{t("Review policy")}</dt>
                 <dd>
-                  {options?.namespaces.find((n) => n.name === namespace)
-                    ?.enabled
+                  {!!origin ||
+                  participation.value?.community_mode ||
+                  options?.namespaces.find((n) => n.name === namespace)?.enabled
                     ? t("Independent review required")
                     : t("Maintainers can publish directly")}
                 </dd>
@@ -744,8 +774,9 @@ export function PublishWizard({ source }: { source: string }) {
                   disabled={!valid || ui.busy}
                   onClick={() => void ui.run(submit)}
                 >
-                  {options?.namespaces.find((n) => n.name === namespace)
-                    ?.enabled
+                  {!!origin ||
+                  participation.value?.community_mode ||
+                  options?.namespaces.find((n) => n.name === namespace)?.enabled
                     ? t("Submit for review")
                     : t("Publish version")}
                 </button>

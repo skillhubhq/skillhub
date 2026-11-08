@@ -1,3 +1,6 @@
+import { ProvenanceDetails } from "./ProvenancePanel";
+import { skillWebURL } from "./official";
+import { ProjectLink } from "./Downloads";
 import { EvaluationPanel } from "./EvaluationPanel";
 import { CatalogOrder as Order } from "../bindings/github.com/skillhubhq/skillhub/gen/common/registry/v1/models";
 import { FeaturedControl } from "./Governance";
@@ -597,6 +600,21 @@ export function Discover() {
             }
           />
           <div className="detail-action-bar">
+            {!isWeb && (
+              <ProjectLink
+                className="source-web-link"
+                href={skillWebURL(
+                  ui.sources.find(
+                    (s) => s.alias === selected.coordinate.split("/")[0],
+                  )?.url ?? "",
+                  selected.skill.namespace,
+                  selected.skill.name,
+                  version,
+                )}
+              >
+                {t("View on source Hub", "在来源网站查看")} ↗
+              </ProjectLink>
+            )}
             <button
               className="primary install-primary"
               disabled={!preview || ui.busy}
@@ -702,7 +720,14 @@ export function Discover() {
                         : t("files", "个文件")}
                     </span>
                   </div>
+                  <ProvenanceDetails
+                    value={preview.release.provenance}
+                    reviewNote={preview.release.reason}
+                    version={preview.release.version}
+                    digest={preview.release.digest}
+                  />
                   <SkillPeople
+                    curated={!!preview.release.provenance}
                     source={selected.coordinate.split("/")[0]}
                     userId={preview.release.submitted_by}
                     namespace={preview.release.namespace}

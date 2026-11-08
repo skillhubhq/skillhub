@@ -4,7 +4,7 @@
 
 The Hub is one Go process with embedded Web assets, SQLite or PostgreSQL metadata, and content-addressed local ZIP packages. CLI and desktop embed the same Go client core. Desktop uses Wails with React/TypeScript; a separate Go module keeps native dependencies out of Hub/CLI builds.
 
-SQLite uses WAL on local disk. PostgreSQL uses `database/sql` with a pgx adapter, dialect translation and transactional migrations. A session advisory lease establishes single-process ownership before initialization or migration. Queries remain bound to that physical connection; ownership loss rejects requests and shuts down serving. Stop the old process before replacement. Multiple serving replicas and network-shared package storage are not supported.
+SQLite uses WAL on local disk. PostgreSQL uses `database/sql` with a pgx adapter, dialect translation and transactional initialization. A session advisory lease establishes single-process ownership before initialization. Queries remain bound to that physical connection; ownership loss rejects requests and shuts down serving. Stop the old process before replacement. Multiple serving replicas and network-shared package storage are not supported.
 
 ## Protocol
 
@@ -18,9 +18,9 @@ SQLite uses WAL on local disk. PostgreSQL uses `database/sql` with a pgx adapter
 
 ## Identity and authorization
 
-The Hub has local accounts and one optional OIDC provider. External identities bind verified issuer/subject, not email. Pending admission creates no usable session. Administrators approve ordinary membership separately from namespace/platform permissions.
+The Hub has local accounts and configurable third-party identity adapters (OIDC and GitHub). External identities bind verified issuer/subject, not email. Pending admission creates no usable session. Administrators approve ordinary membership separately from namespace/platform permissions.
 
-Browser sessions use HttpOnly, SameSite cookies with Origin and custom-header checks. CLI/App hold independent Hub-issued tokens through the OS credential store. OIDC state, nonce and PKCE attempts are single-use, bounded and expire after five minutes; restart invalidates incomplete login. IdP tokens are not retained. Callback/login pages are browser transport endpoints, not a second business API.
+Browser sessions use HttpOnly, SameSite cookies with Origin and custom-header checks. CLI/App hold independent Hub-issued tokens through the OS credential store. External-login state and PKCE attempts (plus nonce for OIDC) are single-use, bounded and expire after five minutes; restart invalidates incomplete login. IdP tokens are not retained. Callback/login pages are browser transport endpoints, not a second business API.
 
 Every content operation rechecks release state and audience. Namespace roles, group audiences and platform duties have distinct responsibilities. Profile projections redact login identity except for authorized administrative/self access. See [identity and access](identity-and-access.md).
 
@@ -38,7 +38,7 @@ Profiles, team profiles, comments, reactions and avatars are stored with Hub met
 
 Comments are capped at 4,000 Unicode characters and 20 new comments per user per minute. Replies target an undeleted root in the same release. Removal leaves a tombstone, including on idempotent replay. Profile revisions prevent lost concurrent edits. All reads and mutations recheck release visibility and current access.
 
-Avatar input is limited to PNG/JPEG, 512 KiB and 2048×2048. The server crops/re-encodes a 128×128 PNG, removes metadata and never fetches arbitrary URLs. Initials are the fallback.
+Avatar input is limited to PNG/JPEG, 512 KiB and 2048×2048. The server crops/re-encodes a 128×128 PNG, removes metadata and never fetches arbitrary URLs. A login adapter may initialize an untouched empty avatar from its fixed trusted CDN; initials are the fallback.
 
 ## Shared client core
 
@@ -64,4 +64,4 @@ The `/docs/` route serves a static Next.js/Fumadocs export generated from the ca
 
 SQLite backup creates a consistent snapshot and copies exactly its referenced package digests. PostgreSQL maintenance pairs a native database dump with packages while holding exclusive ownership. Restore accepts fresh destinations, preserves registry identity, invalidates sessions/devices and records an audit event. Markers prevent incomplete recovery from serving. Upgrade/rollback is an operator workflow, not an in-place schema downgrade.
 
-Schema migrations, recovery guards and permission checks are maintained product behavior. Test reports, machine-specific deployment material and development decisions belong in CI artifacts or ignored local storage. See [database maintenance](database.md), [operations](operations.md) and [testing](testing.md).
+Schema validation, recovery guards and permission checks are maintained product behavior. Test reports, machine-specific deployment material and development decisions belong in CI artifacts or ignored local storage. See [database maintenance](database.md), [operations](operations.md) and [testing](testing.md).

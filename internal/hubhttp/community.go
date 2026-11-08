@@ -1,10 +1,13 @@
 package hubhttp
 
 import (
-	"connectrpc.com/connect"
 	"context"
+
+	"connectrpc.com/connect"
 	api "github.com/skillhubhq/skillhub/gen/api/community/v1"
 	c "github.com/skillhubhq/skillhub/internal/community"
+	"github.com/skillhubhq/skillhub/internal/hub"
+	"github.com/skillhubhq/skillhub/internal/provenancewire"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -18,7 +21,7 @@ func communityMemberDTO(v c.Member) *api.Member {
 	return &api.Member{Profile: communityProfileDTO(v.Profile), Roles: v.Roles}
 }
 func communityContributionDTO(v c.Contribution) *api.Contribution {
-	return &api.Contribution{ReleaseId: v.ReleaseID, Namespace: v.Namespace, Name: v.Name, DisplayNameEn: v.DisplayNameEN, DisplayNameZh: v.DisplayNameZH, Icon: v.Icon, Version: v.Version, Description: v.Description, Author: communityProfileDTO(v.Author)}
+	return &api.Contribution{Provenance: provenancewire.Encode(v.Provenance), ReleaseId: v.ReleaseID, Namespace: v.Namespace, Name: v.Name, DisplayNameEn: v.DisplayNameEN, DisplayNameZh: v.DisplayNameZH, Icon: v.Icon, Version: v.Version, Description: v.Description, Author: communityProfileDTO(v.Author)}
 }
 func communityCommentDTO(v c.Comment) *api.Comment {
 	return &api.Comment{CommentId: v.CommentID, ReleaseId: v.ReleaseID, ParentId: v.ParentID, Author: communityProfileDTO(v.Author), Body: v.Body, CreatedAt: timestamppb.New(v.CreatedAt), Deleted: v.Deleted, CanDelete: v.CanDelete}
@@ -180,4 +183,55 @@ func (s *Server) UpdateAvatar(ctx context.Context, req *connect.Request[api.Upda
 		return nil, publicError(err)
 	}
 	return connect.NewResponse(&api.UpdateAvatarResponse{Profile: communityProfileDTO(v)}), nil
+}
+
+func (s *Server) GetParticipation(ctx context.Context, req *connect.Request[api.GetParticipationRequest]) (*connect.Response[api.GetParticipationResponse], error) {
+	u, e := s.identity(ctx, req.Header())
+	if e != nil {
+		return nil, e
+	}
+	v, e := s.store.GetParticipation(ctx, u)
+	if e != nil {
+		return nil, e
+	}
+	return connect.NewResponse(&api.GetParticipationResponse{CommunityMode: v.CommunityMode, PersonalNamespace: v.PersonalNamespace, Versions: uint64(v.Versions), VersionLimit: uint64(v.VersionLimit), StorageBytes: uint64(v.StorageBytes), StorageLimit: uint64(v.StorageLimit), SubmissionsToday: uint64(v.SubmissionsToday), SubmissionLimit: uint64(v.SubmissionLimit)}), nil
+}
+func (s *Server) ReportContent(ctx context.Context, req *connect.Request[api.ReportContentRequest]) (*connect.Response[api.ReportContentResponse], error) {
+	u, e := s.identity(ctx, req.Header())
+	if e != nil {
+		return nil, e
+	}
+	id, e := s.store.ReportContent(ctx, u, req.Msg.Mutation.IdempotencyKey, hub.ReportContent{ReleaseID: req.Msg.ReleaseId, CommentID: req.Msg.CommentId, Reason: req.Msg.Reason})
+	if e != nil {
+		return nil, e
+	}
+	return connect.NewResponse(&api.ReportContentResponse{Id: id}), nil
+}
+func (s *Server) ListReports(ctx context.Context, req *connect.Request[api.ListReportsRequest]) (*connect.Response[api.ListReportsResponse], error) {
+	u, e := s.identity(ctx, req.Header())
+	if e != nil {
+		return nil, e
+	}
+	v, e := s.store.ListReports(ctx, u, req.Msg.Resolved, pageDomain(req.Msg.Page))
+	if e != nil {
+		return nil, e
+	}
+	return connect.NewResponse(&api.ListReportsResponse{Reports: mapItems(v.Items, func(v hub.ContentReport) *api.ContentReport {
+		r := &api.ContentReport{Id: v.ID, Reporter: v.Reporter, ReleaseId: v.ReleaseID, CommentId: v.CommentID, Reason: v.Reason, Resolved: v.Resolved, Resolution: v.Resolution, CreatedAt: timestamppb.New(v.CreatedAt), Coordinate: v.Coordinate, Content: v.Content}
+		if !v.ResolvedAt.IsZero() {
+			r.ResolvedAt = timestamppb.New(v.ResolvedAt)
+		}
+		return r
+	}), Page: pageDTO(v.Next)}), nil
+}
+func (s *Server) ResolveReport(ctx context.Context, req *connect.Request[api.ResolveReportRequest]) (*connect.Response[api.ResolveReportResponse], error) {
+	u, e := s.identity(ctx, req.Header())
+	if e != nil {
+		return nil, e
+	}
+	e = s.store.ResolveReport(ctx, u, req.Msg.Mutation.IdempotencyKey, hub.ResolveReport{ID: req.Msg.Id, Note: req.Msg.Note, Action: req.Msg.Action})
+	if e != nil {
+		return nil, e
+	}
+	return connect.NewResponse(&api.ResolveReportResponse{}), nil
 }

@@ -22,9 +22,9 @@ import (
 )
 
 type observedCacheHub struct {
-	server *httptest.Server
-	known  atomic.Value
-	legacy atomic.Bool
+	server           *httptest.Server
+	known            atomic.Value
+	cacheUnsupported atomic.Bool
 }
 
 func cacheHub(t *testing.T) *observedCacheHub {
@@ -42,7 +42,7 @@ func cacheHub(t *testing.T) *observedCacheHub {
 				return
 			}
 			f.known.Store(request.KnownDigest)
-			if f.legacy.Load() {
+			if f.cacheUnsupported.Load() {
 				request.KnownDigest = ""
 				body, err = proto.Marshal(&request)
 				if err != nil {
@@ -111,9 +111,9 @@ func TestSharedCacheUsesConditionalDownloadsWithoutGrantingOfflineOrRevokedAcces
 	if a.known.Load().(string) != packageformat.Digest(archive) {
 		t.Fatal("second download did not use verified cached bytes")
 	}
-	a.legacy.Store(true)
+	a.cacheUnsupported.Store(true)
 	plan()
-	a.legacy.Store(false)
+	a.cacheUnsupported.Store(false)
 	info, err := store.CacheInfo(ctx)
 	if err != nil || info.Entries != 1 {
 		t.Fatal("cache was not shared across requests")

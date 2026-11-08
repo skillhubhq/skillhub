@@ -40,7 +40,7 @@ func postgresMetadata(ctx context.Context, db *hubdb.DB) (PostgresBackupInfo, er
 	if err := db.QueryRowContext(ctx, "SELECT current_schema()").Scan(&info.DatabaseSchema); err != nil || !pgSchemaName.MatchString(info.DatabaseSchema) {
 		return info, errors.New("maintenance requires a simple PostgreSQL schema name")
 	}
-	if err := db.QueryRowContext(ctx, "SELECT version FROM hub_schema WHERE id=1").Scan(&info.Schema); err != nil || info.Schema < 2 || info.Schema > currentSchema {
+	if err := db.QueryRowContext(ctx, "SELECT version FROM hub_schema WHERE id=1").Scan(&info.Schema); err != nil || (info.Schema < 1 || info.Schema > currentSchema) {
 		return info, errors.New("unsupported PostgreSQL Hub schema")
 	}
 	var count int
@@ -169,7 +169,7 @@ func BackupPostgres(ctx context.Context, c hubdb.Config, root, destination strin
 
 // 专用 schema 禁止混入其他应用表，避免维护工具误带非 Hub 数据。
 func checkPostgresTables(ctx context.Context, db *hubdb.DB) error {
-	allowed := strings.Fields("hub_schema instance users sessions devices audit groups group_members namespaces namespace_grants categories releases release_groups release_tags mutations profiles team_profiles comments reactions external_identities access_requests platform_roles release_scans review_notifications featured_skills evaluation_evidence")
+	allowed := strings.Fields("hub_schema instance users sessions devices audit groups group_members namespaces namespace_grants categories releases release_groups release_tags mutations profiles team_profiles comments reactions external_identities access_requests platform_roles release_scans review_notifications featured_skills evaluation_evidence personal_namespaces community_reports")
 	rows, err := db.QueryContext(ctx, "SELECT relname,relkind FROM pg_class WHERE relnamespace=current_schema()::regnamespace AND relkind IN ('r','p','v','m','f')")
 	if err != nil {
 		return err
@@ -284,7 +284,7 @@ func readPostgresBackup(root string) (PostgresBackupInfo, error) {
 		return info, errors.New("invalid manifest trailer")
 	}
 	_, timeErr := time.Parse(time.RFC3339, info.CreatedAt)
-	if info.PostgresMajor < 15 || info.Driver != "postgres" || info.Format != 2 || info.Schema < 2 || info.Schema > currentSchema || info.RegistryID == "" || info.DatabaseBytes <= 0 || !validBackupDigest(info.DatabaseDigest) || !pgSchemaName.MatchString(info.DatabaseSchema) || info.Packages != len(info.Digests) || timeErr != nil {
+	if info.PostgresMajor < 15 || info.Driver != "postgres" || info.Format != 2 || (info.Schema < 1 || info.Schema > currentSchema) || info.RegistryID == "" || info.DatabaseBytes <= 0 || !validBackupDigest(info.DatabaseDigest) || !pgSchemaName.MatchString(info.DatabaseSchema) || info.Packages != len(info.Digests) || timeErr != nil {
 		return info, errors.New("unsupported PostgreSQL backup metadata")
 	}
 	previous := ""
@@ -406,52 +406,4 @@ func checkPostgresTools(ctx context.Context, major int) error {
 		}
 	}
 	return nil
-}
-
-// UpgradePostgres 在同一独占区间内完成旧版快照、离线校验、事务迁移和升级后包校验。
-func UpgradePostgres(ctx context.Context, c hubdb.Config, root, backup string) (info PostgresBackupInfo, err error) {
-	if c.Driver != "postgres" {
-		return info, errors.New("upgrade tool currently requires PostgreSQL")
-	}
-	unlock, err := AcquireServingLock(root)
-	if err != nil {
-		return info, err
-	}
-	defer unlock()
-	db, err := hubdb.Open(root, c)
-	if err != nil {
-		return info, err
-	}
-	defer db.Close()
-	before, err := backupPostgresLocked(ctx, db, c, root, backup)
-	if err != nil {
-		return info, err
-	}
-	if _, err = VerifyPostgresBackup(ctx, backup); err != nil {
-		return info, err
-	}
-	store := &Store{db: db, root: root, now: time.Now}
-	if err = store.initializeContext(ctx); err != nil {
-		return info, err
-	}
-	info, err = postgresMetadata(ctx, db)
-	if err != nil {
-		return info, err
-	}
-	if info.RegistryID != before.RegistryID || strings.Join(info.Digests, ",") != strings.Join(before.Digests, ",") {
-		return info, errors.New("upgrade identity or package set changed")
-	}
-	if err = copyPostgresPackages(ctx, info, root, ""); err != nil {
-		return info, err
-	}
-	receipt := struct {
-		RegistryID   string `json:"registry_id"`
-		From         int    `json:"from_schema"`
-		To           int    `json:"to_schema"`
-		BackupDigest string `json:"backup_digest"`
-		Completed    string `json:"completed_at"`
-	}{info.RegistryID, before.Schema, info.Schema, before.DatabaseDigest, time.Now().UTC().Format(time.RFC3339)}
-	raw, _ := json.MarshalIndent(receipt, "", "  ")
-	err = writeBackupFile(filepath.Join(backup, "upgrade.json"), append(raw, '\n'))
-	return info, err
 }

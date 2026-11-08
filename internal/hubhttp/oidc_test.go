@@ -14,6 +14,8 @@ import (
 	"time"
 
 	"github.com/skillhubhq/skillhub/internal/hub"
+	"github.com/skillhubhq/skillhub/internal/hubpolicy"
+	"github.com/skillhubhq/skillhub/internal/identityprovider"
 
 	"github.com/go-jose/go-jose/v4"
 	"golang.org/x/oauth2"
@@ -42,7 +44,7 @@ func TestOIDCCodeFlowBoundaries(t *testing.T) {
 			if e := r.ParseForm(); e != nil {
 				t.Error(e)
 			}
-			if r.Form.Get("code") != "test-code" || r.Form.Get("redirect_uri") != "http://localhost/auth/oidc/callback" || r.Form.Get("code_verifier") == "" || oauth2.S256ChallengeFromVerifier(r.Form.Get("code_verifier")) != challenge {
+			if r.Form.Get("code") != "test-code" || r.Form.Get("redirect_uri") != "http://localhost/auth/providers/enterprise/callback" || r.Form.Get("code_verifier") == "" || oauth2.S256ChallengeFromVerifier(r.Form.Get("code_verifier")) != challenge {
 				http.Error(w, "invalid authorization", 400)
 				return
 			}
@@ -91,13 +93,13 @@ func TestOIDCCodeFlowBoundaries(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
-	server, e := New(store, Config{PublicURL: "http://localhost", OIDC: &OIDCConfig{Issuer: provider.URL, ClientID: "test-client", ClientSecret: "test-secret", DisplayName: "Microsoft", AllowSignup: true}, oidcHTTPClient: provider.Client()})
+	server, e := New(store, Config{PublicURL: "http://localhost", Providers: []identityprovider.Config{{ID: "enterprise", Type: "oidc", Name: "Microsoft", Issuer: provider.URL, ClientID: "test-client", Secret: "test-secret"}}, Policy: hubpolicy.Policy{Mode: hubpolicy.Community, Limits: hubpolicy.Defaults()}, providerHTTPClient: provider.Client()})
 	if e != nil {
 		t.Fatal(e)
 	}
 	destination := "authorize"
 	start := func() (string, *http.Cookie) {
-		req := httptest.NewRequest("GET", "http://localhost/auth/oidc/start?next="+url.QueryEscape(destination), nil)
+		req := httptest.NewRequest("GET", "http://localhost/auth/providers/enterprise/start?next="+url.QueryEscape(destination), nil)
 		w := httptest.NewRecorder()
 		server.ServeHTTP(w, req)
 		if w.Code != 302 {
@@ -117,7 +119,7 @@ func TestOIDCCodeFlowBoundaries(t *testing.T) {
 		return q.Get("state"), cookies[0]
 	}
 	callback := func(state string, cookie *http.Cookie) *httptest.ResponseRecorder {
-		req := httptest.NewRequest("GET", "http://localhost/auth/oidc/callback?code=test-code&state="+url.QueryEscape(state), nil)
+		req := httptest.NewRequest("GET", "http://localhost/auth/providers/enterprise/callback?code=test-code&state="+url.QueryEscape(state), nil)
 		if cookie != nil {
 			req.AddCookie(cookie)
 		}
@@ -136,9 +138,9 @@ func TestOIDCCodeFlowBoundaries(t *testing.T) {
 				state = "invalid"
 			}
 			if v == "timeout" {
-				a := server.oidc.attempts[state]
+				a := server.providers["enterprise"].attempts[state]
 				a.expires = time.Now().Add(-time.Second)
-				server.oidc.attempts[state] = a
+				server.providers["enterprise"].attempts[state] = a
 			}
 			if w := callback(state, cookie); w.Code != 401 {
 				t.Fatalf("accepted invalid %s: %d", v, w.Code)
@@ -146,7 +148,7 @@ func TestOIDCCodeFlowBoundaries(t *testing.T) {
 		})
 	}
 	variant = ""
-	server.config.OIDC.AllowSignup = false
+	server.config.Policy.Mode = hubpolicy.Enterprise
 	pendingState, pendingCookie := start()
 	pending := callback(pendingState, pendingCookie)
 	if pending.Code != http.StatusForbidden || !strings.Contains(pending.Body.String(), "Waiting for approval") {
@@ -256,8 +258,8 @@ func TestOIDCRejectsIncompleteConfiguration(t *testing.T) {
 		t.Fatal(e)
 	}
 	defer store.Close()
-	for _, config := range []OIDCConfig{{Issuer: "http://example.com", ClientID: "client", ClientSecret: "secret"}, {Issuer: "https://example.com", ClientID: "client"}} {
-		if _, e := New(store, Config{PublicURL: "http://localhost", OIDC: &config}); e == nil {
+	for _, config := range []identityprovider.Config{{ID: "sso", Type: "oidc", Name: "SSO", Issuer: "http://example.com", ClientID: "client", Secret: "secret"}, {ID: "sso", Type: "oidc", Name: "SSO", Issuer: "https://example.com", ClientID: "client"}} {
+		if _, e := New(store, Config{PublicURL: "http://localhost", Providers: []identityprovider.Config{config}}); e == nil {
 			t.Fatal("invalid provider configuration accepted")
 		}
 	}

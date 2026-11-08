@@ -1,3 +1,4 @@
+import { provenanceInfo, provenanceWire } from "./provenance";
 import { communityWeb } from "./community-web";
 import { t } from "./i18n";
 import { createConnectTransport } from "@connectrpc/connect-web";
@@ -40,6 +41,7 @@ const info = (r?: Release): ReleaseInfo => {
   if (!r) throw new Error(t("Version information unavailable"));
   return {
     id: r.releaseId,
+    provenance: provenanceInfo(r.provenance),
     namespace: r.namespace,
     name: r.name,
     display_name_en: r.displayNameEn,
@@ -215,6 +217,18 @@ async function preview(target: PreviewTarget) {
   };
 }
 export async function publishPackage(form: PublishForm, archive: Uint8Array) {
+  if (
+    form.provenance &&
+    !(await clients.registry.getRegistry({})).capabilities.includes(
+      "catalog.provenance.v1",
+    )
+  )
+    throw new Error(
+      t(
+        "This Hub needs an upgrade to accept upstream attribution.",
+        "此 Hub 需要升级后才能接收来源署名。",
+      ),
+    );
   if (form.display_name_en || form.display_name_zh || form.icon) {
     const registry = await clients.registry.getRegistry({});
     if (!registry.capabilities.includes("catalog.presentation.v1"))
@@ -239,6 +253,7 @@ export async function publishPackage(form: PublishForm, archive: Uint8Array) {
         displayNameEn: form.display_name_en,
         displayNameZh: form.display_name_zh,
         icon: Number(form.icon),
+        provenance: provenanceWire(form.provenance),
       })
     ).release,
   );
@@ -430,6 +445,7 @@ const supported: Partial<PlatformAPI> = {
           source: "hub",
           skills: r.skills.map((s) => ({
             featured: s.featured,
+            provenance: provenanceInfo(s.provenance),
             namespace: s.namespace,
             name: s.name,
             display_name_en: s.displayNameEn,
@@ -460,6 +476,7 @@ const supported: Partial<PlatformAPI> = {
     if (!s) throw new Error("Skill unavailable");
     return {
       featured: s.featured,
+      provenance: provenanceInfo(s.provenance),
       namespace: s.namespace,
       name: s.name,
       display_name_en: s.displayNameEn,

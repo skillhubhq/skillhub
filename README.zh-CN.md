@@ -15,9 +15,10 @@
 </p>
 
 <p align="center">
+  <a href="https://skills.codectn.com">官方社区</a> ·
   <a href="#开始使用">开始使用</a> ·
   <a href="#自行部署">自行部署</a> ·
-  <a href="docs/zh/index.md">文档</a> ·
+  <a href="https://skills.codectn.com/docs/zh/">文档</a> ·
   <a href="https://github.com/skillhubhq/skillhub/releases">下载</a> ·
   <a href="README.md">English</a>
 </p>

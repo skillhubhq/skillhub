@@ -7,12 +7,14 @@ const repo = path.dirname(root.replace(/\/$/, ""));
 export const pages = [
   ["docs/README.md", "index", "Overview"],
   ["docs/usage.md", "usage", "Use skills"],
+  ["docs/official-community.md", "official-community", "Official community"],
   ["docs/authoring.md", "authoring", "Create and test a skill"],
   ["docs/evaluations.md", "evaluations", "Evaluation evidence"],
   ["desktop/README.md", "desktop", "Desktop App"],
   ["docs/client-updates.md", "client-updates", "App updates"],
   ["docs/configuration.md", "configuration", "Configuration"],
   ["docs/enterprise-login.md", "enterprise-login", "Enterprise login"],
+  ["docs/community-hosting.md", "community-hosting", "Community and login providers"],
   [
     "docs/identity-and-access.md",
     "identity-and-access",
@@ -80,29 +82,6 @@ export function rewriteLinks(src, markdown, locale = "en") {
     .join("");
 }
 export async function prepare() {
-  const titles = [
-    "概览",
-    "使用技能",
-    "创建与测试技能",
-    "评测证据",
-    "桌面 App",
-    "App 更新",
-    "配置",
-    "企业登录",
-    "身份与权限",
-    "发布与审核",
-    "数据库",
-    "备份与运维",
-    "部署检查",
-    "产品边界",
-    "架构",
-    "TypeScript SDK",
-    "测试",
-    "分发",
-    "维护文档",
-    "参与贡献",
-    "安全",
-  ];
   for (const locale of ["en", "zh"]) {
     const output = path.join(
       root,
@@ -110,15 +89,17 @@ export async function prepare() {
     );
     await rm(output, { recursive: true, force: true });
     await mkdir(output, { recursive: true });
-    for (const [index, [src, slug, title]] of pages.entries()) {
+    for (const [src, slug, title] of pages) {
       const input = locale === "en" ? src : `docs/zh/${slug}.md`;
       let body = await readFile(path.join(repo, input), "utf8");
+      const translatedTitle = body.match(/^# ([^\n]+)/)?.[1];
+      if (!translatedTitle) throw new Error(`Missing document title: ${input}`);
       body = body.replace(/^# [^\n]+\n+/, "");
       // 两种语言使用相同的规范文档相对链接，生成时转换为对应语言路由。
       body = rewriteLinks(input, body, locale);
       await writeFile(
         path.join(output, `${slug}.md`),
-        `---\ntitle: ${JSON.stringify(locale === "en" ? title : titles[index])}\n---\n\n${body}`,
+        `---\ntitle: ${JSON.stringify(locale === "en" ? title : translatedTitle)}\n---\n\n${body}`,
       );
     }
     const labels =
@@ -134,6 +115,7 @@ export async function prepare() {
             "index",
             `---${labels[0]}---`,
             "usage",
+            "official-community",
             "authoring",
             "evaluations",
             "desktop",
@@ -141,6 +123,7 @@ export async function prepare() {
             `---${labels[1]}---`,
             "configuration",
             "enterprise-login",
+            "community-hosting",
             "identity-and-access",
             "governance",
             "database",

@@ -1,12 +1,21 @@
 syntax = "proto3";
 package api.community.v1;
 
+import "api/catalog/v1/catalog_service.proto";
 import "api/common/v1/types.proto";
 import "buf/validate/validate.proto";
 import "common/registry/v1/taxonomy.proto";
 import "google/protobuf/timestamp.proto";
 // CommunityService 提供受发布受众约束的身份、团队与社区互动。
 service CommunityService {
+  // GetParticipation 返回当前用户的投稿空间和模式配额。
+  rpc GetParticipation(GetParticipationRequest) returns (GetParticipationResponse);
+  // ReportContent 举报当前可访问的已发布版本或评论。
+  rpc ReportContent(ReportContentRequest) returns (ReportContentResponse);
+  // ListReports 仅管理员读取举报队列和处理结果。
+  rpc ListReports(ListReportsRequest) returns (ListReportsResponse);
+  // ResolveReport 原子处理举报与对应内容，保留审计。
+  rpc ResolveReport(ResolveReportRequest) returns (ResolveReportResponse);
   // UpdateAvatar 上传或移除当前用户的头像，由 Hub 规范化图片。
   rpc UpdateAvatar(UpdateAvatarRequest) returns (UpdateAvatarResponse);
   // GetProfile 按当前主体权限执行社区操作。
@@ -95,6 +104,8 @@ message Contribution {
   string display_name_zh = 8;
   // 内置技能图标；零值使用默认图标。
   .common.registry.v1.SkillIcon icon = 9;
+  // 上游署名；author 字段仍为实际提交账号的公开资料。
+  api.catalog.v1.Provenance provenance = 10;
 }
 // Comment 为社区资源的传输投影。
 message Comment {
@@ -318,3 +329,108 @@ message UpdateAvatarResponse {
   // profile 包含更新后的头像和修订号。
   Profile profile = 1;
 }
+
+// GetParticipationRequest 查询当前账号，不接受任意用户标识。
+message GetParticipationRequest {}
+// GetParticipationResponse 描述当前 Hub 的策略和当前账号计量。
+message GetParticipationResponse {
+  // 是否启用社区准入和投稿策略。
+  bool community_mode = 1;
+  // 当前账号个人空间；企业模式或未创建时为空。
+  string personal_namespace = 2;
+  // 当前账号累计版本数，含撤下和拒绝版本。
+  uint64 versions = 3;
+  // 社区模式的账号版本上限。
+  uint64 version_limit = 4;
+  // 按版本累计压缩包字节数。
+  uint64 storage_bytes = 5;
+  // 社区模式的账号存储上限。
+  uint64 storage_limit = 6;
+  // 最近二十四小时投稿数。
+  uint64 submissions_today = 7;
+  // 社区模式每日投稿上限。
+  uint64 submission_limit = 8;
+}
+// ReportContentRequest 不接受目标用户或任意 URL。
+message ReportContentRequest {
+  // 幂等写入标识。
+  api.common.v1.Mutation mutation = 1 [(buf.validate.field).required = true];
+  // 可访问的版本。
+  string release_id = 2 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 128
+  }];
+  // 举报评论时填写，必须属于同一版本。
+  string comment_id = 3 [(buf.validate.field).string.max_len = 128];
+  // 具体问题，不含凭据或个人秘密。
+  string reason = 4 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 1000
+  }];
+}
+// ReportContentResponse 仅返回受理编号。
+message ReportContentResponse {
+  // 举报编号。
+  string id = 1;
+}
+// ContentReport 仅向管理员展示举报人和目标信息。
+message ContentReport {
+  // 举报编号。
+  string id = 1;
+  // 举报人账号标识。
+  string reporter = 2;
+  // 目标版本。
+  string release_id = 3;
+  // 可选评论标识。
+  string comment_id = 4;
+  // 举报说明。
+  string reason = 5;
+  // 是否已处理。
+  bool resolved = 6;
+  // 处理说明。
+  string resolution = 7;
+  // 受理时间。
+  google.protobuf.Timestamp created_at = 8;
+  // 处理时间。
+  google.protobuf.Timestamp resolved_at = 9;
+  // 稳定技能坐标。
+  string coordinate = 10;
+  // 目标当前正文摘要；已删除评论不返回旧正文。
+  string content = 11;
+}
+// ListReportsRequest 以服务端游标读取待处理或已处理集合。
+message ListReportsRequest {
+  // 分页参数。
+  api.common.v1.PageRequest page = 1;
+  // 是否查看已处理记录。
+  bool resolved = 2;
+}
+// ListReportsResponse 返回管理员可见的举报队列。
+message ListReportsResponse {
+  // 举报记录。
+  repeated ContentReport reports = 1;
+  // 后续游标。
+  api.common.v1.PageResult page = 2;
+}
+// ResolveReportRequest 处理动作由服务端重新校验。
+message ResolveReportRequest {
+  // 幂等写入标识。
+  api.common.v1.Mutation mutation = 1 [(buf.validate.field).required = true];
+  // 举报编号。
+  string id = 2 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 128
+  }];
+  // 明确处理动作。
+  .common.registry.v1.ReportResolution action = 3 [(buf.validate.field).enum = {
+    defined_only: true
+    not_in: [0]
+  }];
+  // 对管理员保留的处理依据。
+  string note = 4 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 1000
+  }];
+}
+// ResolveReportResponse 表示处理已提交。
+message ResolveReportResponse {}

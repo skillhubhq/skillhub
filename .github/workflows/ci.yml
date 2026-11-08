@@ -130,7 +130,7 @@ jobs:
         with:
           go-version-file: go.mod
       - run: go test -race -count=1 ./internal/hubhttp
-      - name: Verify paired recovery and migrations with matching PostgreSQL tools
+      - name: Verify paired recovery and schema initialization with matching PostgreSQL tools
         env:
           PG_CONTAINER: ${{ job.services.postgres.id }}
         run: |

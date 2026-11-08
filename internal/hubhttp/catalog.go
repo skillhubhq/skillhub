@@ -9,6 +9,7 @@ import (
 	commonv1 "github.com/skillhubhq/skillhub/gen/api/common/v1"
 	publishingv1 "github.com/skillhubhq/skillhub/gen/api/publishing/v1"
 	"github.com/skillhubhq/skillhub/internal/hub"
+	"github.com/skillhubhq/skillhub/internal/provenancewire"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -24,10 +25,10 @@ func mapItems[T, U any](items []T, convert func(T) *U) []*U {
 	return result
 }
 func skillDTO(v hub.Skill) *catalogv1.Skill {
-	return &catalogv1.Skill{Namespace: v.Namespace, Name: v.Name, DisplayNameEn: v.DisplayNameEN, DisplayNameZh: v.DisplayNameZH, Icon: v.Icon, Description: v.Description, Category: v.Category, Tags: v.Tags, LatestVersion: v.LatestVersion, Featured: v.Featured}
+	return &catalogv1.Skill{Provenance: provenancewire.Encode(v.Provenance), Namespace: v.Namespace, Name: v.Name, DisplayNameEn: v.DisplayNameEN, DisplayNameZh: v.DisplayNameZH, Icon: v.Icon, Description: v.Description, Category: v.Category, Tags: v.Tags, LatestVersion: v.LatestVersion, Featured: v.Featured}
 }
 func releaseDTO(v hub.Release) *catalogv1.Release {
-	return &catalogv1.Release{ReleaseId: v.ID, Namespace: v.Namespace, Name: v.Name, DisplayNameEn: v.DisplayNameEN, DisplayNameZh: v.DisplayNameZH, Icon: v.Icon, Version: v.Version, Digest: v.Digest, Status: v.Status, Visibility: v.Visibility, GroupIds: v.GroupIDs, SubmittedBy: v.SubmittedBy, CreatedAt: timestamppb.New(v.CreatedAt), ReviewReason: v.ReviewReason, SkillMarkdown: v.Markdown}
+	return &catalogv1.Release{Provenance: provenancewire.Encode(v.Provenance), ReleaseId: v.ID, Namespace: v.Namespace, Name: v.Name, DisplayNameEn: v.DisplayNameEN, DisplayNameZh: v.DisplayNameZH, Icon: v.Icon, Version: v.Version, Digest: v.Digest, Status: v.Status, Visibility: v.Visibility, GroupIds: v.GroupIDs, SubmittedBy: v.SubmittedBy, CreatedAt: timestamppb.New(v.CreatedAt), ReviewReason: v.ReviewReason, SkillMarkdown: v.Markdown}
 }
 
 func (s *Server) catalogIdentity(ctx context.Context, header http.Header) (hub.Identity, error) {
@@ -91,7 +92,7 @@ func (s *Server) SubmitRelease(ctx context.Context, req *connect.Request[publish
 	if err != nil {
 		return nil, err
 	}
-	result, err := s.store.SubmitRelease(ctx, user, req.Msg.Mutation.IdempotencyKey, hub.SubmitRelease{Namespace: req.Msg.Namespace, Version: req.Msg.Version, Archive: req.Msg.Archive, Visibility: req.Msg.Visibility, GroupIDs: req.Msg.GroupIds, Category: req.Msg.Category, Tags: req.Msg.Tags, DisplayNameEN: req.Msg.DisplayNameEn, DisplayNameZH: req.Msg.DisplayNameZh, Icon: req.Msg.Icon})
+	result, err := s.store.SubmitRelease(ctx, user, req.Msg.Mutation.IdempotencyKey, hub.SubmitRelease{Provenance: provenancewire.Decode(req.Msg.Provenance), Namespace: req.Msg.Namespace, Version: req.Msg.Version, Archive: req.Msg.Archive, Visibility: req.Msg.Visibility, GroupIDs: req.Msg.GroupIds, Category: req.Msg.Category, Tags: req.Msg.Tags, DisplayNameEN: req.Msg.DisplayNameEn, DisplayNameZH: req.Msg.DisplayNameZh, Icon: req.Msg.Icon})
 	if err != nil {
 		return nil, err
 	}

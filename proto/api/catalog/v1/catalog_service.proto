@@ -19,6 +19,26 @@ service CatalogService {
   rpc DownloadRelease(DownloadReleaseRequest) returns (DownloadReleaseResponse);
 }
 
+// Provenance 是提交者声明并经审核的上游署名；不代表作者拥有本 Hub 账号或认可收录。
+message Provenance {
+  // 原作者或组织的公开名称。
+  string author_name = 1;
+  // 原作者主页 HTTPS URL。
+  string author_url = 2;
+  // 固定上游文件目录的 HTTPS URL。
+  string source_url = 3;
+  // 完整的上游 Git commit SHA。
+  string revision = 4;
+  // 随包许可证的 SPDX 标识。
+  string license = 5;
+  // 包内许可证相对路径。
+  string license_file = 6;
+  // 收录内容是否经过修改。
+  bool modified = 7;
+  // 修改说明；未修改时为空。
+  string changes = 8;
+}
+
 // Skill 为目录资源投影，不作为领域聚合。
 message Skill {
   // 所属命名空间。
@@ -41,6 +61,8 @@ message Skill {
   .common.registry.v1.SkillIcon icon = 9;
   // 管理员精选，仍遵守当前受众。
   bool featured = 10;
+  // 最新可见版本的上游来源。
+  Provenance provenance = 11;
 }
 
 // Release 是内容不可变的版本资源。
@@ -75,6 +97,8 @@ message Release {
   string display_name_zh = 14;
   // 内置技能图标；零值使用默认图标。
   .common.registry.v1.SkillIcon icon = 15;
+  // 随版本固定的上游来源；维护者为 namespace，操作账号为 submitted_by。
+  Provenance provenance = 16;
 }
 
 // SearchSkillsRequest 中的过滤只能收窄访问范围。

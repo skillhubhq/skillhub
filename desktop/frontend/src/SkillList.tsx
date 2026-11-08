@@ -1,3 +1,4 @@
+import { UpstreamAuthor } from "./ProvenancePanel";
 import { Icon } from "./Icon";
 import { SkillSymbol, skillTitle } from "./SkillIdentity";
 import { API } from "./platform";
@@ -60,7 +61,11 @@ export function SkillList({
                   {skill.namespace}/{skill.name}
                 </span>
               </div>
-              <span className="catalog-version">v{skill.version}</span>
+              <span className="catalog-version" title={skill.version}>
+                {skill.provenance
+                  ? skill.provenance.revision.slice(0, 7)
+                  : `v${skill.version}`}
+              </span>
             </div>
             <p>{skill.description}</p>
             <div className="catalog-labels">
@@ -88,6 +93,11 @@ export function SkillList({
                 </AppLink>
               ))}
             </div>
+            {!contribution && skill.provenance && (
+              <div className="catalog-social">
+                <UpstreamAuthor value={skill.provenance} />
+              </div>
+            )}
             {contribution && (
               <CatalogSocial
                 source={source}
@@ -122,7 +132,11 @@ function CatalogSocial({
   );
   return (
     <div className="catalog-social">
-      <Person source={source} person={contribution.author} />
+      {contribution.provenance ? (
+        <UpstreamAuthor value={contribution.provenance} />
+      ) : (
+        <Person source={source} person={contribution.author} />
+      )}
       {discussion.value && (
         <span className="catalog-counts">
           <button

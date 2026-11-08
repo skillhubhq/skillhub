@@ -5,10 +5,12 @@ export function SkillPeople({
   source,
   userId,
   namespace,
+  curated = false,
 }: {
   source: string;
   userId: string;
   namespace: string;
+  curated?: boolean;
 }) {
   const ui = useUI();
   const profile = useResource(
@@ -22,7 +24,9 @@ export function SkillPeople({
   return (
     <div className="skill-people">
       <div>
-        <span className="small-label">{t("Published by")}</span>
+        <span className="small-label">
+          {curated ? t("Submitted by", "提交账号") : t("Published by")}
+        </span>
         {profile.value ? (
           <Person source={source} person={profile.value} />
         ) : (
@@ -34,7 +38,9 @@ export function SkillPeople({
         )}
       </div>
       <div>
-        <span className="small-label">{t("Team", "团队")}</span>
+        <span className="small-label">
+          {curated ? t("Curating maintainer", "收录维护者") : t("Team", "团队")}
+        </span>
         <button
           className="person-link"
           onClick={() =>

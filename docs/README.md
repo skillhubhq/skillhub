@@ -38,3 +38,5 @@ Choose a starting point for the work you want to do.
 | [Distribution](distribution.md) | Packages, checksums and the release workflow |
 
 Security issues belong in [private security reporting](../SECURITY.md), not public issues. Local credentials, deployment addresses and test reports do not belong in source contributions.
+
+- [Community hosting and login providers](community-hosting.md)

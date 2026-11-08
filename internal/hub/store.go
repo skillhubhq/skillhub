@@ -15,10 +15,11 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/skillhubhq/skillhub/internal/hubdb"
+	"github.com/skillhubhq/skillhub/internal/hubpolicy"
 	"golang.org/x/crypto/bcrypt"
 )
 
-const currentSchema = 10
+const currentSchema = 11
 
 var (
 	ErrUnauthenticated = errors.New("authentication required")
@@ -32,6 +33,7 @@ var (
 )
 
 type Store struct {
+	policy        hubpolicy.Policy
 	db            *hubdb.DB
 	root          string
 	registryID    string
@@ -123,72 +125,52 @@ func (s *Store) initializeContext(ctx context.Context) error {
 	if err = tx.QueryRowContext(ctx, "PRAGMA user_version").Scan(&version); err != nil {
 		return err
 	}
-	if version > currentSchema {
+	if version != 0 && version != 1 && version != 2 && version != 10 && version != currentSchema {
 		return errors.New("unsupported hub database schema")
 	}
 	if version == 0 {
-		_, err = tx.ExecContext(ctx, `
-CREATE TABLE instance (id TEXT PRIMARY KEY, secret BLOB NOT NULL);
-CREATE TABLE users (id TEXT PRIMARY KEY, username TEXT NOT NULL UNIQUE, password_hash BLOB NOT NULL, administrator INTEGER NOT NULL, disabled INTEGER NOT NULL DEFAULT 0);
-CREATE TABLE sessions (token_hash TEXT PRIMARY KEY, user_id TEXT NOT NULL REFERENCES users(id), expires_at INTEGER NOT NULL);
-CREATE INDEX sessions_user ON sessions(user_id);
-CREATE TABLE devices (device_hash TEXT PRIMARY KEY, user_code TEXT NOT NULL UNIQUE, expires_at INTEGER NOT NULL, user_id TEXT REFERENCES users(id), last_poll INTEGER NOT NULL DEFAULT 0);
-CREATE TABLE audit (sequence INTEGER PRIMARY KEY AUTOINCREMENT, actor_id TEXT NOT NULL, action TEXT NOT NULL, resource TEXT NOT NULL, created_at INTEGER NOT NULL);
-PRAGMA user_version=1;`)
-		if err != nil {
+		if _, err = tx.ExecContext(ctx, initialSchema); err != nil {
 			return err
 		}
 		if _, err = tx.ExecContext(ctx, "INSERT INTO instance(id,secret) VALUES(?,?)", uuid.NewString(), []byte(randomSecret())); err != nil {
 			return err
 		}
 	}
-	if version < 2 {
-		if _, err = tx.ExecContext(ctx, registrySchema); err != nil {
+	// 版本 1 已用于实际部署；在持有独占数据库所有权的事务中扩展，不改写既有版本。
+	if version == 1 {
+		if _, err = tx.ExecContext(ctx, "ALTER TABLE releases ADD COLUMN provenance TEXT NOT NULL DEFAULT 'null'; PRAGMA user_version=2;"); err != nil {
 			return err
 		}
 	}
-	if version < 3 {
-		if _, err = tx.ExecContext(ctx, communitySchema); err != nil {
+	// 已支持的完整基础结构只做增量扩展，版本号不复用；事务失败会保留原结构。
+	if version == 10 {
+		if _, err = tx.ExecContext(ctx, `ALTER TABLE releases ADD COLUMN provenance TEXT NOT NULL DEFAULT 'null';
+CREATE TABLE personal_namespaces (user_id TEXT PRIMARY KEY REFERENCES users(id), namespace TEXT NOT NULL UNIQUE REFERENCES namespaces(name));
+CREATE INDEX releases_author_time ON releases(submitted_by,created_at);
+CREATE TABLE community_reports (sequence INTEGER PRIMARY KEY AUTOINCREMENT, id TEXT NOT NULL UNIQUE, reporter TEXT NOT NULL REFERENCES users(id), release_id TEXT NOT NULL REFERENCES releases(id), comment_id TEXT NOT NULL DEFAULT '', reason TEXT NOT NULL, resolved INTEGER NOT NULL DEFAULT 0, resolution TEXT NOT NULL DEFAULT '', created_at INTEGER NOT NULL, resolved_at INTEGER NOT NULL DEFAULT 0, UNIQUE(reporter,release_id,comment_id));
+CREATE INDEX community_reports_queue ON community_reports(resolved,sequence);`); err != nil {
 			return err
 		}
 	}
-	if version < 4 {
-		if _, err = tx.ExecContext(ctx, avatarSchema); err != nil {
-			return err
+	// 拒绝结构不完整的数据库，不能用 CREATE IF NOT EXISTS 掩盖损坏。
+	for _, table := range []string{"instance", "users", "sessions", "devices", "audit", "groups", "group_members", "namespaces", "namespace_grants", "categories", "releases", "release_groups", "release_tags", "mutations", "profiles", "team_profiles", "comments", "reactions", "access_requests", "platform_roles", "release_scans", "review_notifications", "featured_skills", "evaluation_evidence", "personal_namespaces", "community_reports", "external_identities"} {
+		rows, e := tx.QueryContext(ctx, "SELECT * FROM "+table+" LIMIT 0")
+		if e != nil {
+			return errors.New("incomplete hub database schema")
 		}
+		rows.Close()
 	}
-	if version < 5 {
-		if _, err = tx.ExecContext(ctx, `CREATE TABLE external_identities (issuer TEXT NOT NULL, subject TEXT NOT NULL, user_id TEXT NOT NULL UNIQUE REFERENCES users(id), PRIMARY KEY(issuer,subject)); PRAGMA user_version=5;`); err != nil {
-			return err
-		}
+	columns, columnErr := tx.QueryContext(ctx, "SELECT provenance FROM releases LIMIT 0")
+	if columnErr != nil {
+		return errors.New("incomplete hub database schema")
 	}
+	columns.Close()
 	if err = tx.QueryRowContext(ctx, "SELECT id,secret FROM instance").Scan(&s.registryID, &s.secret); err != nil {
 		return err
 	}
-	if version < 6 {
-		if _, err = tx.ExecContext(ctx, presentationSchema); err != nil {
-			return err
-		}
-	}
-	if version < 7 {
-		if _, err = tx.ExecContext(ctx, accessRequestSchema); err != nil {
-			return err
-		}
-	}
-	if version < 8 {
-		if _, err = tx.ExecContext(ctx, governanceSchema); err != nil {
-			return err
-		}
-	}
-	if version < 9 {
-		if _, err = tx.ExecContext(ctx, discoverySchema); err != nil {
-			return err
-		}
-	}
-	if version < 10 {
-		if _, err = tx.ExecContext(ctx, evaluationSchema); err != nil {
-			return err
-		}
+
+	if _, err = tx.ExecContext(ctx, "PRAGMA user_version=11;"); err != nil {
+		return err
 	}
 	return tx.Commit()
 }
@@ -277,6 +259,9 @@ func (s *Store) verifyPassword(ctx context.Context, username, password string) (
 }
 
 func (s *Store) newSession(ctx context.Context, tx *hubdb.Tx, user Identity) (Session, error) {
+	if err := s.provisionPersonalNamespace(ctx, tx, user); err != nil {
+		return Session{}, err
+	}
 	value := Session{Token: randomSecret(), Identity: user, ExpiresAt: s.now().Add(30 * 24 * time.Hour)}
 	var external bool
 	if err := tx.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM external_identities WHERE user_id=?)", user.ID).Scan(&external); err != nil {

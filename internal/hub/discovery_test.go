@@ -12,13 +12,12 @@ import (
 	"time"
 )
 
-func TestDiscoverySchema8Upgrade(t *testing.T) {
+func TestDiscoveryBackupPreservesCuration(t *testing.T) {
 	s, session, _, r := backupFixture(t)
 	ctx := context.Background()
 	root := s.root
 	identity := s.RegistryID()
-	_, e := s.db.Exec("DROP TABLE evaluation_evidence; DROP TABLE featured_skills; DROP INDEX releases_review_queue; PRAGMA user_version=8;")
-	mustGovernance(t, e)
+	var e error
 	mustGovernance(t, s.Close())
 	s, e = Open(root)
 	mustGovernance(t, e)
@@ -27,7 +26,7 @@ func TestDiscoverySchema8Upgrade(t *testing.T) {
 		t.Fatal("registry identity changed")
 	}
 	mustGovernance(t, s.SetFeaturedSkill(ctx, session.Identity, "feature-test", r.Namespace, r.Name, true))
-	backup := filepath.Join(t.TempDir(), "schema9")
+	backup := filepath.Join(t.TempDir(), "backup")
 	info, e := s.Backup(ctx, backup)
 	mustGovernance(t, e)
 	if info.Schema != currentSchema {
