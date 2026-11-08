@@ -83,7 +83,30 @@
   margin: 0;
   overflow-wrap: anywhere;
 }
-.configuration-guide pre {
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
+
+.configuration-back,
+.configuration-use {
+  justify-self: start;
+}
+.configuration-help {
+  margin: 0;
+  padding: 0;
+}
+.configuration-help p {
+  margin: 0.65rem 0 0;
+}
+.configuration-guide .copy-value {
+  padding: 0.75rem;
+}
+.configuration-guide .copy-value > [role="status"]:empty {
+  display: none;
+}
+.configuration-guide .copy-value pre {
+  margin: 0.5rem 0 0;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+  overflow: auto;
+  max-height: 10rem;
+  font-size: 0.78rem;
 }
