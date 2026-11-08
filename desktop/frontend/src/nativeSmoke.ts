@@ -661,7 +661,7 @@ export async function runNativeSmoke() {
     );
     (
       Array.from(document.querySelectorAll("button")).find(
-        (b) => b.textContent === "Add role grant",
+        (b) => b.textContent === "Add role grant" && !b.disabled,
       ) as HTMLButtonElement
     ).click();
     await waitForUI(
@@ -1110,12 +1110,12 @@ export async function runNativeSmoke() {
     await clickManagementTab("Role grants");
     await waitForUI(() =>
       Array.from(document.querySelectorAll("button")).some(
-        (b) => b.textContent === "Add role grant",
+        (b) => b.textContent === "Add role grant" && !b.disabled,
       ),
     );
     (
       Array.from(document.querySelectorAll("button")).find(
-        (b) => b.textContent === "Add role grant",
+        (b) => b.textContent === "Add role grant" && !b.disabled,
       ) as HTMLButtonElement
     ).click();
     await waitForUI(
