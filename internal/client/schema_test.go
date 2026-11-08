@@ -22,9 +22,23 @@ func TestClientReopenPreservesStateAndRejectsUnsupportedSchema(t *testing.T) {
 	if err = store.Close(); err != nil {
 		t.Fatal(err)
 	}
+	database, err := sqliteutil.Open(filepath.Join(root, "client.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err = database.Exec("UPDATE client_schema SET version=1"); err != nil {
+		t.Fatal(err)
+	}
+	if err = database.Close(); err != nil {
+		t.Fatal(err)
+	}
 	store, err = OpenStore(root)
 	if err != nil {
 		t.Fatal(err)
+	}
+	var version int
+	if err = store.db.QueryRow("SELECT version FROM client_schema").Scan(&version); err != nil || version != 2 {
+		t.Fatal("complete client structure did not preserve schema identity", err)
 	}
 	items, err := store.ListInstallations(context.Background())
 	if err != nil || len(items) != 1 || items[0].ID != "id" {

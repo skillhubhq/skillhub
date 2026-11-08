@@ -28,13 +28,13 @@ func initializeClient(db *sql.DB) error {
 		if err = conn.QueryRowContext(ctx, "SELECT count(*), coalesce(min(version),0) FROM client_schema").Scan(&count, &version); err != nil {
 			return err
 		}
-		if count != 1 || version != 1 {
+		if count != 1 || (version != 1 && version != 2) {
 			return errors.New("unsupported client database schema")
 		}
 	}
 	if version == 0 {
 		_, err = conn.ExecContext(ctx, `CREATE TABLE client_schema (version INTEGER NOT NULL);
-INSERT INTO client_schema(version) VALUES(1);
+INSERT INTO client_schema(version) VALUES(2);
 CREATE TABLE installations (target TEXT PRIMARY KEY, id TEXT UNIQUE NOT NULL, record TEXT NOT NULL);
 CREATE TABLE install_journals (target TEXT PRIMARY KEY, record TEXT NOT NULL);
 CREATE TABLE sources (alias TEXT PRIMARY KEY, registry_id TEXT NOT NULL, record TEXT NOT NULL);
@@ -49,6 +49,12 @@ CREATE TABLE projects (root TEXT PRIMARY KEY);`)
 			return errors.New("incomplete client database schema")
 		}
 		rows.Close()
+	}
+	// 完整项目结构沿用版本 2；只修正曾被标为 1 的同构数据库，不重建任何表。
+	if version == 1 {
+		if _, err = conn.ExecContext(ctx, "UPDATE client_schema SET version=2"); err != nil {
+			return err
+		}
 	}
 	_, err = conn.ExecContext(ctx, "COMMIT")
 	return err
