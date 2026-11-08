@@ -208,7 +208,7 @@ func requireRole(ctx context.Context, tx *hubdb.Tx, user Identity, namespace str
 		return ErrUnauthenticated
 	}
 	var exists bool
-	if err := tx.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM namespaces WHERE name=?)", namespace).Scan(&exists); err != nil {
+	if err := tx.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM namespaces WHERE name=? AND archived=0)", namespace).Scan(&exists); err != nil {
 		return err
 	}
 	if !exists {

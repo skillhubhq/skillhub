@@ -37,6 +37,13 @@ func (s *Store) provisionPersonalNamespace(ctx context.Context, tx *hubdb.Tx, us
 	}
 	// 稳定内部 ID 避免第三方改名、抢注和账号合并改变内容坐标。
 	name := "u-" + strings.ReplaceAll(user.ID, "-", "")
+	var retired bool
+	if err = tx.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM namespace_tombstones WHERE name=?)", name).Scan(&retired); err != nil {
+		return err
+	}
+	if retired {
+		return nil
+	}
 	if _, err = tx.ExecContext(ctx, "INSERT INTO namespaces(name,review_required,revision) VALUES(?,1,1)", name); err != nil {
 		return err
 	}

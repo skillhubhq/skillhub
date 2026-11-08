@@ -120,14 +120,14 @@ func testSchemaInitializationIsAtomic(t *testing.T, cfg hubdb.Config) {
 }
 
 func TestSupportedSchemaUpgradePreservesIdentity(t *testing.T) {
-	for _, version := range []int{1, 2, 10} {
+	for _, version := range []int{1, 2, 10, 11} {
 		t.Run(fmt.Sprint(version), func(t *testing.T) {
 			testSupportedSchemaUpgrade(t, hubdb.Config{Driver: "sqlite"}, version)
 		})
 	}
 }
 func TestPostgresSupportedSchemaUpgradePreservesIdentity(t *testing.T) {
-	for _, version := range []int{1, 2, 10} {
+	for _, version := range []int{1, 2, 10, 11} {
 		t.Run(fmt.Sprint(version), func(t *testing.T) {
 			cfg, _ := postgresFixture(t)
 			testSupportedSchemaUpgrade(t, cfg, version)
@@ -144,6 +144,9 @@ func testSupportedSchemaUpgrade(t *testing.T, cfg hubdb.Config, version int) {
 	id := s.RegistryID()
 	admin, err := s.Bootstrap(context.Background(), "admin", "test-password-123")
 	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err = s.db.Exec("ALTER TABLE namespaces DROP COLUMN archived; DROP TABLE namespace_tombstones; DROP TABLE package_cleanup;"); err != nil {
 		t.Fatal(err)
 	}
 	if version == 1 || version == 10 {

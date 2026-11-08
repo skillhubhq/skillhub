@@ -36,7 +36,7 @@ The directory contains a custom-format `hub.dump`, referenced immutable `package
 
 ### Replace the server binary
 
-Stop the Hub and make a verified backup with the current executable. Retain that executable and configuration. Start the replacement only after checking that it supports the database schema. The current Hub initializes schema 11 and upgrades supported complete schemas transactionally. Unsupported versions are rejected without changing their tables. There is no cross-driver conversion command. Verify readiness, login, permissions and package downloads before reopening traffic.
+Stop the Hub and make a verified backup with the current executable. Retain that executable and configuration. Start the replacement only after checking that it supports the database schema. The current Hub initializes schema 12 and upgrades supported complete schemas transactionally. Unsupported versions are rejected without changing their tables. There is no cross-driver conversion command. Verify readiness, login, permissions and package downloads before reopening traffic.
 
 ### Restore / rollback
 
@@ -59,6 +59,6 @@ Before reopening traffic, verify login, old-token rejection, non-admin audience 
 
 ## Provenance schema compatibility
 
-The Hub initializes schema 11 and accepts supported complete schemas 1, 2 and 10 for transactional upgrade. Missing provenance and community structures are added only for their corresponding supported versions. Existing accounts, sessions, registry identity and release bytes remain unchanged; releases without provenance continue to work. Backup verification and restore preserve the snapshot schema without modifying its contents. The restored writable database is upgraded on its next normal start. Unknown future schemas and incomplete structures fail closed.
+The Hub initializes schema 12 and accepts supported complete schemas 1, 2, 10 and 11 for transactional upgrade. Missing provenance and community structures are added only for their corresponding supported versions. Existing accounts, sessions, registry identity and release bytes remain unchanged; releases without provenance continue to work. Backup verification and restore preserve the snapshot schema without modifying its contents. The restored writable database is upgraded on its next normal start. Unknown future schemas and incomplete structures fail closed.
 
 Take a paired database/package backup **with the currently running binary before upgrading**. Retain that binary with its backup. A rollback to an older binary must restore its matching pre-upgrade snapshot into a fresh data directory; changing the executable alone is insufficient. Never downgrade the database in place.

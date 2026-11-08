@@ -10,7 +10,7 @@ import (
 )
 
 // 待办仅包含可以独立审核的提交，人员管理员和普通维护者不会获得审核权。
-const reviewableSQL = `r.status=1 AND r.submitted_by<>@actor AND (@admin=1 OR EXISTS(SELECT 1 FROM namespace_grants g WHERE g.namespace=r.namespace AND g.role IN (3,4) AND ((g.kind=1 AND g.subject_id=@actor) OR (g.kind=2 AND EXISTS(SELECT 1 FROM group_members m WHERE m.group_id=g.subject_id AND m.user_id=@actor)))))`
+const reviewableSQL = activeReleaseSQL + ` AND r.status=1 AND r.submitted_by<>@actor AND (@admin=1 OR EXISTS(SELECT 1 FROM namespace_grants g WHERE g.namespace=r.namespace AND g.role IN (3,4) AND ((g.kind=1 AND g.subject_id=@actor) OR (g.kind=2 AND EXISTS(SELECT 1 FROM group_members m WHERE m.group_id=g.subject_id AND m.user_id=@actor)))))`
 
 type ReviewTask struct {
 	ReleaseID  string    `json:"release_id"`
@@ -60,6 +60,9 @@ func (s *Store) SetFeaturedSkill(ctx context.Context, actor Identity, key, names
 		Featured        bool
 	}{namespace, name, featured}
 	_, err := mutate(s, ctx, actor, "skill.featured", key, cmd, adminOnly, func(tx *hubdb.Tx, u Identity) (struct{}, error) {
+		if err := requireRole(ctx, tx, u, namespace); err != nil {
+			return struct{}{}, err
+		}
 		if featured {
 			var exists bool
 			if err := tx.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM releases WHERE namespace=? AND name=? AND status=2)", namespace, name).Scan(&exists); err != nil {

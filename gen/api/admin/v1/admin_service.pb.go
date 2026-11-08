@@ -215,7 +215,9 @@ type Namespace struct {
 	// 是否要求独立审核。
 	ReviewRequired bool `protobuf:"varint,2,opt,name=review_required,json=reviewRequired,proto3" json:"review_required,omitempty"`
 	// 用于并发修改保护的修订号。
-	Revision      uint64 `protobuf:"varint,3,opt,name=revision,proto3" json:"revision,omitempty"`
+	Revision uint64 `protobuf:"varint,3,opt,name=revision,proto3" json:"revision,omitempty"`
+	// 是否已归档。
+	Archived      bool `protobuf:"varint,4,opt,name=archived,proto3" json:"archived,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -269,6 +271,13 @@ func (x *Namespace) GetRevision() uint64 {
 		return x.Revision
 	}
 	return 0
+}
+
+func (x *Namespace) GetArchived() bool {
+	if x != nil {
+		return x.Archived
+	}
+	return false
 }
 
 // NamespaceGrant 是明确的主体角色授权。
@@ -2497,6 +2506,436 @@ func (x *SetUserAdministratorResponse) GetUser() *User {
 	return nil
 }
 
+// NamespaceLifecycle 表示团队生命周期状态和影响范围。
+type NamespaceLifecycle struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 稳定名称。
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// 乐观并发修订号。
+	Revision uint64 `protobuf:"varint,2,opt,name=revision,proto3" json:"revision,omitempty"`
+	// 归档状态。
+	Archived bool `protobuf:"varint,3,opt,name=archived,proto3" json:"archived,omitempty"`
+	// 全部技能版本数量。
+	Releases uint64 `protobuf:"varint,4,opt,name=releases,proto3" json:"releases,omitempty"`
+	// 直接用户和群组授权数量。
+	Grants uint64 `protobuf:"varint,5,opt,name=grants,proto3" json:"grants,omitempty"`
+	// 评论及回复数量。
+	Comments uint64 `protobuf:"varint,6,opt,name=comments,proto3" json:"comments,omitempty"`
+	// 评测证据数量。
+	Evidence      uint64 `protobuf:"varint,7,opt,name=evidence,proto3" json:"evidence,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *NamespaceLifecycle) Reset() {
+	*x = NamespaceLifecycle{}
+	mi := &file_api_admin_v1_admin_service_proto_msgTypes[42]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NamespaceLifecycle) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NamespaceLifecycle) ProtoMessage() {}
+
+func (x *NamespaceLifecycle) ProtoReflect() protoreflect.Message {
+	mi := &file_api_admin_v1_admin_service_proto_msgTypes[42]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NamespaceLifecycle.ProtoReflect.Descriptor instead.
+func (*NamespaceLifecycle) Descriptor() ([]byte, []int) {
+	return file_api_admin_v1_admin_service_proto_rawDescGZIP(), []int{42}
+}
+
+func (x *NamespaceLifecycle) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *NamespaceLifecycle) GetRevision() uint64 {
+	if x != nil {
+		return x.Revision
+	}
+	return 0
+}
+
+func (x *NamespaceLifecycle) GetArchived() bool {
+	if x != nil {
+		return x.Archived
+	}
+	return false
+}
+
+func (x *NamespaceLifecycle) GetReleases() uint64 {
+	if x != nil {
+		return x.Releases
+	}
+	return 0
+}
+
+func (x *NamespaceLifecycle) GetGrants() uint64 {
+	if x != nil {
+		return x.Grants
+	}
+	return 0
+}
+
+func (x *NamespaceLifecycle) GetComments() uint64 {
+	if x != nil {
+		return x.Comments
+	}
+	return 0
+}
+
+func (x *NamespaceLifecycle) GetEvidence() uint64 {
+	if x != nil {
+		return x.Evidence
+	}
+	return 0
+}
+
+// GetNamespaceLifecycleRequest 选择待预览团队。
+type GetNamespaceLifecycleRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 命名空间名称。
+	Name          string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetNamespaceLifecycleRequest) Reset() {
+	*x = GetNamespaceLifecycleRequest{}
+	mi := &file_api_admin_v1_admin_service_proto_msgTypes[43]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetNamespaceLifecycleRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetNamespaceLifecycleRequest) ProtoMessage() {}
+
+func (x *GetNamespaceLifecycleRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_admin_v1_admin_service_proto_msgTypes[43]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetNamespaceLifecycleRequest.ProtoReflect.Descriptor instead.
+func (*GetNamespaceLifecycleRequest) Descriptor() ([]byte, []int) {
+	return file_api_admin_v1_admin_service_proto_rawDescGZIP(), []int{43}
+}
+
+func (x *GetNamespaceLifecycleRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+// GetNamespaceLifecycleResponse 返回影响范围。
+type GetNamespaceLifecycleResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 生命周期预览。
+	Lifecycle     *NamespaceLifecycle `protobuf:"bytes,1,opt,name=lifecycle,proto3" json:"lifecycle,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetNamespaceLifecycleResponse) Reset() {
+	*x = GetNamespaceLifecycleResponse{}
+	mi := &file_api_admin_v1_admin_service_proto_msgTypes[44]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetNamespaceLifecycleResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetNamespaceLifecycleResponse) ProtoMessage() {}
+
+func (x *GetNamespaceLifecycleResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_api_admin_v1_admin_service_proto_msgTypes[44]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetNamespaceLifecycleResponse.ProtoReflect.Descriptor instead.
+func (*GetNamespaceLifecycleResponse) Descriptor() ([]byte, []int) {
+	return file_api_admin_v1_admin_service_proto_rawDescGZIP(), []int{44}
+}
+
+func (x *GetNamespaceLifecycleResponse) GetLifecycle() *NamespaceLifecycle {
+	if x != nil {
+		return x.Lifecycle
+	}
+	return nil
+}
+
+// SetNamespaceArchivedRequest 要求管理员和当前修订号。
+type SetNamespaceArchivedRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 幂等操作身份。
+	Mutation *v11.Mutation `protobuf:"bytes,1,opt,name=mutation,proto3" json:"mutation,omitempty"`
+	// 命名空间名称。
+	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	// 预期修订号。
+	ExpectedRevision uint64 `protobuf:"varint,3,opt,name=expected_revision,json=expectedRevision,proto3" json:"expected_revision,omitempty"`
+	// 是否归档。
+	Archived      bool `protobuf:"varint,4,opt,name=archived,proto3" json:"archived,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetNamespaceArchivedRequest) Reset() {
+	*x = SetNamespaceArchivedRequest{}
+	mi := &file_api_admin_v1_admin_service_proto_msgTypes[45]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetNamespaceArchivedRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetNamespaceArchivedRequest) ProtoMessage() {}
+
+func (x *SetNamespaceArchivedRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_admin_v1_admin_service_proto_msgTypes[45]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetNamespaceArchivedRequest.ProtoReflect.Descriptor instead.
+func (*SetNamespaceArchivedRequest) Descriptor() ([]byte, []int) {
+	return file_api_admin_v1_admin_service_proto_rawDescGZIP(), []int{45}
+}
+
+func (x *SetNamespaceArchivedRequest) GetMutation() *v11.Mutation {
+	if x != nil {
+		return x.Mutation
+	}
+	return nil
+}
+
+func (x *SetNamespaceArchivedRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *SetNamespaceArchivedRequest) GetExpectedRevision() uint64 {
+	if x != nil {
+		return x.ExpectedRevision
+	}
+	return 0
+}
+
+func (x *SetNamespaceArchivedRequest) GetArchived() bool {
+	if x != nil {
+		return x.Archived
+	}
+	return false
+}
+
+// SetNamespaceArchivedResponse 返回最新状态。
+type SetNamespaceArchivedResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 生命周期状态。
+	Lifecycle     *NamespaceLifecycle `protobuf:"bytes,1,opt,name=lifecycle,proto3" json:"lifecycle,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetNamespaceArchivedResponse) Reset() {
+	*x = SetNamespaceArchivedResponse{}
+	mi := &file_api_admin_v1_admin_service_proto_msgTypes[46]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetNamespaceArchivedResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetNamespaceArchivedResponse) ProtoMessage() {}
+
+func (x *SetNamespaceArchivedResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_api_admin_v1_admin_service_proto_msgTypes[46]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetNamespaceArchivedResponse.ProtoReflect.Descriptor instead.
+func (*SetNamespaceArchivedResponse) Descriptor() ([]byte, []int) {
+	return file_api_admin_v1_admin_service_proto_rawDescGZIP(), []int{46}
+}
+
+func (x *SetNamespaceArchivedResponse) GetLifecycle() *NamespaceLifecycle {
+	if x != nil {
+		return x.Lifecycle
+	}
+	return nil
+}
+
+// PurgeNamespaceRequest 仅清理已归档的团队。
+type PurgeNamespaceRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 幂等操作身份。
+	Mutation *v11.Mutation `protobuf:"bytes,1,opt,name=mutation,proto3" json:"mutation,omitempty"`
+	// 命名空间名称。
+	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	// 预期修订号。
+	ExpectedRevision uint64 `protobuf:"varint,3,opt,name=expected_revision,json=expectedRevision,proto3" json:"expected_revision,omitempty"`
+	// 再次输入名称确认永久清理。
+	ConfirmName   string `protobuf:"bytes,4,opt,name=confirm_name,json=confirmName,proto3" json:"confirm_name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PurgeNamespaceRequest) Reset() {
+	*x = PurgeNamespaceRequest{}
+	mi := &file_api_admin_v1_admin_service_proto_msgTypes[47]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PurgeNamespaceRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PurgeNamespaceRequest) ProtoMessage() {}
+
+func (x *PurgeNamespaceRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_admin_v1_admin_service_proto_msgTypes[47]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PurgeNamespaceRequest.ProtoReflect.Descriptor instead.
+func (*PurgeNamespaceRequest) Descriptor() ([]byte, []int) {
+	return file_api_admin_v1_admin_service_proto_rawDescGZIP(), []int{47}
+}
+
+func (x *PurgeNamespaceRequest) GetMutation() *v11.Mutation {
+	if x != nil {
+		return x.Mutation
+	}
+	return nil
+}
+
+func (x *PurgeNamespaceRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *PurgeNamespaceRequest) GetExpectedRevision() uint64 {
+	if x != nil {
+		return x.ExpectedRevision
+	}
+	return 0
+}
+
+func (x *PurgeNamespaceRequest) GetConfirmName() string {
+	if x != nil {
+		return x.ConfirmName
+	}
+	return ""
+}
+
+// PurgeNamespaceResponse 返回已清理的范围。
+type PurgeNamespaceResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 清理前的状态。
+	Lifecycle     *NamespaceLifecycle `protobuf:"bytes,1,opt,name=lifecycle,proto3" json:"lifecycle,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PurgeNamespaceResponse) Reset() {
+	*x = PurgeNamespaceResponse{}
+	mi := &file_api_admin_v1_admin_service_proto_msgTypes[48]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PurgeNamespaceResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PurgeNamespaceResponse) ProtoMessage() {}
+
+func (x *PurgeNamespaceResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_api_admin_v1_admin_service_proto_msgTypes[48]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PurgeNamespaceResponse.ProtoReflect.Descriptor instead.
+func (*PurgeNamespaceResponse) Descriptor() ([]byte, []int) {
+	return file_api_admin_v1_admin_service_proto_rawDescGZIP(), []int{48}
+}
+
+func (x *PurgeNamespaceResponse) GetLifecycle() *NamespaceLifecycle {
+	if x != nil {
+		return x.Lifecycle
+	}
+	return nil
+}
+
 var File_api_admin_v1_admin_service_proto protoreflect.FileDescriptor
 
 const file_api_admin_v1_admin_service_proto_rawDesc = "" +
@@ -2521,12 +2960,13 @@ const file_api_admin_v1_admin_service_proto_rawDesc = "" +
 	"\bgroup_id\x18\x01 \x01(\tB\n" +
 	"\xbaH\ar\x05\x10\x01\x18\x80\x01R\agroupId\x12\x1e\n" +
 	"\x04name\x18\x02 \x01(\tB\n" +
-	"\xbaH\ar\x05\x10\x01\x18\x80\x01R\x04name\"p\n" +
+	"\xbaH\ar\x05\x10\x01\x18\x80\x01R\x04name\"\x8c\x01\n" +
 	"\tNamespace\x12\x1e\n" +
 	"\x04name\x18\x01 \x01(\tB\n" +
 	"\xbaH\ar\x05\x10\x01\x18\x80\x01R\x04name\x12'\n" +
 	"\x0freview_required\x18\x02 \x01(\bR\x0ereviewRequired\x12\x1a\n" +
-	"\brevision\x18\x03 \x01(\x04R\brevision\"\xe2\x01\n" +
+	"\brevision\x18\x03 \x01(\x04R\brevision\x12\x1a\n" +
+	"\barchived\x18\x04 \x01(\bR\barchived\"\xe2\x01\n" +
 	"\x0eNamespaceGrant\x12(\n" +
 	"\tnamespace\x18\x01 \x01(\tB\n" +
 	"\xbaH\ar\x05\x10\x01\x18\x80\x01R\tnamespace\x12D\n" +
@@ -2687,8 +3127,41 @@ const file_api_admin_v1_admin_service_proto_rawDesc = "" +
 	"\xbaH\ar\x05\x10\x01\x18\x80\x01R\x06userId\x12$\n" +
 	"\radministrator\x18\x03 \x01(\bR\radministrator\"F\n" +
 	"\x1cSetUserAdministratorResponse\x12&\n" +
-	"\x04user\x18\x01 \x01(\v2\x12.api.admin.v1.UserR\x04user2\xa4\r\n" +
-	"\fAdminService\x12m\n" +
+	"\x04user\x18\x01 \x01(\v2\x12.api.admin.v1.UserR\x04user\"\xcc\x01\n" +
+	"\x12NamespaceLifecycle\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x1a\n" +
+	"\brevision\x18\x02 \x01(\x04R\brevision\x12\x1a\n" +
+	"\barchived\x18\x03 \x01(\bR\barchived\x12\x1a\n" +
+	"\breleases\x18\x04 \x01(\x04R\breleases\x12\x16\n" +
+	"\x06grants\x18\x05 \x01(\x04R\x06grants\x12\x1a\n" +
+	"\bcomments\x18\x06 \x01(\x04R\bcomments\x12\x1a\n" +
+	"\bevidence\x18\a \x01(\x04R\bevidence\">\n" +
+	"\x1cGetNamespaceLifecycleRequest\x12\x1e\n" +
+	"\x04name\x18\x01 \x01(\tB\n" +
+	"\xbaH\ar\x05\x10\x01\x18\x80\x01R\x04name\"_\n" +
+	"\x1dGetNamespaceLifecycleResponse\x12>\n" +
+	"\tlifecycle\x18\x01 \x01(\v2 .api.admin.v1.NamespaceLifecycleR\tlifecycle\"\xcc\x01\n" +
+	"\x1bSetNamespaceArchivedRequest\x12;\n" +
+	"\bmutation\x18\x01 \x01(\v2\x17.api.common.v1.MutationB\x06\xbaH\x03\xc8\x01\x01R\bmutation\x12\x1e\n" +
+	"\x04name\x18\x02 \x01(\tB\n" +
+	"\xbaH\ar\x05\x10\x01\x18\x80\x01R\x04name\x124\n" +
+	"\x11expected_revision\x18\x03 \x01(\x04B\a\xbaH\x042\x02 \x00R\x10expectedRevision\x12\x1a\n" +
+	"\barchived\x18\x04 \x01(\bR\barchived\"^\n" +
+	"\x1cSetNamespaceArchivedResponse\x12>\n" +
+	"\tlifecycle\x18\x01 \x01(\v2 .api.admin.v1.NamespaceLifecycleR\tlifecycle\"\xd9\x01\n" +
+	"\x15PurgeNamespaceRequest\x12;\n" +
+	"\bmutation\x18\x01 \x01(\v2\x17.api.common.v1.MutationB\x06\xbaH\x03\xc8\x01\x01R\bmutation\x12\x1e\n" +
+	"\x04name\x18\x02 \x01(\tB\n" +
+	"\xbaH\ar\x05\x10\x01\x18\x80\x01R\x04name\x124\n" +
+	"\x11expected_revision\x18\x03 \x01(\x04B\a\xbaH\x042\x02 \x00R\x10expectedRevision\x12-\n" +
+	"\fconfirm_name\x18\x04 \x01(\tB\n" +
+	"\xbaH\ar\x05\x10\x01\x18\x80\x01R\vconfirmName\"X\n" +
+	"\x16PurgeNamespaceResponse\x12>\n" +
+	"\tlifecycle\x18\x01 \x01(\v2 .api.admin.v1.NamespaceLifecycleR\tlifecycle2\xe2\x0f\n" +
+	"\fAdminService\x12p\n" +
+	"\x15GetNamespaceLifecycle\x12*.api.admin.v1.GetNamespaceLifecycleRequest\x1a+.api.admin.v1.GetNamespaceLifecycleResponse\x12m\n" +
+	"\x14SetNamespaceArchived\x12).api.admin.v1.SetNamespaceArchivedRequest\x1a*.api.admin.v1.SetNamespaceArchivedResponse\x12[\n" +
+	"\x0ePurgeNamespace\x12#.api.admin.v1.PurgeNamespaceRequest\x1a$.api.admin.v1.PurgeNamespaceResponse\x12m\n" +
 	"\x14LookupNamespaceUsers\x12).api.admin.v1.LookupNamespaceUsersRequest\x1a*.api.admin.v1.LookupNamespaceUsersResponse\x12g\n" +
 	"\x12GetNamespaceAccess\x12'.api.admin.v1.GetNamespaceAccessRequest\x1a(.api.admin.v1.GetNamespaceAccessResponse\x12d\n" +
 	"\x11ResetUserPassword\x12&.api.admin.v1.ResetUserPasswordRequest\x1a'.api.admin.v1.ResetUserPasswordResponse\x12m\n" +
@@ -2723,145 +3196,163 @@ func file_api_admin_v1_admin_service_proto_rawDescGZIP() []byte {
 	return file_api_admin_v1_admin_service_proto_rawDescData
 }
 
-var file_api_admin_v1_admin_service_proto_msgTypes = make([]protoimpl.MessageInfo, 42)
+var file_api_admin_v1_admin_service_proto_msgTypes = make([]protoimpl.MessageInfo, 49)
 var file_api_admin_v1_admin_service_proto_goTypes = []any{
-	(*User)(nil),                         // 0: api.admin.v1.User
-	(*Group)(nil),                        // 1: api.admin.v1.Group
-	(*Namespace)(nil),                    // 2: api.admin.v1.Namespace
-	(*NamespaceGrant)(nil),               // 3: api.admin.v1.NamespaceGrant
-	(*Category)(nil),                     // 4: api.admin.v1.Category
-	(*AuditEvent)(nil),                   // 5: api.admin.v1.AuditEvent
-	(*CreateUserRequest)(nil),            // 6: api.admin.v1.CreateUserRequest
-	(*CreateUserResponse)(nil),           // 7: api.admin.v1.CreateUserResponse
-	(*SetUserDisabledRequest)(nil),       // 8: api.admin.v1.SetUserDisabledRequest
-	(*SetUserDisabledResponse)(nil),      // 9: api.admin.v1.SetUserDisabledResponse
-	(*CreateGroupRequest)(nil),           // 10: api.admin.v1.CreateGroupRequest
-	(*CreateGroupResponse)(nil),          // 11: api.admin.v1.CreateGroupResponse
-	(*SetGroupMemberRequest)(nil),        // 12: api.admin.v1.SetGroupMemberRequest
-	(*SetGroupMemberResponse)(nil),       // 13: api.admin.v1.SetGroupMemberResponse
-	(*PutNamespaceRequest)(nil),          // 14: api.admin.v1.PutNamespaceRequest
-	(*PutNamespaceResponse)(nil),         // 15: api.admin.v1.PutNamespaceResponse
-	(*SetNamespaceGrantRequest)(nil),     // 16: api.admin.v1.SetNamespaceGrantRequest
-	(*SetNamespaceGrantResponse)(nil),    // 17: api.admin.v1.SetNamespaceGrantResponse
-	(*PutCategoryRequest)(nil),           // 18: api.admin.v1.PutCategoryRequest
-	(*PutCategoryResponse)(nil),          // 19: api.admin.v1.PutCategoryResponse
-	(*ListUsersRequest)(nil),             // 20: api.admin.v1.ListUsersRequest
-	(*ListUsersResponse)(nil),            // 21: api.admin.v1.ListUsersResponse
-	(*ListGroupsRequest)(nil),            // 22: api.admin.v1.ListGroupsRequest
-	(*ListGroupsResponse)(nil),           // 23: api.admin.v1.ListGroupsResponse
-	(*ListGroupMembersRequest)(nil),      // 24: api.admin.v1.ListGroupMembersRequest
-	(*ListGroupMembersResponse)(nil),     // 25: api.admin.v1.ListGroupMembersResponse
-	(*ListNamespacesRequest)(nil),        // 26: api.admin.v1.ListNamespacesRequest
-	(*ListNamespacesResponse)(nil),       // 27: api.admin.v1.ListNamespacesResponse
-	(*ListNamespaceGrantsRequest)(nil),   // 28: api.admin.v1.ListNamespaceGrantsRequest
-	(*ListNamespaceGrantsResponse)(nil),  // 29: api.admin.v1.ListNamespaceGrantsResponse
-	(*ListCategoriesRequest)(nil),        // 30: api.admin.v1.ListCategoriesRequest
-	(*ListCategoriesResponse)(nil),       // 31: api.admin.v1.ListCategoriesResponse
-	(*ListAuditRequest)(nil),             // 32: api.admin.v1.ListAuditRequest
-	(*ListAuditResponse)(nil),            // 33: api.admin.v1.ListAuditResponse
-	(*LookupNamespaceUsersRequest)(nil),  // 34: api.admin.v1.LookupNamespaceUsersRequest
-	(*LookupNamespaceUsersResponse)(nil), // 35: api.admin.v1.LookupNamespaceUsersResponse
-	(*GetNamespaceAccessRequest)(nil),    // 36: api.admin.v1.GetNamespaceAccessRequest
-	(*GetNamespaceAccessResponse)(nil),   // 37: api.admin.v1.GetNamespaceAccessResponse
-	(*ResetUserPasswordRequest)(nil),     // 38: api.admin.v1.ResetUserPasswordRequest
-	(*ResetUserPasswordResponse)(nil),    // 39: api.admin.v1.ResetUserPasswordResponse
-	(*SetUserAdministratorRequest)(nil),  // 40: api.admin.v1.SetUserAdministratorRequest
-	(*SetUserAdministratorResponse)(nil), // 41: api.admin.v1.SetUserAdministratorResponse
-	(v1.PlatformRole)(0),                 // 42: common.registry.v1.PlatformRole
-	(v1.PrincipalKind)(0),                // 43: common.registry.v1.PrincipalKind
-	(v1.NamespaceRole)(0),                // 44: common.registry.v1.NamespaceRole
-	(*timestamppb.Timestamp)(nil),        // 45: google.protobuf.Timestamp
-	(*v11.Mutation)(nil),                 // 46: api.common.v1.Mutation
-	(*v11.PageRequest)(nil),              // 47: api.common.v1.PageRequest
-	(*v11.PageResult)(nil),               // 48: api.common.v1.PageResult
+	(*User)(nil),                          // 0: api.admin.v1.User
+	(*Group)(nil),                         // 1: api.admin.v1.Group
+	(*Namespace)(nil),                     // 2: api.admin.v1.Namespace
+	(*NamespaceGrant)(nil),                // 3: api.admin.v1.NamespaceGrant
+	(*Category)(nil),                      // 4: api.admin.v1.Category
+	(*AuditEvent)(nil),                    // 5: api.admin.v1.AuditEvent
+	(*CreateUserRequest)(nil),             // 6: api.admin.v1.CreateUserRequest
+	(*CreateUserResponse)(nil),            // 7: api.admin.v1.CreateUserResponse
+	(*SetUserDisabledRequest)(nil),        // 8: api.admin.v1.SetUserDisabledRequest
+	(*SetUserDisabledResponse)(nil),       // 9: api.admin.v1.SetUserDisabledResponse
+	(*CreateGroupRequest)(nil),            // 10: api.admin.v1.CreateGroupRequest
+	(*CreateGroupResponse)(nil),           // 11: api.admin.v1.CreateGroupResponse
+	(*SetGroupMemberRequest)(nil),         // 12: api.admin.v1.SetGroupMemberRequest
+	(*SetGroupMemberResponse)(nil),        // 13: api.admin.v1.SetGroupMemberResponse
+	(*PutNamespaceRequest)(nil),           // 14: api.admin.v1.PutNamespaceRequest
+	(*PutNamespaceResponse)(nil),          // 15: api.admin.v1.PutNamespaceResponse
+	(*SetNamespaceGrantRequest)(nil),      // 16: api.admin.v1.SetNamespaceGrantRequest
+	(*SetNamespaceGrantResponse)(nil),     // 17: api.admin.v1.SetNamespaceGrantResponse
+	(*PutCategoryRequest)(nil),            // 18: api.admin.v1.PutCategoryRequest
+	(*PutCategoryResponse)(nil),           // 19: api.admin.v1.PutCategoryResponse
+	(*ListUsersRequest)(nil),              // 20: api.admin.v1.ListUsersRequest
+	(*ListUsersResponse)(nil),             // 21: api.admin.v1.ListUsersResponse
+	(*ListGroupsRequest)(nil),             // 22: api.admin.v1.ListGroupsRequest
+	(*ListGroupsResponse)(nil),            // 23: api.admin.v1.ListGroupsResponse
+	(*ListGroupMembersRequest)(nil),       // 24: api.admin.v1.ListGroupMembersRequest
+	(*ListGroupMembersResponse)(nil),      // 25: api.admin.v1.ListGroupMembersResponse
+	(*ListNamespacesRequest)(nil),         // 26: api.admin.v1.ListNamespacesRequest
+	(*ListNamespacesResponse)(nil),        // 27: api.admin.v1.ListNamespacesResponse
+	(*ListNamespaceGrantsRequest)(nil),    // 28: api.admin.v1.ListNamespaceGrantsRequest
+	(*ListNamespaceGrantsResponse)(nil),   // 29: api.admin.v1.ListNamespaceGrantsResponse
+	(*ListCategoriesRequest)(nil),         // 30: api.admin.v1.ListCategoriesRequest
+	(*ListCategoriesResponse)(nil),        // 31: api.admin.v1.ListCategoriesResponse
+	(*ListAuditRequest)(nil),              // 32: api.admin.v1.ListAuditRequest
+	(*ListAuditResponse)(nil),             // 33: api.admin.v1.ListAuditResponse
+	(*LookupNamespaceUsersRequest)(nil),   // 34: api.admin.v1.LookupNamespaceUsersRequest
+	(*LookupNamespaceUsersResponse)(nil),  // 35: api.admin.v1.LookupNamespaceUsersResponse
+	(*GetNamespaceAccessRequest)(nil),     // 36: api.admin.v1.GetNamespaceAccessRequest
+	(*GetNamespaceAccessResponse)(nil),    // 37: api.admin.v1.GetNamespaceAccessResponse
+	(*ResetUserPasswordRequest)(nil),      // 38: api.admin.v1.ResetUserPasswordRequest
+	(*ResetUserPasswordResponse)(nil),     // 39: api.admin.v1.ResetUserPasswordResponse
+	(*SetUserAdministratorRequest)(nil),   // 40: api.admin.v1.SetUserAdministratorRequest
+	(*SetUserAdministratorResponse)(nil),  // 41: api.admin.v1.SetUserAdministratorResponse
+	(*NamespaceLifecycle)(nil),            // 42: api.admin.v1.NamespaceLifecycle
+	(*GetNamespaceLifecycleRequest)(nil),  // 43: api.admin.v1.GetNamespaceLifecycleRequest
+	(*GetNamespaceLifecycleResponse)(nil), // 44: api.admin.v1.GetNamespaceLifecycleResponse
+	(*SetNamespaceArchivedRequest)(nil),   // 45: api.admin.v1.SetNamespaceArchivedRequest
+	(*SetNamespaceArchivedResponse)(nil),  // 46: api.admin.v1.SetNamespaceArchivedResponse
+	(*PurgeNamespaceRequest)(nil),         // 47: api.admin.v1.PurgeNamespaceRequest
+	(*PurgeNamespaceResponse)(nil),        // 48: api.admin.v1.PurgeNamespaceResponse
+	(v1.PlatformRole)(0),                  // 49: common.registry.v1.PlatformRole
+	(v1.PrincipalKind)(0),                 // 50: common.registry.v1.PrincipalKind
+	(v1.NamespaceRole)(0),                 // 51: common.registry.v1.NamespaceRole
+	(*timestamppb.Timestamp)(nil),         // 52: google.protobuf.Timestamp
+	(*v11.Mutation)(nil),                  // 53: api.common.v1.Mutation
+	(*v11.PageRequest)(nil),               // 54: api.common.v1.PageRequest
+	(*v11.PageResult)(nil),                // 55: api.common.v1.PageResult
 }
 var file_api_admin_v1_admin_service_proto_depIdxs = []int32{
-	42, // 0: api.admin.v1.User.platform_roles:type_name -> common.registry.v1.PlatformRole
-	43, // 1: api.admin.v1.NamespaceGrant.subject_kind:type_name -> common.registry.v1.PrincipalKind
-	44, // 2: api.admin.v1.NamespaceGrant.role:type_name -> common.registry.v1.NamespaceRole
-	45, // 3: api.admin.v1.AuditEvent.created_at:type_name -> google.protobuf.Timestamp
-	46, // 4: api.admin.v1.CreateUserRequest.mutation:type_name -> api.common.v1.Mutation
+	49, // 0: api.admin.v1.User.platform_roles:type_name -> common.registry.v1.PlatformRole
+	50, // 1: api.admin.v1.NamespaceGrant.subject_kind:type_name -> common.registry.v1.PrincipalKind
+	51, // 2: api.admin.v1.NamespaceGrant.role:type_name -> common.registry.v1.NamespaceRole
+	52, // 3: api.admin.v1.AuditEvent.created_at:type_name -> google.protobuf.Timestamp
+	53, // 4: api.admin.v1.CreateUserRequest.mutation:type_name -> api.common.v1.Mutation
 	0,  // 5: api.admin.v1.CreateUserResponse.user:type_name -> api.admin.v1.User
-	46, // 6: api.admin.v1.SetUserDisabledRequest.mutation:type_name -> api.common.v1.Mutation
+	53, // 6: api.admin.v1.SetUserDisabledRequest.mutation:type_name -> api.common.v1.Mutation
 	0,  // 7: api.admin.v1.SetUserDisabledResponse.user:type_name -> api.admin.v1.User
-	46, // 8: api.admin.v1.CreateGroupRequest.mutation:type_name -> api.common.v1.Mutation
+	53, // 8: api.admin.v1.CreateGroupRequest.mutation:type_name -> api.common.v1.Mutation
 	1,  // 9: api.admin.v1.CreateGroupResponse.group:type_name -> api.admin.v1.Group
-	46, // 10: api.admin.v1.SetGroupMemberRequest.mutation:type_name -> api.common.v1.Mutation
-	46, // 11: api.admin.v1.PutNamespaceRequest.mutation:type_name -> api.common.v1.Mutation
+	53, // 10: api.admin.v1.SetGroupMemberRequest.mutation:type_name -> api.common.v1.Mutation
+	53, // 11: api.admin.v1.PutNamespaceRequest.mutation:type_name -> api.common.v1.Mutation
 	2,  // 12: api.admin.v1.PutNamespaceResponse.namespace:type_name -> api.admin.v1.Namespace
-	46, // 13: api.admin.v1.SetNamespaceGrantRequest.mutation:type_name -> api.common.v1.Mutation
-	43, // 14: api.admin.v1.SetNamespaceGrantRequest.subject_kind:type_name -> common.registry.v1.PrincipalKind
-	44, // 15: api.admin.v1.SetNamespaceGrantRequest.role:type_name -> common.registry.v1.NamespaceRole
-	46, // 16: api.admin.v1.PutCategoryRequest.mutation:type_name -> api.common.v1.Mutation
+	53, // 13: api.admin.v1.SetNamespaceGrantRequest.mutation:type_name -> api.common.v1.Mutation
+	50, // 14: api.admin.v1.SetNamespaceGrantRequest.subject_kind:type_name -> common.registry.v1.PrincipalKind
+	51, // 15: api.admin.v1.SetNamespaceGrantRequest.role:type_name -> common.registry.v1.NamespaceRole
+	53, // 16: api.admin.v1.PutCategoryRequest.mutation:type_name -> api.common.v1.Mutation
 	4,  // 17: api.admin.v1.PutCategoryResponse.category:type_name -> api.admin.v1.Category
-	47, // 18: api.admin.v1.ListUsersRequest.page:type_name -> api.common.v1.PageRequest
+	54, // 18: api.admin.v1.ListUsersRequest.page:type_name -> api.common.v1.PageRequest
 	0,  // 19: api.admin.v1.ListUsersResponse.users:type_name -> api.admin.v1.User
-	48, // 20: api.admin.v1.ListUsersResponse.page:type_name -> api.common.v1.PageResult
-	47, // 21: api.admin.v1.ListGroupsRequest.page:type_name -> api.common.v1.PageRequest
+	55, // 20: api.admin.v1.ListUsersResponse.page:type_name -> api.common.v1.PageResult
+	54, // 21: api.admin.v1.ListGroupsRequest.page:type_name -> api.common.v1.PageRequest
 	1,  // 22: api.admin.v1.ListGroupsResponse.groups:type_name -> api.admin.v1.Group
-	48, // 23: api.admin.v1.ListGroupsResponse.page:type_name -> api.common.v1.PageResult
-	47, // 24: api.admin.v1.ListGroupMembersRequest.page:type_name -> api.common.v1.PageRequest
+	55, // 23: api.admin.v1.ListGroupsResponse.page:type_name -> api.common.v1.PageResult
+	54, // 24: api.admin.v1.ListGroupMembersRequest.page:type_name -> api.common.v1.PageRequest
 	0,  // 25: api.admin.v1.ListGroupMembersResponse.users:type_name -> api.admin.v1.User
-	48, // 26: api.admin.v1.ListGroupMembersResponse.page:type_name -> api.common.v1.PageResult
-	47, // 27: api.admin.v1.ListNamespacesRequest.page:type_name -> api.common.v1.PageRequest
+	55, // 26: api.admin.v1.ListGroupMembersResponse.page:type_name -> api.common.v1.PageResult
+	54, // 27: api.admin.v1.ListNamespacesRequest.page:type_name -> api.common.v1.PageRequest
 	2,  // 28: api.admin.v1.ListNamespacesResponse.namespaces:type_name -> api.admin.v1.Namespace
-	48, // 29: api.admin.v1.ListNamespacesResponse.page:type_name -> api.common.v1.PageResult
-	47, // 30: api.admin.v1.ListNamespaceGrantsRequest.page:type_name -> api.common.v1.PageRequest
+	55, // 29: api.admin.v1.ListNamespacesResponse.page:type_name -> api.common.v1.PageResult
+	54, // 30: api.admin.v1.ListNamespaceGrantsRequest.page:type_name -> api.common.v1.PageRequest
 	3,  // 31: api.admin.v1.ListNamespaceGrantsResponse.grants:type_name -> api.admin.v1.NamespaceGrant
-	48, // 32: api.admin.v1.ListNamespaceGrantsResponse.page:type_name -> api.common.v1.PageResult
-	47, // 33: api.admin.v1.ListCategoriesRequest.page:type_name -> api.common.v1.PageRequest
+	55, // 32: api.admin.v1.ListNamespaceGrantsResponse.page:type_name -> api.common.v1.PageResult
+	54, // 33: api.admin.v1.ListCategoriesRequest.page:type_name -> api.common.v1.PageRequest
 	4,  // 34: api.admin.v1.ListCategoriesResponse.categories:type_name -> api.admin.v1.Category
-	48, // 35: api.admin.v1.ListCategoriesResponse.page:type_name -> api.common.v1.PageResult
-	47, // 36: api.admin.v1.ListAuditRequest.page:type_name -> api.common.v1.PageRequest
+	55, // 35: api.admin.v1.ListCategoriesResponse.page:type_name -> api.common.v1.PageResult
+	54, // 36: api.admin.v1.ListAuditRequest.page:type_name -> api.common.v1.PageRequest
 	5,  // 37: api.admin.v1.ListAuditResponse.events:type_name -> api.admin.v1.AuditEvent
-	48, // 38: api.admin.v1.ListAuditResponse.page:type_name -> api.common.v1.PageResult
-	47, // 39: api.admin.v1.LookupNamespaceUsersRequest.page:type_name -> api.common.v1.PageRequest
+	55, // 38: api.admin.v1.ListAuditResponse.page:type_name -> api.common.v1.PageResult
+	54, // 39: api.admin.v1.LookupNamespaceUsersRequest.page:type_name -> api.common.v1.PageRequest
 	0,  // 40: api.admin.v1.LookupNamespaceUsersResponse.users:type_name -> api.admin.v1.User
-	48, // 41: api.admin.v1.LookupNamespaceUsersResponse.page:type_name -> api.common.v1.PageResult
-	46, // 42: api.admin.v1.ResetUserPasswordRequest.mutation:type_name -> api.common.v1.Mutation
-	46, // 43: api.admin.v1.SetUserAdministratorRequest.mutation:type_name -> api.common.v1.Mutation
+	55, // 41: api.admin.v1.LookupNamespaceUsersResponse.page:type_name -> api.common.v1.PageResult
+	53, // 42: api.admin.v1.ResetUserPasswordRequest.mutation:type_name -> api.common.v1.Mutation
+	53, // 43: api.admin.v1.SetUserAdministratorRequest.mutation:type_name -> api.common.v1.Mutation
 	0,  // 44: api.admin.v1.SetUserAdministratorResponse.user:type_name -> api.admin.v1.User
-	34, // 45: api.admin.v1.AdminService.LookupNamespaceUsers:input_type -> api.admin.v1.LookupNamespaceUsersRequest
-	36, // 46: api.admin.v1.AdminService.GetNamespaceAccess:input_type -> api.admin.v1.GetNamespaceAccessRequest
-	38, // 47: api.admin.v1.AdminService.ResetUserPassword:input_type -> api.admin.v1.ResetUserPasswordRequest
-	40, // 48: api.admin.v1.AdminService.SetUserAdministrator:input_type -> api.admin.v1.SetUserAdministratorRequest
-	6,  // 49: api.admin.v1.AdminService.CreateUser:input_type -> api.admin.v1.CreateUserRequest
-	8,  // 50: api.admin.v1.AdminService.SetUserDisabled:input_type -> api.admin.v1.SetUserDisabledRequest
-	20, // 51: api.admin.v1.AdminService.ListUsers:input_type -> api.admin.v1.ListUsersRequest
-	10, // 52: api.admin.v1.AdminService.CreateGroup:input_type -> api.admin.v1.CreateGroupRequest
-	12, // 53: api.admin.v1.AdminService.SetGroupMember:input_type -> api.admin.v1.SetGroupMemberRequest
-	22, // 54: api.admin.v1.AdminService.ListGroups:input_type -> api.admin.v1.ListGroupsRequest
-	24, // 55: api.admin.v1.AdminService.ListGroupMembers:input_type -> api.admin.v1.ListGroupMembersRequest
-	14, // 56: api.admin.v1.AdminService.PutNamespace:input_type -> api.admin.v1.PutNamespaceRequest
-	16, // 57: api.admin.v1.AdminService.SetNamespaceGrant:input_type -> api.admin.v1.SetNamespaceGrantRequest
-	26, // 58: api.admin.v1.AdminService.ListNamespaces:input_type -> api.admin.v1.ListNamespacesRequest
-	28, // 59: api.admin.v1.AdminService.ListNamespaceGrants:input_type -> api.admin.v1.ListNamespaceGrantsRequest
-	18, // 60: api.admin.v1.AdminService.PutCategory:input_type -> api.admin.v1.PutCategoryRequest
-	30, // 61: api.admin.v1.AdminService.ListCategories:input_type -> api.admin.v1.ListCategoriesRequest
-	32, // 62: api.admin.v1.AdminService.ListAudit:input_type -> api.admin.v1.ListAuditRequest
-	35, // 63: api.admin.v1.AdminService.LookupNamespaceUsers:output_type -> api.admin.v1.LookupNamespaceUsersResponse
-	37, // 64: api.admin.v1.AdminService.GetNamespaceAccess:output_type -> api.admin.v1.GetNamespaceAccessResponse
-	39, // 65: api.admin.v1.AdminService.ResetUserPassword:output_type -> api.admin.v1.ResetUserPasswordResponse
-	41, // 66: api.admin.v1.AdminService.SetUserAdministrator:output_type -> api.admin.v1.SetUserAdministratorResponse
-	7,  // 67: api.admin.v1.AdminService.CreateUser:output_type -> api.admin.v1.CreateUserResponse
-	9,  // 68: api.admin.v1.AdminService.SetUserDisabled:output_type -> api.admin.v1.SetUserDisabledResponse
-	21, // 69: api.admin.v1.AdminService.ListUsers:output_type -> api.admin.v1.ListUsersResponse
-	11, // 70: api.admin.v1.AdminService.CreateGroup:output_type -> api.admin.v1.CreateGroupResponse
-	13, // 71: api.admin.v1.AdminService.SetGroupMember:output_type -> api.admin.v1.SetGroupMemberResponse
-	23, // 72: api.admin.v1.AdminService.ListGroups:output_type -> api.admin.v1.ListGroupsResponse
-	25, // 73: api.admin.v1.AdminService.ListGroupMembers:output_type -> api.admin.v1.ListGroupMembersResponse
-	15, // 74: api.admin.v1.AdminService.PutNamespace:output_type -> api.admin.v1.PutNamespaceResponse
-	17, // 75: api.admin.v1.AdminService.SetNamespaceGrant:output_type -> api.admin.v1.SetNamespaceGrantResponse
-	27, // 76: api.admin.v1.AdminService.ListNamespaces:output_type -> api.admin.v1.ListNamespacesResponse
-	29, // 77: api.admin.v1.AdminService.ListNamespaceGrants:output_type -> api.admin.v1.ListNamespaceGrantsResponse
-	19, // 78: api.admin.v1.AdminService.PutCategory:output_type -> api.admin.v1.PutCategoryResponse
-	31, // 79: api.admin.v1.AdminService.ListCategories:output_type -> api.admin.v1.ListCategoriesResponse
-	33, // 80: api.admin.v1.AdminService.ListAudit:output_type -> api.admin.v1.ListAuditResponse
-	63, // [63:81] is the sub-list for method output_type
-	45, // [45:63] is the sub-list for method input_type
-	45, // [45:45] is the sub-list for extension type_name
-	45, // [45:45] is the sub-list for extension extendee
-	0,  // [0:45] is the sub-list for field type_name
+	42, // 45: api.admin.v1.GetNamespaceLifecycleResponse.lifecycle:type_name -> api.admin.v1.NamespaceLifecycle
+	53, // 46: api.admin.v1.SetNamespaceArchivedRequest.mutation:type_name -> api.common.v1.Mutation
+	42, // 47: api.admin.v1.SetNamespaceArchivedResponse.lifecycle:type_name -> api.admin.v1.NamespaceLifecycle
+	53, // 48: api.admin.v1.PurgeNamespaceRequest.mutation:type_name -> api.common.v1.Mutation
+	42, // 49: api.admin.v1.PurgeNamespaceResponse.lifecycle:type_name -> api.admin.v1.NamespaceLifecycle
+	43, // 50: api.admin.v1.AdminService.GetNamespaceLifecycle:input_type -> api.admin.v1.GetNamespaceLifecycleRequest
+	45, // 51: api.admin.v1.AdminService.SetNamespaceArchived:input_type -> api.admin.v1.SetNamespaceArchivedRequest
+	47, // 52: api.admin.v1.AdminService.PurgeNamespace:input_type -> api.admin.v1.PurgeNamespaceRequest
+	34, // 53: api.admin.v1.AdminService.LookupNamespaceUsers:input_type -> api.admin.v1.LookupNamespaceUsersRequest
+	36, // 54: api.admin.v1.AdminService.GetNamespaceAccess:input_type -> api.admin.v1.GetNamespaceAccessRequest
+	38, // 55: api.admin.v1.AdminService.ResetUserPassword:input_type -> api.admin.v1.ResetUserPasswordRequest
+	40, // 56: api.admin.v1.AdminService.SetUserAdministrator:input_type -> api.admin.v1.SetUserAdministratorRequest
+	6,  // 57: api.admin.v1.AdminService.CreateUser:input_type -> api.admin.v1.CreateUserRequest
+	8,  // 58: api.admin.v1.AdminService.SetUserDisabled:input_type -> api.admin.v1.SetUserDisabledRequest
+	20, // 59: api.admin.v1.AdminService.ListUsers:input_type -> api.admin.v1.ListUsersRequest
+	10, // 60: api.admin.v1.AdminService.CreateGroup:input_type -> api.admin.v1.CreateGroupRequest
+	12, // 61: api.admin.v1.AdminService.SetGroupMember:input_type -> api.admin.v1.SetGroupMemberRequest
+	22, // 62: api.admin.v1.AdminService.ListGroups:input_type -> api.admin.v1.ListGroupsRequest
+	24, // 63: api.admin.v1.AdminService.ListGroupMembers:input_type -> api.admin.v1.ListGroupMembersRequest
+	14, // 64: api.admin.v1.AdminService.PutNamespace:input_type -> api.admin.v1.PutNamespaceRequest
+	16, // 65: api.admin.v1.AdminService.SetNamespaceGrant:input_type -> api.admin.v1.SetNamespaceGrantRequest
+	26, // 66: api.admin.v1.AdminService.ListNamespaces:input_type -> api.admin.v1.ListNamespacesRequest
+	28, // 67: api.admin.v1.AdminService.ListNamespaceGrants:input_type -> api.admin.v1.ListNamespaceGrantsRequest
+	18, // 68: api.admin.v1.AdminService.PutCategory:input_type -> api.admin.v1.PutCategoryRequest
+	30, // 69: api.admin.v1.AdminService.ListCategories:input_type -> api.admin.v1.ListCategoriesRequest
+	32, // 70: api.admin.v1.AdminService.ListAudit:input_type -> api.admin.v1.ListAuditRequest
+	44, // 71: api.admin.v1.AdminService.GetNamespaceLifecycle:output_type -> api.admin.v1.GetNamespaceLifecycleResponse
+	46, // 72: api.admin.v1.AdminService.SetNamespaceArchived:output_type -> api.admin.v1.SetNamespaceArchivedResponse
+	48, // 73: api.admin.v1.AdminService.PurgeNamespace:output_type -> api.admin.v1.PurgeNamespaceResponse
+	35, // 74: api.admin.v1.AdminService.LookupNamespaceUsers:output_type -> api.admin.v1.LookupNamespaceUsersResponse
+	37, // 75: api.admin.v1.AdminService.GetNamespaceAccess:output_type -> api.admin.v1.GetNamespaceAccessResponse
+	39, // 76: api.admin.v1.AdminService.ResetUserPassword:output_type -> api.admin.v1.ResetUserPasswordResponse
+	41, // 77: api.admin.v1.AdminService.SetUserAdministrator:output_type -> api.admin.v1.SetUserAdministratorResponse
+	7,  // 78: api.admin.v1.AdminService.CreateUser:output_type -> api.admin.v1.CreateUserResponse
+	9,  // 79: api.admin.v1.AdminService.SetUserDisabled:output_type -> api.admin.v1.SetUserDisabledResponse
+	21, // 80: api.admin.v1.AdminService.ListUsers:output_type -> api.admin.v1.ListUsersResponse
+	11, // 81: api.admin.v1.AdminService.CreateGroup:output_type -> api.admin.v1.CreateGroupResponse
+	13, // 82: api.admin.v1.AdminService.SetGroupMember:output_type -> api.admin.v1.SetGroupMemberResponse
+	23, // 83: api.admin.v1.AdminService.ListGroups:output_type -> api.admin.v1.ListGroupsResponse
+	25, // 84: api.admin.v1.AdminService.ListGroupMembers:output_type -> api.admin.v1.ListGroupMembersResponse
+	15, // 85: api.admin.v1.AdminService.PutNamespace:output_type -> api.admin.v1.PutNamespaceResponse
+	17, // 86: api.admin.v1.AdminService.SetNamespaceGrant:output_type -> api.admin.v1.SetNamespaceGrantResponse
+	27, // 87: api.admin.v1.AdminService.ListNamespaces:output_type -> api.admin.v1.ListNamespacesResponse
+	29, // 88: api.admin.v1.AdminService.ListNamespaceGrants:output_type -> api.admin.v1.ListNamespaceGrantsResponse
+	19, // 89: api.admin.v1.AdminService.PutCategory:output_type -> api.admin.v1.PutCategoryResponse
+	31, // 90: api.admin.v1.AdminService.ListCategories:output_type -> api.admin.v1.ListCategoriesResponse
+	33, // 91: api.admin.v1.AdminService.ListAudit:output_type -> api.admin.v1.ListAuditResponse
+	71, // [71:92] is the sub-list for method output_type
+	50, // [50:71] is the sub-list for method input_type
+	50, // [50:50] is the sub-list for extension type_name
+	50, // [50:50] is the sub-list for extension extendee
+	0,  // [0:50] is the sub-list for field type_name
 }
 
 func init() { file_api_admin_v1_admin_service_proto_init() }
@@ -2875,7 +3366,7 @@ func file_api_admin_v1_admin_service_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_admin_v1_admin_service_proto_rawDesc), len(file_api_admin_v1_admin_service_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   42,
+			NumMessages:   49,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

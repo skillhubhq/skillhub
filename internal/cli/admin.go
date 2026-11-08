@@ -13,6 +13,7 @@ import (
 
 func (a *application) adminCommand() *cobra.Command {
 	command := &cobra.Command{Use: "admin", Short: "Manage source-local accounts, groups, namespaces and taxonomy"}
+	a.namespaceLifecycleCommands(command)
 	user := a.remoteCommand("user-add USERNAME", "Create a source-local account", cobra.ExactArgs(1), func(cmd *cobra.Command, r *client.Remote, args []string) error {
 		stdin, _ := cmd.Flags().GetBool("password-stdin")
 		if !stdin {

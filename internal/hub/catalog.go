@@ -94,10 +94,11 @@ type YankRelease struct {
 }
 
 // 权限表达式在目录、精确版本和下载中共用；所有角色值都限定在已知集合内。
-const readableSQL = `(@admin=1 OR r.visibility=1 OR (@actor<>'' AND (r.visibility=2 OR
+const activeReleaseSQL = `EXISTS(SELECT 1 FROM namespaces active_namespace WHERE active_namespace.name=r.namespace AND active_namespace.archived=0)`
+const readableSQL = activeReleaseSQL + ` AND (@admin=1 OR r.visibility=1 OR (@actor<>'' AND (r.visibility=2 OR
  EXISTS(SELECT 1 FROM release_groups a JOIN group_members m ON a.group_id=m.group_id WHERE a.release_id=r.id AND m.user_id=@actor) OR
  EXISTS(SELECT 1 FROM namespace_grants g WHERE g.namespace=r.namespace AND g.role IN (2,3,4) AND ((g.kind=1 AND g.subject_id=@actor) OR (g.kind=2 AND EXISTS(SELECT 1 FROM group_members m WHERE m.group_id=g.subject_id AND m.user_id=@actor)))))))`
-const manageableSQL = `(@admin=1 OR (@actor<>'' AND EXISTS(SELECT 1 FROM namespace_grants g WHERE g.namespace=r.namespace AND g.role IN (2,3,4) AND ((g.kind=1 AND g.subject_id=@actor) OR (g.kind=2 AND EXISTS(SELECT 1 FROM group_members m WHERE m.group_id=g.subject_id AND m.user_id=@actor))))))`
+const manageableSQL = activeReleaseSQL + ` AND (@admin=1 OR (@actor<>'' AND EXISTS(SELECT 1 FROM namespace_grants g WHERE g.namespace=r.namespace AND g.role IN (2,3,4) AND ((g.kind=1 AND g.subject_id=@actor) OR (g.kind=2 AND EXISTS(SELECT 1 FROM group_members m WHERE m.group_id=g.subject_id AND m.user_id=@actor))))))`
 const releaseColumns = `r.id,r.namespace,r.name,r.version,r.digest,r.status,r.visibility,r.submitted_by,r.created_at,r.review_reason,r.markdown,r.description,r.category,r.sequence,r.display_name_en,r.display_name_zh,r.icon,r.provenance,
  COALESCE((SELECT json_group_array(group_id) FROM (SELECT group_id FROM release_groups WHERE release_id=r.id ORDER BY group_id) AS ordered_groups),'[]'),
  COALESCE((SELECT json_group_array(tag) FROM (SELECT tag FROM release_tags WHERE release_id=r.id ORDER BY tag) AS ordered_tags),'[]')`

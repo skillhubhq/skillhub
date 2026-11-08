@@ -13,7 +13,7 @@ func userDTO(v hub.User) *adminv1.User {
 }
 func groupDTO(v hub.Group) *adminv1.Group { return &adminv1.Group{GroupId: v.ID, Name: v.Name} }
 func namespaceDTO(v hub.Namespace) *adminv1.Namespace {
-	return &adminv1.Namespace{Name: v.Name, ReviewRequired: v.ReviewRequired, Revision: v.Revision}
+	return &adminv1.Namespace{Name: v.Name, ReviewRequired: v.ReviewRequired, Revision: v.Revision, Archived: v.Archived}
 }
 func namespaceGrantDTO(v hub.NamespaceGrant) *adminv1.NamespaceGrant {
 	return &adminv1.NamespaceGrant{Namespace: v.Namespace, SubjectKind: v.Kind, SubjectId: v.SubjectID, Role: v.Role}

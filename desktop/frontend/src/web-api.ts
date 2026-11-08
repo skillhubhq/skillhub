@@ -1,3 +1,16 @@
+import type { NamespaceLifecycle as LifecycleWire } from "../../../sdk/typescript/gen/api/admin/v1/admin_service_pb";
+const lifecycleView = (v?: LifecycleWire) => {
+  if (!v) throw new Error("Team lifecycle unavailable");
+  return {
+    name: v.name,
+    revision: String(v.revision),
+    archived: v.archived,
+    releases: String(v.releases),
+    grants: String(v.grants),
+    comments: String(v.comments),
+    evidence: String(v.evidence),
+  };
+};
 import { provenanceInfo, provenanceWire } from "./provenance";
 import { communityWeb } from "./community-web";
 import { t } from "./i18n";
@@ -508,6 +521,7 @@ const supported: Partial<PlatformAPI> = {
         name: u.username,
         title: u.displayName,
         enabled: !u.disabled,
+        archived: false,
         administrator: false,
         approval_pending: false,
         platform_roles: [],
@@ -612,8 +626,49 @@ const supported: Partial<PlatformAPI> = {
         })
       ).release,
     ),
+  NamespaceLifecycleSupported: async () =>
+    (await clients.registry.getRegistry({})).capabilities.includes(
+      "namespace.lifecycle.v1",
+    ),
+  NamespaceLifecycle: async (_source, name) =>
+    lifecycleView(
+      (await clients.admin.getNamespaceLifecycle({ name })).lifecycle,
+    ),
+  ChangeNamespaceLifecycle: async (
+    _source,
+    name,
+    action,
+    revision,
+    confirm,
+    key,
+  ) => {
+    if (action === "purge")
+      return lifecycleView(
+        (
+          await clients.admin.purgeNamespace({
+            mutation: { idempotencyKey: key },
+            name,
+            expectedRevision: BigInt(revision),
+            confirmName: confirm,
+          })
+        ).lifecycle,
+      );
+    if (action !== "archive" && action !== "restore")
+      throw new Error("Unknown team lifecycle action");
+    return lifecycleView(
+      (
+        await clients.admin.setNamespaceArchived({
+          mutation: { idempotencyKey: key },
+          name,
+          expectedRevision: BigInt(revision),
+          archived: action === "archive",
+        })
+      ).lifecycle,
+    );
+  },
   AdminList: async (_source, kind, _filter, token) => {
     const blank: AdminRow = {
+      archived: false,
       approval_pending: false,
       platform_roles: [],
       oidc_issuer: "",
@@ -655,6 +710,7 @@ const supported: Partial<PlatformAPI> = {
           id: n.name,
           name: n.name,
           enabled: n.reviewRequired,
+          archived: n.archived,
           revision: String(n.revision),
         })),
         next_page: r.page?.nextPageToken ?? "",
@@ -683,6 +739,7 @@ const supported: Partial<PlatformAPI> = {
           title: u.displayName,
           detail: String(u.federated),
           enabled: !u.disabled,
+          archived: false,
           administrator: u.administrator,
           approval_pending: u.approvalPending,
           platform_roles: u.platformRoles.map(Number),

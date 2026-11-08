@@ -42,7 +42,7 @@ func profileForViewer(p c.Profile, user Identity) c.Profile {
 }
 
 // 资料发现沿用资源可见性；同团队成员可以互相查看，但登录不等于取得全站目录。
-const sharedTeamProfileSQL = `(@actor<>'' AND EXISTS(SELECT 1 FROM namespace_grants target WHERE target.role IN (1,2,3,4) AND ((target.kind=1 AND target.subject_id=@subject) OR (target.kind=2 AND EXISTS(SELECT 1 FROM group_members tm WHERE tm.group_id=target.subject_id AND tm.user_id=@subject))) AND EXISTS(SELECT 1 FROM namespace_grants viewer WHERE viewer.namespace=target.namespace AND viewer.role IN (1,2,3,4) AND ((viewer.kind=1 AND viewer.subject_id=@actor) OR (viewer.kind=2 AND EXISTS(SELECT 1 FROM group_members vm WHERE vm.group_id=viewer.subject_id AND vm.user_id=@actor))))))`
+const sharedTeamProfileSQL = `(@actor<>'' AND EXISTS(SELECT 1 FROM namespace_grants target WHERE EXISTS(SELECT 1 FROM namespaces active_team WHERE active_team.name=target.namespace AND active_team.archived=0) AND target.role IN (1,2,3,4) AND ((target.kind=1 AND target.subject_id=@subject) OR (target.kind=2 AND EXISTS(SELECT 1 FROM group_members tm WHERE tm.group_id=target.subject_id AND tm.user_id=@subject))) AND EXISTS(SELECT 1 FROM namespace_grants viewer WHERE viewer.namespace=target.namespace AND viewer.role IN (1,2,3,4) AND ((viewer.kind=1 AND viewer.subject_id=@actor) OR (viewer.kind=2 AND EXISTS(SELECT 1 FROM group_members vm WHERE vm.group_id=viewer.subject_id AND vm.user_id=@actor))))))`
 
 func (s *Store) GetProfile(ctx context.Context, actor Identity, id string) (c.Profile, error) {
 	tx, user, err := s.read(ctx, actor)
@@ -96,7 +96,7 @@ func (s *Store) UpdateProfile(ctx context.Context, actor Identity, key string, c
 }
 
 // 团队公开页只由可见的已发布资源或当前成员资格发现，权限群组不成为公开团队。
-const teamVisibleSQL = `(@admin=1 OR EXISTS(SELECT 1 FROM releases r WHERE r.namespace=n.name AND r.status=2 AND ` + readableSQL + `) OR (@actor<>'' AND EXISTS(SELECT 1 FROM namespace_grants g WHERE g.namespace=n.name AND ((g.kind=1 AND g.subject_id=@actor) OR (g.kind=2 AND EXISTS(SELECT 1 FROM group_members gm WHERE gm.group_id=g.subject_id AND gm.user_id=@actor))))))`
+const teamVisibleSQL = `n.archived=0 AND (@admin=1 OR EXISTS(SELECT 1 FROM releases r WHERE r.namespace=n.name AND r.status=2 AND ` + readableSQL + `) OR (@actor<>'' AND EXISTS(SELECT 1 FROM namespace_grants g WHERE g.namespace=n.name AND ((g.kind=1 AND g.subject_id=@actor) OR (g.kind=2 AND EXISTS(SELECT 1 FROM group_members gm WHERE gm.group_id=g.subject_id AND gm.user_id=@actor))))))`
 const teamColumns = `n.name,COALESCE(NULLIF(t.display_name,''),n.name),COALESCE(t.bio,''),COALESCE(t.revision,0)`
 
 func teamScan(row scanner) (c.Team, error) {

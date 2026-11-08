@@ -66,3 +66,5 @@ The App supports local draft editing and package preview. Saved drafts can be re
 The Hub runs as one Go process with embedded Web, SQLite or PostgreSQL, and local immutable package storage. No daemon, Redis, queue or search cluster is required. Multi-node serving, S3 storage, SCIM/directory synchronization, multi-stage approval and external scanners are not supported.
 
 GitHub hosts software distributions. App updates are checked explicitly and installed manually; application updates do not update skills or Hubs. Hosted skills retain their own licensing and permissions independently of the Apache-2.0 software license. See [distribution](distribution.md), [operations](operations.md) and the [deployment checklist](deployment-checklist.md).
+
+Team lifecycle is Hub-admin controlled: archive suspends discovery, downloads and namespace operations while preserving data and grants; restore reactivates them. Permanent cleanup requires archive, revision and typed namespace confirmation, retains audit and shared identities, reserves deleted names, and queues reference-safe package reclamation. See [team lifecycle](governance.md#team-archive-and-permanent-cleanup).

@@ -8,6 +8,12 @@ import "google/protobuf/timestamp.proto";
 
 // AdminService 管理当前实例的身份、分类和授权边界。
 service AdminService {
+  // GetNamespaceLifecycle 预览团队生命周期操作的影响，仅限 Hub 管理员。
+  rpc GetNamespaceLifecycle(GetNamespaceLifecycleRequest) returns (GetNamespaceLifecycleResponse);
+  // SetNamespaceArchived 归档或恢复团队，保留内容与授权。
+  rpc SetNamespaceArchived(SetNamespaceArchivedRequest) returns (SetNamespaceArchivedResponse);
+  // PurgeNamespace 永久清理已归档团队，保留审计和共享身份。
+  rpc PurgeNamespace(PurgeNamespaceRequest) returns (PurgeNamespaceResponse);
   // LookupNamespaceUsers 查找当前空间可授权的账号，仅返回最少身份字段。
   rpc LookupNamespaceUsers(LookupNamespaceUsersRequest) returns (LookupNamespaceUsersResponse);
   // GetNamespaceAccess 返回当前主体的操作能力。
@@ -101,6 +107,8 @@ message Namespace {
   bool review_required = 2;
   // 用于并发修改保护的修订号。
   uint64 revision = 3;
+  // 是否已归档。
+  bool archived = 4;
 }
 
 // NamespaceGrant 是明确的主体角色授权。
@@ -505,4 +513,76 @@ message SetUserAdministratorRequest {
 message SetUserAdministratorResponse {
   // 账号状态。
   User user = 1;
+}
+
+// NamespaceLifecycle 表示团队生命周期状态和影响范围。
+message NamespaceLifecycle {
+  // 稳定名称。
+  string name = 1;
+  // 乐观并发修订号。
+  uint64 revision = 2;
+  // 归档状态。
+  bool archived = 3;
+  // 全部技能版本数量。
+  uint64 releases = 4;
+  // 直接用户和群组授权数量。
+  uint64 grants = 5;
+  // 评论及回复数量。
+  uint64 comments = 6;
+  // 评测证据数量。
+  uint64 evidence = 7;
+}
+// GetNamespaceLifecycleRequest 选择待预览团队。
+message GetNamespaceLifecycleRequest {
+  // 命名空间名称。
+  string name = 1 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 128
+  }];
+}
+// GetNamespaceLifecycleResponse 返回影响范围。
+message GetNamespaceLifecycleResponse {
+  // 生命周期预览。
+  NamespaceLifecycle lifecycle = 1;
+}
+// SetNamespaceArchivedRequest 要求管理员和当前修订号。
+message SetNamespaceArchivedRequest {
+  // 幂等操作身份。
+  api.common.v1.Mutation mutation = 1 [(buf.validate.field).required = true];
+  // 命名空间名称。
+  string name = 2 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 128
+  }];
+  // 预期修订号。
+  uint64 expected_revision = 3 [(buf.validate.field).uint64.gt = 0];
+  // 是否归档。
+  bool archived = 4;
+}
+// SetNamespaceArchivedResponse 返回最新状态。
+message SetNamespaceArchivedResponse {
+  // 生命周期状态。
+  NamespaceLifecycle lifecycle = 1;
+}
+// PurgeNamespaceRequest 仅清理已归档的团队。
+message PurgeNamespaceRequest {
+  // 幂等操作身份。
+  api.common.v1.Mutation mutation = 1 [(buf.validate.field).required = true];
+  // 命名空间名称。
+  string name = 2 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 128
+  }];
+  // 预期修订号。
+  uint64 expected_revision = 3 [(buf.validate.field).uint64.gt = 0];
+  // 再次输入名称确认永久清理。
+  string confirm_name = 4 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 128
+  }];
+}
+// PurgeNamespaceResponse 返回已清理的范围。
+message PurgeNamespaceResponse {
+  // 清理前的状态。
+  NamespaceLifecycle lifecycle = 1;
 }

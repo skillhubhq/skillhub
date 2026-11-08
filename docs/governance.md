@@ -99,3 +99,31 @@ skillhub publish ./example-skill --source community --namespace curators \
 The Hub requires the referenced text license file to exist in the package. A reviewer still checks license applicability, source ownership, exact commit and preservation of notices; the Hub does not fetch or independently verify the upstream repository. Changed files require `modified: true` and a change description. Every attributed submission requires independent review, even in a namespace allowing direct publication. Metadata is immutable with its version and participates in idempotency checks. A correction requires a new version.
 
 When upstream supplies no release number, use a clearly identified Hub snapshot version such as `0.0.0-upstream.<commit-prefix>`; do not invent an upstream `1.0.0`. Installation stores the attribution alongside the exact package digest for offline display. Older Hubs lacking `catalog.provenance.v1` are rejected when publishing attribution, rather than silently losing it.
+
+## Team archive and permanent cleanup
+
+A team is a namespace with a display profile. **Only Hub administrators** can preview, archive, restore or permanently clean up a team. Namespace administrators and platform people administrators cannot perform these operations. Web and App expose **Studio → Hub settings → Namespace → Team lifecycle**; the CLI uses the same Hub-enforced workflow.
+
+| State/action | Content and access |
+| --- | --- |
+| Archive | Hides the team and all its versions from community discovery, direct downloads, contributions, evaluation views and review tasks. Publishing, reviewing, profile changes, role changes and interactions stop, including through old clients. Content, prior version states and role grants remain stored. |
+| Restore | Reactivates the retained grants and prior version states. Withdrawn/rejected versions stay withdrawn/rejected; pending work returns to the queue. Review permissions are rechecked. |
+| Permanently delete | Requires an archived team, its current revision and the exact namespace typed again. Deletes all its releases, discussions/replies, reactions, review notifications, scans, evaluation evidence, content reports, profile, curation and namespace grants. The name remains reserved and cannot be reused. |
+
+Shared Hub user accounts, external-login identities, access groups, group memberships and audit events are **never deleted** by team cleanup. A personal namespace that is deleted is not recreated on the user's next login. Other teams are unaffected. Installed skill files on users' devices remain untouched; the Hub denies new downloads, updates and cache reuse for unavailable versions. A local update check reports the version as unavailable rather than silently replacing it.
+
+The dialog previews counts before changing anything. Revisions prevent a stale archive/restore/delete request from overriding a later lifecycle change. CLI equivalents:
+
+```sh
+skillhub admin namespace-inspect research --source company
+skillhub admin namespace-archive research --source company --revision 1 --yes
+skillhub admin namespace-restore research --source company --revision 2 --yes
+# Archive again before permanent cleanup; inspect for the current revision.
+skillhub admin namespace-purge research --source company --revision 4 --confirm research --yes
+```
+
+Permanent cleanup has no product undo. Back up before deleting business content; recovery requires the operator's paired backup and must reconcile subsequent writes. Existing backups and security audit records follow their own retention policy; this is not a claim of forensic erasure. Content-bearing idempotency responses for deleted releases, team profiles and comments are removed. A minimal namespace tombstone prevents old links from identifying a different team later.
+
+Package removal follows the committed metadata deletion. A package shared with another namespace is retained. Unreferenced packages enter a durable cleanup queue, removed under the same write lock as publication. Failed removals remain queued: resolve storage permissions and retry the same request with `--request-id`, or restart the Hub to retry. An incomplete package cleanup does not roll back an already committed team deletion or prevent the Hub from starting.
+
+Use isolated Hubs for write-workflow acceptance. If an explicitly authorized test team exists on a serving Hub, archive, inspect and clean it up through these APIs. Do not silently delete its users or shared groups. Account retirement is a separate administrative decision. Older Hubs do not advertise `namespace.lifecycle.v1`; new clients hide the action or report that the Hub needs an upgrade.
