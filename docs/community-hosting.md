@@ -5,10 +5,12 @@ SkillHub uses one Hub binary, user model and permission system. Deployment polic
 | Setting | Enterprise (default) | Community |
 | --- | --- | --- |
 | `mode` | `enterprise` | `community` |
-| First verified external sign-in | Pending administrator approval | Ordinary account admitted automatically |
+| Default first verified external sign-in | Pending administrator approval | Ordinary account admitted automatically |
 | Personal publication space | Administrators grant namespaces | One stable personal namespace on successful sign-in |
 | Publication | Namespace review policy plus scanner findings | Independent review for every submission |
 | Quotas | Existing request/package limits | Additional account, submission, storage and interaction limits |
+
+`auth.admission` overrides the first-sign-in default with `automatic` or `approval`, independently of publication policy. Automatic admission in enterprise mode grants ordinary membership without a personal namespace. Existing pending, rejected and disabled accounts still require administrator action.
 
 `private` independently controls anonymous access. Use `private: false` for a public catalog; Public releases are visible anonymously, while Members and Groups audiences remain protected. Authenticated actions retain their existing permission checks. Switching modes does not reactivate pending/disabled accounts, replace identities, remove roles or republish content. Existing members receive their personal namespace on their next successful login. Personal namespaces grant Maintainer only; they do not grant role administration or self-approval.
 

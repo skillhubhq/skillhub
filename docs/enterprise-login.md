@@ -2,7 +2,7 @@
 
 The Hub owns account status, community profiles, access groups, namespace roles and audit. OIDC proves who is signing in. It does not grant access to Microsoft directory or business data, and it does not automatically grant Hub administration, publishing or review permissions.
 
-See [identity and permissions](identity-and-access.md) for the complete role model and public/private boundaries. Enterprise mode keeps first admission pending; [community mode](community-hosting.md) explicitly enables automatic external admission.
+See [identity and permissions](identity-and-access.md) for the complete role model and public/private boundaries. Enterprise mode defaults to pending admission; `auth.admission: automatic` enables immediate ordinary membership without changing enterprise permissions; [community mode](community-hosting.md) explicitly enables automatic external admission.
 
 ## Account management
 
@@ -18,9 +18,9 @@ There is no public registration form or anonymous registration API. A Hub admini
 
 Local and enterprise sign-in both resolve to the same Hub user table. Contributions, comments, bookmarks and permissions belong to the Hub user ID. Enterprise sign-in also stores a verified `(issuer, sub)` binding to that ID. Repeated sign-in with the same enterprise identity reuses the same user; each Hub still owns its membership and permissions independently.
 
-`mode: enterprise` is the default. A verified but unbound enterprise identity creates a **disabled pending account**. The browser shows a waiting-for-approval page, and no Web, App or CLI session is issued. Repeated sign-in reuses the request. A Hub or people administrator inspects the verified issuer/subject and approves or rejects admission. Approval grants ordinary membership only; groups and publishing/review roles require separate grants. The user signs in again after approval. A rejected request does not reopen on repeated sign-in; an administrator can explicitly enable the account later.
+`mode: enterprise` is the default. With the default `auth.admission: approval`, a verified but unbound enterprise identity creates a **disabled pending account**. The browser shows a waiting-for-approval page, and no Web, App or CLI session is issued. Repeated sign-in reuses the request. A Hub or people administrator inspects the verified issuer/subject and approves or rejects admission. Approval grants ordinary membership only; groups and publishing/review roles require separate grants. The user signs in again after approval. A rejected request does not reopen on repeated sign-in; an administrator can explicitly enable the account later.
 
-Community mode explicitly allows verified first-time identities to become ordinary members immediately. Existing pending or disabled accounts are not activated by this setting. The queue supports at most 1,000 pending identities; restrict Entra application assignment first. No email-based account merging occurs. Issuer and subject are shown only to administrators authorized to manage people, never in community profiles or namespace user lookups.
+`auth.admission: automatic` allows verified first-time identities to become ordinary members immediately in either mode. In enterprise mode they may discover teams, download member-visible skills, like, save, comment and edit their own profile. Group-only access still requires group membership; publishing, reviewing and administration require explicit grants. No personal publishing namespace is created. Community mode uses automatic admission by default. Existing pending or disabled accounts are not activated by this setting. The queue supports at most 1,000 pending identities; restrict Entra application assignment first. No email-based account merging occurs. Issuer and subject are shown only to administrators authorized to manage people, never in community profiles or namespace user lookups.
 
 ## Configure Microsoft Entra ID
 
@@ -35,6 +35,7 @@ mode: enterprise
 private: true
 public_url: https://skills.example.com
 auth:
+  admission: automatic
   providers:
     - id: company
       type: oidc
@@ -46,13 +47,13 @@ auth:
 
 Run `skillhub-server check-config --config PATH`, then `skillhub-server serve --config PATH`.
 
-`TENANT_ID` and `APPLICATION_CLIENT_ID` are placeholders. Keep approval mode enabled and configure Entra assignment. Retain an independent local administrator for first approvals and emergency recovery; an SSO user never becomes the bootstrap administrator automatically.
+`TENANT_ID` and `APPLICATION_CLIENT_ID` are placeholders. Choose `auth.admission: automatic` for immediate membership or `approval` for administrator approval, and configure Entra assignment. Retain an independent local administrator for first approvals and emergency recovery; an SSO user never becomes the bootstrap administrator automatically.
 
 The Hub requests only `openid profile`. It uses the stable identity and initial display name, does not read Microsoft Graph, directory groups or avatars, and does not retain the identity provider's access or refresh tokens. Sign-in uses authorization code with PKCE, one-time state, a browser-bound cookie and nonce, and verifies signature, issuer, audience and expiry. Each Hub supports up to eight configured login providers. Configuration changes require a restart.
 
 ## Web, App and CLI sign-in
 
-- **Web:** choose **Continue with Microsoft**. First-time users wait for approval, then sign in again. Existing local accounts remain available through the expandable local sign-in section.
+- **Web:** choose **Continue with Microsoft**. With automatic admission, first-time users enter immediately as ordinary members. With approval admission, they wait for approval, then sign in again. Existing local accounts remain available through the expandable local sign-in section.
 - **CLI:** use `skillhub login SOURCE`. **App:** choose browser sign-in in Connections. The Hub's `/authorize` page can authenticate through Microsoft before the user explicitly confirms the device code shown by the client.
 - Enterprise credentials go only to Microsoft's sign-in page. App and CLI receive separate tokens issued by that Hub. Switching Hubs does not transfer permissions.
 

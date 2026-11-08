@@ -163,3 +163,25 @@ func TestDocumentedDeploymentConfigs(t *testing.T) {
 		})
 	}
 }
+
+func TestAdmissionIndependentOfMode(t *testing.T) {
+	for _, mode := range []string{"enterprise", "community"} {
+		for _, admission := range []string{"approval", "automatic"} {
+			t.Run(mode+"/"+admission, func(t *testing.T) {
+				path := filepath.Join(t.TempDir(), "hub.yaml")
+				if err := os.WriteFile(path, []byte("mode: "+mode+"\nprivate: true\nauth:\n  admission: "+admission+"\n"), 0600); err != nil {
+					t.Fatal(err)
+				}
+				c, err := Load(path)
+				if err != nil || c.Validate() != nil || !c.Private || c.Policy().AutomaticAdmission() != (admission == "automatic") {
+					t.Fatal("admission configuration", err)
+				}
+			})
+		}
+	}
+	c := Defaults()
+	c.Auth.Admission = "unknown"
+	if c.Validate() == nil {
+		t.Fatal("unknown admission accepted")
+	}
+}

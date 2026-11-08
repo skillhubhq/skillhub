@@ -67,7 +67,7 @@ skillhub-server serve --config /etc/skillhub/hub.yaml
 
 ## 模式与登录适配器 [#modes-and-login-adapters]
 
-`mode` 默认为 `enterprise`，也可设为 `community`；模式决定准入、投稿和配额策略，`private` 独立决定匿名可见性。登录方式通过 `auth.providers` 配置，最多八个 OIDC/GitHub 入口，任一适配器都可以用于任一模式。参见[社区部署与登录适配器](community-hosting.md)。
+`mode` 默认为 `enterprise`，也可设为 `community`；模式决定默认准入、投稿和配额策略，`private` 独立决定匿名可见性。登录方式通过 `auth.providers` 配置，最多八个 OIDC/GitHub 入口，任一适配器都可以用于任一模式。参见[社区部署与登录适配器](community-hosting.md)。
 
 ```yaml
 mode: enterprise
@@ -82,3 +82,5 @@ auth:
 ```
 
 回调地址为 `PUBLIC_URL/auth/providers/company/callback`。也可使用 `client_secret_env: SKILLHUB_IDENTITY_SECRET`，与密钥文件互斥。原有 `oidc` 配置/参数继续使用原回调及密钥规则，但不得与 `auth.providers` 混用。`limits` 设置社区配额，`site` 设置站点隐私、条款、联系及登记链接，均为 YAML 配置。
+
+`auth.admission` 可独立选择 `automatic`（首次第三方身份验证后直接成为普通成员）或 `approval`（等待管理员审批）。省略时，企业模式默认审批，社区模式默认自动加入。企业自动加入不创建个人发布空间，不授予发布、审核或管理权限，`private` 和技能受众限制保持不变。已有待审批、拒绝和禁用账号仍由管理员处理。

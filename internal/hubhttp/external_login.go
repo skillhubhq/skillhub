@@ -137,7 +137,7 @@ func (s *Server) providerCallback(p *externalLogin, w http.ResponseWriter, r *ht
 		fail()
 		return
 	}
-	session, err := s.store.FederatedLogin(ctx, verified.Authority, verified.Subject, verified.DisplayName, s.config.Policy.IsCommunity())
+	session, err := s.store.FederatedLogin(ctx, verified.Authority, verified.Subject, verified.DisplayName, s.config.Policy.AutomaticAdmission())
 	if errors.Is(err, hub.ErrPendingApproval) {
 		providerMessage(w, r, http.StatusForbidden,
 			[2]string{"Waiting for approval", "等待管理员批准"},

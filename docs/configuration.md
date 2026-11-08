@@ -19,6 +19,7 @@ The proxy example is only for a directly connected, same-host proxy. Containers 
 | YAML field | CLI flag | Default |
 | --- | --- | --- |
 | `mode` | YAML only | `enterprise`; also supports `community` |
+| `auth.admission` | YAML only | `approval` in enterprise mode; `automatic` in community mode |
 | `auth.providers` | YAML only | empty; up to eight OIDC/GitHub adapters |
 | `limits` | YAML only | community quotas; see [community hosting](community-hosting.md) |
 | `site` | YAML only | optional HTTPS privacy, terms, contact and filing links |
@@ -49,7 +50,7 @@ auth:
 
 Replace the placeholders. A secret file contains only its value, optionally followed by a newline, and must be readable only by trusted operators and the service. Alternatively use `client_secret_env: SKILLHUB_IDENTITY_SECRET`; configure exactly one source. Inline secrets are not supported. Secrets have an 8 KiB bound and are never printed.
 
-Register `PUBLIC_URL/auth/providers/company/callback`. Providers only authenticate; `mode` controls first admission. Provider entries can use either supported adapter in either mode. See [community hosting and adapters](community-hosting.md) and [Entra setup](enterprise-login.md). Changes require a restart.
+Register `PUBLIC_URL/auth/providers/company/callback`. Providers only authenticate. `auth.admission: automatic` creates an ordinary member on the first verified external sign-in; `approval` requires administrator admission. Omit it to use the mode default. This setting is independent of `private` and publication permissions. Provider entries can use either supported adapter in either mode. See [community hosting and adapters](community-hosting.md) and [Entra setup](enterprise-login.md). Changes require a restart.
 
 ## Validate, initialize, run
 

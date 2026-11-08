@@ -6,6 +6,9 @@ import "errors"
 const Enterprise = "enterprise"
 const Community = "community"
 
+const AdmissionApproval = "approval"
+const AdmissionAutomatic = "automatic"
+
 type Limits struct {
 	RequestsPerMinute int   `yaml:"requests_per_minute"`
 	Users             int   `yaml:"users"`
@@ -18,15 +21,24 @@ type Limits struct {
 }
 
 type Policy struct {
-	Mode   string
-	Limits Limits
+	Mode      string
+	Admission string
+	Limits    Limits
 }
 
 func Defaults() Limits {
 	return Limits{RequestsPerMinute: 600, Users: 10000, SubmissionsPerDay: 10, VersionsPerUser: 200, BytesPerUser: 200 << 20, PackageBytes: 5 << 30, CommentsPerDay: 100, ReportsPerDay: 10}
 }
 func (p Policy) IsCommunity() bool { return p.Mode == Community }
+
+// AutomaticAdmission 只控制新外部身份准入，不授予命名空间或平台权限。
+func (p Policy) AutomaticAdmission() bool {
+	return p.Admission == AdmissionAutomatic || p.Admission == "" && p.IsCommunity()
+}
 func (p Policy) Validate() error {
+	if p.Admission != "" && p.Admission != AdmissionApproval && p.Admission != AdmissionAutomatic {
+		return errors.New("auth.admission must be approval or automatic")
+	}
 	if p.Mode != "" && p.Mode != Enterprise && p.Mode != Community {
 		return errors.New("mode must be enterprise or community")
 	}

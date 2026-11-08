@@ -297,3 +297,54 @@ func TestCommunityByteAndVersionQuotas(t *testing.T) {
 		})
 	}
 }
+
+func TestEnterpriseAutomaticAdmissionGrantsOnlyMembership(t *testing.T) {
+	s, admin, cmd, release := backupFixture(t)
+	ctx := context.Background()
+	policy := hubpolicy.Policy{Mode: hubpolicy.Enterprise, Admission: hubpolicy.AdmissionAutomatic, Limits: hubpolicy.Defaults()}
+	mustGovernance(t, s.ConfigurePolicy(policy))
+	session, err := s.FederatedLogin(ctx, "https://identity.example/tenant", "new-member", "New member", policy.AutomaticAdmission())
+	mustGovernance(t, err)
+	member := session.Identity
+	participation, err := s.GetParticipation(ctx, member)
+	mustGovernance(t, err)
+	if member.Administrator || participation.CommunityMode || participation.PersonalNamespace != "" {
+		t.Fatal("automatic admission granted extra privileges")
+	}
+	if _, _, err = s.DownloadRelease(ctx, member, release.Namespace, release.Name, release.Version); err == nil {
+		t.Fatal("member accessed group-only skill")
+	}
+	if _, err = s.SubmitRelease(ctx, member, "member-cannot-submit", cmd); !errors.Is(err, ErrForbidden) {
+		t.Fatal("member published", err)
+	}
+	if _, err = s.ReviewRelease(ctx, member, "member-cannot-review", ReviewRelease{ReleaseID: release.ID, Approve: true}); !errors.Is(err, ErrForbidden) {
+		t.Fatal("member reviewed", err)
+	}
+	if _, err = s.PutNamespace(ctx, member, "member-cannot-admin", PutNamespace{Name: "unauthorized"}); !errors.Is(err, ErrForbidden) {
+		t.Fatal("member administered", err)
+	}
+	cmd.Version = "2.0.0"
+	cmd.Visibility = taxonomy.Visibility_VISIBILITY_MEMBERS
+	cmd.GroupIDs = nil
+	published, err := s.SubmitRelease(ctx, admin.Identity, "member-visible-release", cmd)
+	mustGovernance(t, err)
+	if _, _, err = s.DownloadRelease(ctx, member, published.Namespace, published.Name, published.Version); err != nil {
+		t.Fatal("member cannot install member-visible skill", err)
+	}
+	_, err = s.SetReaction(ctx, member, "member-like", c.ReactionChange{ReleaseID: published.ID, Active: true})
+	mustGovernance(t, err)
+	_, err = s.SetReaction(ctx, member, "member-save", c.ReactionChange{ReleaseID: published.ID, Bookmark: true, Active: true})
+	mustGovernance(t, err)
+	_, err = s.CreateComment(ctx, member, "member-comment", c.CommentChange{ReleaseID: published.ID, Body: "Useful skill"})
+	mustGovernance(t, err)
+	again, err := s.FederatedLogin(ctx, "https://identity.example/tenant", "new-member", "Changed name", policy.AutomaticAdmission())
+	mustGovernance(t, err)
+	if again.Identity.ID != member.ID {
+		t.Fatal("repeat sign-in duplicated account")
+	}
+	_, err = s.SetUserDisabled(ctx, admin.Identity, "disable-member", SetUserDisabled{ID: member.ID, Disabled: true})
+	mustGovernance(t, err)
+	if _, err = s.FederatedLogin(ctx, "https://identity.example/tenant", "new-member", "New member", policy.AutomaticAdmission()); !errors.Is(err, ErrUnauthenticated) {
+		t.Fatal("automatic admission reactivated disabled account", err)
+	}
+}

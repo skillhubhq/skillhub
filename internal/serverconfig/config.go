@@ -39,6 +39,7 @@ type Config struct {
 }
 
 type Auth struct {
+	Admission string                    `yaml:"admission"`
 	Providers []identityprovider.Config `yaml:"providers"`
 }
 
@@ -175,7 +176,9 @@ func (c Config) DatabaseConfig() (hubdb.Config, error) {
 	return result, nil
 }
 
-func (c Config) Policy() hubpolicy.Policy { return hubpolicy.Policy{Mode: c.Mode, Limits: c.Limits} }
+func (c Config) Policy() hubpolicy.Policy {
+	return hubpolicy.Policy{Mode: c.Mode, Admission: c.Auth.Admission, Limits: c.Limits}
+}
 
 // Providers 在启动时解析密钥，不把密钥值写入配置或错误信息。
 func (c Config) Providers() ([]identityprovider.Config, error) {
