@@ -17,7 +17,7 @@ class PackageReleaseTests(unittest.TestCase):
                 path = root / f"{kind}-{runner}"
                 (path / "third-party").mkdir(parents=True)
                 (path / "third-party/LICENSE.example").write_text("Fixture license")
-                (path / "build.json").write_text(json.dumps({"revision": revision, "dirty": False, "goos": goos, "goarch": arch}))
+                (path / "build.json").write_text(json.dumps({"revision": revision, "dirty": False, "goos": goos, "goarch": arch, "cgo_enabled": "0" if goos == "linux" else "1"}))
                 if kind == "hub-cli":
                     for name in ["skillhub", "skillhub-server"]:
                         (path / (name + (".exe" if goos == "windows" else ""))).write_bytes(b"fixture executable")
@@ -55,6 +55,18 @@ class PackageReleaseTests(unittest.TestCase):
             self.assertEqual(len((dest / "SHA256SUMS").read_text().splitlines()), 6)
             with self.assertRaises(FileExistsError):
                 package(tag, revision, "123", root, dest)
+
+    def test_rejects_nonportable_linux_artifact(self):
+        for cgo in ["1", None]:
+            with self.subTest(cgo=cgo), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                tag, revision = self.fixture(root)
+                path = root / "hub-cli-ubuntu-latest/build.json"
+                metadata = json.loads(path.read_text())
+                metadata["cgo_enabled"] = cgo
+                path.write_text(json.dumps(metadata))
+                with self.assertRaisesRegex(ValueError, "without CGO"):
+                    package(tag, revision, "123", root, root / "release")
 
     def test_rejects_path_and_shell_tokens_in_release_identity(self):
         for tag in ["../../escape", "v0.1.0/../../escape", "v0.1.0;echo bad", "v0.1.0$(echo bad)"]:

@@ -6,6 +6,8 @@ GitHub is the canonical home for source, issues and versioned downloads. Each Hu
 
 Use [Releases](https://github.com/skillhubhq/skillhub/releases), including prereleases. `/releases/latest` is not the default entry while only previews exist. Private repositories require GitHub access; anonymous distribution starts only after repository visibility is changed by the owner.
 
+Linux Hub/CLI binaries use a CGO-free build and do not require the CI runner’s glibc version.
+
 The current release matrix is Linux amd64 Hub/CLI, macOS arm64 Hub/CLI/App and Windows amd64 Hub/CLI/App. Linux App and Intel macOS packages are not currently published. macOS requires 13+; Windows App requires WebView2. Desktop packages do not include paid platform signing or Apple notarization. Signing, notarization and automatic App updates require separate work and are not implied by GitHub hosting.
 
 A release contains:

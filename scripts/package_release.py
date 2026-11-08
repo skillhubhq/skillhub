@@ -33,6 +33,8 @@ def package(tag, revision, run_id, artifacts, dest):
             target = {"ubuntu-latest": ("linux", "amd64"), "macos-latest": ("darwin", "arm64"), "windows-latest": ("windows", "amd64")}[runner]
             if (metadata["goos"], metadata["goarch"]) != target:
                 raise ValueError("CI runner architecture changed; update the supported release matrix explicitly")
+            if target[0] == "linux" and metadata.get("cgo_enabled") != "0":
+                raise ValueError("Linux artifacts must be built without CGO for portable distribution")
             if kind == "desktop":
                 report = json.loads((artifacts / f"native-runtime-{runner}" / "native-smoke.json").read_text())
                 if report.get("passed") is not True or report.get("error") or not report.get("checks"):
