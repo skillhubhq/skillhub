@@ -217,9 +217,13 @@ export function Management({ mode = "management" }: { mode?: string }) {
         />
       ) : kind === "reports" ? (
         <ContentReports key={source} source={source} />
+      ) : duties.loading ? (
+        <p role="status">{t("Loading…", "加载中…")}</p>
+      ) : duties.error ? (
+        <AccessState error={duties.error} retry={duties.reload} />
       ) : (
         <Records
-          key={`${source}/${kind}/${duties.value?.can_manage_users}/${duties.value?.can_read_audit}`}
+          key={`${source}/${identity.id}/${kind}`}
           source={source}
           kind={kind}
           administrator={identity.administrator}
@@ -307,7 +311,7 @@ function Records({
           : true)
     )
       load();
-  }, []);
+  }, [canManageUsers, canReadAudit]);
   if (
     (kind === "users" && !canManageUsers) ||
     (kind === "audit" && !canReadAudit)
