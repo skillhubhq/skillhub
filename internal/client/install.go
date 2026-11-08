@@ -236,7 +236,16 @@ func sameInstallation(a, b *Installation) bool {
 	if a == nil || b == nil {
 		return a == nil && b == nil
 	}
-	return *a == *b
+	left, right := *a, *b
+	if left.Provenance == nil || right.Provenance == nil {
+		if left.Provenance != right.Provenance {
+			return false
+		}
+	} else if *left.Provenance != *right.Provenance {
+		return false
+	}
+	left.Provenance, right.Provenance = nil, nil
+	return left == right
 }
 
 func (s *Store) Apply(ctx context.Context, plan InstallPlan, archive []byte) error {
