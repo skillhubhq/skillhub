@@ -109,12 +109,16 @@ def exercise(baseline, candidate, server, cli, report_path, provenance=None):
             output = data / "native-smoke.json"
             output.unlink(missing_ok=True)
             phase_env = dict(env, SKILLHUB_UPGRADE_PHASE=name)
-            app = subprocess.Popen([str(binary(installed))], env=phase_env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            app = subprocess.Popen([str(binary(installed))], env=phase_env, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
             processes.append(app)
-            try: app.wait(timeout=90)
+            try: _, launch_error = app.communicate(timeout=90)
             except subprocess.TimeoutExpired:
                 app.kill(); app.wait(); raise RuntimeError("native upgrade phase timed out: " + name)
-            if not output.is_file(): raise RuntimeError("App exited without an upgrade report: " + name)
+            if not output.is_file():
+                detail = launch_error.decode("utf-8", errors="replace")[-4000:]
+                for account in accounts: detail = detail.replace(account["password"], "[redacted]")
+                detail = detail.replace(str(root), "[fixture]")
+                raise RuntimeError(f"App exited {app.returncode} without an upgrade report: {name}; {detail}")
             result = json.loads(output.read_text(encoding="utf-8"))
             evidence["phases"].append({"phase": name, "binary_sha256": app_hash(installed), **result})
             if app.returncode or not result.get("passed"):
