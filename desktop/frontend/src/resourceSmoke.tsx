@@ -30,16 +30,21 @@ export async function runResourceSmoke(
       <article>{resource.value}</article>
     );
   }
-  const settle = async () => {
-    await new Promise<void>((resolve) =>
-      requestAnimationFrame(() => resolve()),
-    );
-    await new Promise<void>((resolve) => setTimeout(resolve, 0));
+  const settle = async (ready: () => boolean) => {
+    const deadline = Date.now() + 5000;
+    while (!ready()) {
+      if (Date.now() >= deadline)
+        throw new Error(`Resource fixture did not settle: ${ready.toString()}`);
+      await new Promise<void>((resolve) => setTimeout(resolve, 20));
+    }
   };
   try {
     flushSync(() => root.render(<Fixture source="first" revision={0} />));
     pending.shift()!.resolve("Current account");
-    await settle();
+    await settle(
+      () =>
+        container.querySelector("article")?.textContent === "Current account",
+    );
     const content = container.querySelector("article");
     check(
       content?.textContent === "Current account",
@@ -52,7 +57,7 @@ export async function runResourceSmoke(
       "background refresh preserves loaded content and its layout",
     );
     pending.shift()!.resolve("Updated account");
-    await settle();
+    await settle(() => content?.textContent === "Updated account");
     check(
       content?.textContent === "Updated account",
       "background refresh commits new content in place",
@@ -64,10 +69,17 @@ export async function runResourceSmoke(
       "switching sources hides the previous account immediately",
     );
     pending.shift()!.resolve("Second account");
-    await settle();
+    await settle(
+      () =>
+        container.querySelector("article")?.textContent === "Second account",
+    );
     flushSync(() => root.render(<Fixture source="second" revision={2} />));
     pending.shift()!.reject(new Error("Session expired"));
-    await settle();
+    await settle(
+      () =>
+        container.querySelector('[role="alert"]')?.textContent ===
+        "Session expired",
+    );
     check(
       !container.querySelector("article") &&
         container.querySelector('[role="alert"]')?.textContent ===
