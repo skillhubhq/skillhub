@@ -1016,3 +1016,22 @@
     gap: 18px;
   }
 }
+.language-short {
+  display: none;
+}
+@media (max-width: 480px) {
+  .quick-language .language-full {
+    display: none;
+  }
+  .quick-language .language-short {
+    display: inline;
+  }
+  .global-utilities .quick-language .ui-select {
+    width: 52px;
+    padding-left: 5px;
+  }
+  .navigation-shell .site-home .site-name {
+    white-space: nowrap;
+    display: block;
+  }
+}

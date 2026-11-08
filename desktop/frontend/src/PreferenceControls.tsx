@@ -20,6 +20,16 @@ export function PreferenceControls({
         <Select
           aria-label={tr("Language", "语言")}
           value={language}
+          triggerContent={
+            <>
+              <span className="language-full">
+                {language === "zh" ? "简体中文" : "English"}
+              </span>
+              <span className="language-short" aria-hidden="true">
+                {language === "zh" ? "中" : "EN"}
+              </span>
+            </>
+          }
           onChange={(e) => onLanguage(e.target.value as "en" | "zh")}
         >
           <option value="en">English</option>
