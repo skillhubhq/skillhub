@@ -11,7 +11,51 @@ import (
 	"testing"
 
 	"github.com/skillhubhq/skillhub/internal/packageformat"
+	"github.com/skillhubhq/skillhub/internal/provenance"
 )
+
+func TestAttributedInstallationCanUpdateAndRemove(t *testing.T) {
+	ctx := context.Background()
+	s := testStore(t)
+	archive, digest := testArchive(t, "first")
+	desired := record(filepath.Join(t.TempDir(), "check"), digest)
+	desired.Provenance = &provenance.Record{AuthorName: "Example author", SourceURL: "https://example.com/skills", License: "Apache-2.0"}
+	plan, err := s.PlanInstall(ctx, desired, archive)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err = s.Apply(ctx, *plan, archive); err != nil {
+		t.Fatal(err)
+	}
+	next, digest := testArchive(t, "updated")
+	desired.Digest = digest
+	desired.Version = "2.0.0"
+	plan, err = s.PlanInstall(ctx, desired, next)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err = s.Apply(ctx, *plan, next); err != nil {
+		t.Fatalf("update attributed installation: %v", err)
+	}
+	plan, err = s.PlanRemove(ctx, desired.Target)
+	if err != nil {
+		t.Fatal(err)
+	}
+	plan.Before.Provenance.License = "MIT"
+	if err = s.Apply(ctx, *plan, nil); !errors.Is(err, ErrStalePlan) {
+		t.Fatalf("changed attribution must invalidate plan: %v", err)
+	}
+	plan, err = s.PlanRemove(ctx, desired.Target)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err = s.Apply(ctx, *plan, nil); err != nil {
+		t.Fatalf("remove attributed installation: %v", err)
+	}
+	if _, err = os.Stat(desired.Target); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("installation remains: %v", err)
+	}
+}
 
 func TestExecutableArchiveCanBeUpdatedOnHostPlatform(t *testing.T) {
 	var raw bytes.Buffer
