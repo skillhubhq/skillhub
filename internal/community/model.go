@@ -2,8 +2,10 @@
 package community
 
 import (
-	taxonomy "github.com/skillhubhq/skillhub/gen/common/registry/v1"
 	"time"
+
+	taxonomy "github.com/skillhubhq/skillhub/gen/common/registry/v1"
+	"github.com/skillhubhq/skillhub/internal/provenance"
 )
 
 type Profile struct {
@@ -28,6 +30,7 @@ type Member struct {
 	Roles   []taxonomy.NamespaceRole `json:"roles"`
 }
 type Contribution struct {
+	Provenance    *provenance.Record `json:"provenance,omitempty"`
 	DisplayNameEN string             `json:"display_name_en"`
 	DisplayNameZH string             `json:"display_name_zh"`
 	Icon          taxonomy.SkillIcon `json:"icon"`

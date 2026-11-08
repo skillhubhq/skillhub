@@ -110,6 +110,6 @@ Native overwrite tests use one isolated application and credential-store identit
 
 ## Login adapters and community policy
 
-Run `go test -race ./internal/identityprovider ./internal/hubhttp ./internal/hub ./internal/serverconfig` to verify provider validation, OIDC signatures/claims, OAuth PKCE, state/cookie/replay isolation, stable identities, mode-specific admission, disabled/pending account retention, safe avatar initialization, quotas, moderation and schema-10-to-current recovery. Adapter tests use controlled HTTP transports; OIDC tests use a local TLS provider with real signed tokens. They do not require or claim real provider credentials.
+Run `go test -race ./internal/identityprovider ./internal/hubhttp ./internal/hub ./internal/serverconfig` to verify provider validation, OIDC signatures/claims, OAuth PKCE, state/cookie/replay isolation, stable identities, mode-specific admission, disabled/pending account retention, safe avatar initialization, quotas, moderation and schema initialization and provenance upgrade preservation. Adapter tests use controlled HTTP transports; OIDC tests use a local TLS provider with real signed tokens. They do not require or claim real provider credentials.
 
 `TestPostgresCommunityPolicyAndModeration` runs through the existing isolated PostgreSQL fixture on versions 15, 16 and 18. The native fixture additionally exercises the report dialog, shared Go methods, report queue authorization, resolution and comment tombstones. All fixture data is disposable; these tests never open the operator's current Hub data.

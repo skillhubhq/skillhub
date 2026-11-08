@@ -40,7 +40,7 @@ func postgresMetadata(ctx context.Context, db *hubdb.DB) (PostgresBackupInfo, er
 	if err := db.QueryRowContext(ctx, "SELECT current_schema()").Scan(&info.DatabaseSchema); err != nil || !pgSchemaName.MatchString(info.DatabaseSchema) {
 		return info, errors.New("maintenance requires a simple PostgreSQL schema name")
 	}
-	if err := db.QueryRowContext(ctx, "SELECT version FROM hub_schema WHERE id=1").Scan(&info.Schema); err != nil || info.Schema != currentSchema {
+	if err := db.QueryRowContext(ctx, "SELECT version FROM hub_schema WHERE id=1").Scan(&info.Schema); err != nil || (info.Schema < 1 || info.Schema > currentSchema) {
 		return info, errors.New("unsupported PostgreSQL Hub schema")
 	}
 	var count int
@@ -284,7 +284,7 @@ func readPostgresBackup(root string) (PostgresBackupInfo, error) {
 		return info, errors.New("invalid manifest trailer")
 	}
 	_, timeErr := time.Parse(time.RFC3339, info.CreatedAt)
-	if info.PostgresMajor < 15 || info.Driver != "postgres" || info.Format != 2 || info.Schema != currentSchema || info.RegistryID == "" || info.DatabaseBytes <= 0 || !validBackupDigest(info.DatabaseDigest) || !pgSchemaName.MatchString(info.DatabaseSchema) || info.Packages != len(info.Digests) || timeErr != nil {
+	if info.PostgresMajor < 15 || info.Driver != "postgres" || info.Format != 2 || (info.Schema < 1 || info.Schema > currentSchema) || info.RegistryID == "" || info.DatabaseBytes <= 0 || !validBackupDigest(info.DatabaseDigest) || !pgSchemaName.MatchString(info.DatabaseSchema) || info.Packages != len(info.Digests) || timeErr != nil {
 		return info, errors.New("unsupported PostgreSQL backup metadata")
 	}
 	previous := ""

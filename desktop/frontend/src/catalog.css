@@ -526,3 +526,76 @@ details > summary {
 .integrity-details > summary {
   font-weight: 400;
 }
+
+/* 上游署名与操作身份分层展示，长 SHA 和来源地址不能撑开卡片。 */
+.upstream-author {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.3rem 0.65rem;
+  min-width: 0;
+}
+.upstream-author a {
+  font-weight: 600;
+}
+.upstream-author small {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+.provenance-details {
+  margin: 1rem 0;
+  padding-block: 0.8rem;
+  border-block: 1px solid var(--line);
+  min-width: 0;
+}
+.provenance-details > .small-label {
+  display: block;
+  margin-bottom: 0.35rem;
+}
+.provenance-details dl {
+  display: grid;
+  grid-template-columns: minmax(5rem, auto) minmax(0, 1fr);
+  gap: 0.55rem 0.8rem;
+  margin: 0.85rem 0 0;
+  font-size: 0.8rem;
+}
+.provenance-details dt {
+  color: var(--muted);
+}
+.provenance-details dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.provenance-details dd small {
+  display: block;
+  color: var(--muted);
+  margin-top: 0.2rem;
+}
+.provenance-proof {
+  margin-top: 0.8rem;
+  font-size: 0.75rem;
+}
+.provenance-proof summary {
+  cursor: pointer;
+  color: var(--muted);
+}
+.provenance-proof p {
+  color: var(--muted);
+  line-height: 1.6;
+  margin-bottom: 0;
+}
+.provenance-editor {
+  border-block: 1px solid var(--line);
+  padding-block: 1rem;
+}
+.provenance-editor .form-grid {
+  margin-top: 0.8rem;
+}
+.provenance-editor .check {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.provenance-editor .check input {
+  width: auto;
+}

@@ -14,6 +14,7 @@ import (
 	commonv1 "github.com/skillhubhq/skillhub/gen/api/common/v1"
 	taxonomy "github.com/skillhubhq/skillhub/gen/common/registry/v1"
 	"github.com/skillhubhq/skillhub/internal/packageformat"
+	"github.com/skillhubhq/skillhub/internal/provenancewire"
 )
 
 type SearchResult struct {
@@ -216,7 +217,7 @@ func (c *Client) PlanRemoteInstall(ctx context.Context, coordinate Coordinate, t
 	if err != nil {
 		return nil, nil, err
 	}
-	desired := Installation{Source: remote.Source.Alias, SourceRef: remote.Source.CredentialRef, RegistryID: remote.Source.RegistryID, RegistryURL: remote.Source.URL, Namespace: coordinate.Namespace, Name: coordinate.Name, Version: coordinate.Version, Digest: release.Digest, DisplayNameEN: release.DisplayNameEn, DisplayNameZH: release.DisplayNameZh, Icon: release.Icon, Tool: tool, Scope: scope, Project: canonicalProject, Target: target}
+	desired := Installation{Source: remote.Source.Alias, SourceRef: remote.Source.CredentialRef, RegistryID: remote.Source.RegistryID, RegistryURL: remote.Source.URL, Namespace: coordinate.Namespace, Name: coordinate.Name, Version: coordinate.Version, Digest: release.Digest, DisplayNameEN: release.DisplayNameEn, DisplayNameZH: release.DisplayNameZh, Icon: release.Icon, Provenance: provenancewire.Decode(release.Provenance), Tool: tool, Scope: scope, Project: canonicalProject, Target: target}
 	plan, err := c.store.PlanInstall(ctx, desired, archive)
 	return plan, archive, err
 }

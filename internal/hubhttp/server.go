@@ -155,7 +155,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) GetRegistry(ctx context.Context, req *connect.Request[registryv1.GetRegistryRequest]) (*connect.Response[registryv1.GetRegistryResponse], error) {
-	capabilities := []string{"identity.local", "identity.device", "catalog.v1", "publishing.review.v1", "admin.v1", "community.v1", "community.moderation.v1", "catalog.presentation.v1", "governance.v1", "catalog.discovery.v1", "governance.tasks.v1", "evaluation.v1"}
+	capabilities := []string{"identity.local", "identity.device", "catalog.v1", "publishing.review.v1", "admin.v1", "community.v1", "community.moderation.v1", "catalog.presentation.v1", "catalog.provenance.v1", "governance.v1", "catalog.discovery.v1", "governance.tasks.v1", "evaluation.v1"}
 
 	if s.config.Policy.IsCommunity() {
 		capabilities = append(capabilities, "community.public.v1")

@@ -1,6 +1,7 @@
 syntax = "proto3";
 package api.community.v1;
 
+import "api/catalog/v1/catalog_service.proto";
 import "api/common/v1/types.proto";
 import "buf/validate/validate.proto";
 import "common/registry/v1/taxonomy.proto";
@@ -103,6 +104,8 @@ message Contribution {
   string display_name_zh = 8;
   // 内置技能图标；零值使用默认图标。
   .common.registry.v1.SkillIcon icon = 9;
+  // 上游署名；author 字段仍为实际提交账号的公开资料。
+  api.catalog.v1.Provenance provenance = 10;
 }
 // Comment 为社区资源的传输投影。
 message Comment {

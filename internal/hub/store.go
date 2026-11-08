@@ -19,7 +19,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-const currentSchema = 1
+const currentSchema = 2
 
 var (
 	ErrUnauthenticated = errors.New("authentication required")
@@ -125,7 +125,7 @@ func (s *Store) initializeContext(ctx context.Context) error {
 	if err = tx.QueryRowContext(ctx, "PRAGMA user_version").Scan(&version); err != nil {
 		return err
 	}
-	if version != 0 && version != currentSchema {
+	if version < 0 || version > currentSchema {
 		return errors.New("unsupported hub database schema")
 	}
 	if version == 0 {
@@ -133,6 +133,12 @@ func (s *Store) initializeContext(ctx context.Context) error {
 			return err
 		}
 		if _, err = tx.ExecContext(ctx, "INSERT INTO instance(id,secret) VALUES(?,?)", uuid.NewString(), []byte(randomSecret())); err != nil {
+			return err
+		}
+	}
+	// 版本 1 已用于实际部署；在持有独占数据库所有权的事务中扩展，不改写既有版本。
+	if version == 1 {
+		if _, err = tx.ExecContext(ctx, "ALTER TABLE releases ADD COLUMN provenance TEXT NOT NULL DEFAULT 'null'; PRAGMA user_version=2;"); err != nil {
 			return err
 		}
 	}
@@ -144,6 +150,11 @@ func (s *Store) initializeContext(ctx context.Context) error {
 		}
 		rows.Close()
 	}
+	columns, columnErr := tx.QueryContext(ctx, "SELECT provenance FROM releases LIMIT 0")
+	if columnErr != nil {
+		return errors.New("incomplete hub database schema")
+	}
+	columns.Close()
 	if err = tx.QueryRowContext(ctx, "SELECT id,secret FROM instance").Scan(&s.registryID, &s.secret); err != nil {
 		return err
 	}

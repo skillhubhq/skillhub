@@ -1,11 +1,13 @@
 package client
 
 import (
-	"connectrpc.com/connect"
 	"context"
+
+	"connectrpc.com/connect"
 	common "github.com/skillhubhq/skillhub/gen/api/common/v1"
 	api "github.com/skillhubhq/skillhub/gen/api/community/v1"
 	c "github.com/skillhubhq/skillhub/internal/community"
+	"github.com/skillhubhq/skillhub/internal/provenancewire"
 )
 
 func CommunityProfile(v *api.Profile) c.Profile {
@@ -30,7 +32,7 @@ func CommunityContribution(v *api.Contribution) c.Contribution {
 	if v == nil {
 		return c.Contribution{}
 	}
-	return c.Contribution{ReleaseID: v.ReleaseId, Namespace: v.Namespace, Name: v.Name, DisplayNameEN: v.DisplayNameEn, DisplayNameZH: v.DisplayNameZh, Icon: v.Icon, Version: v.Version, Description: v.Description, Author: CommunityProfile(v.Author)}
+	return c.Contribution{Provenance: provenancewire.Decode(v.Provenance), ReleaseID: v.ReleaseId, Namespace: v.Namespace, Name: v.Name, DisplayNameEN: v.DisplayNameEn, DisplayNameZH: v.DisplayNameZh, Icon: v.Icon, Version: v.Version, Description: v.Description, Author: CommunityProfile(v.Author)}
 }
 func CommunityComment(v *api.Comment) c.Comment {
 	if v == nil {

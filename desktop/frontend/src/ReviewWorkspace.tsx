@@ -1,3 +1,4 @@
+import { ProvenanceDetails } from "./ProvenancePanel";
 import { EvaluationPanel } from "./EvaluationPanel";
 import { ScanPanel } from "./Governance";
 import { Select } from "./Select";
@@ -456,6 +457,11 @@ export function ReviewWorkspace({
               />
             </div>
             <div className="review-content">
+              <ProvenanceDetails
+                value={selected.release.provenance}
+                version={selected.release.version}
+                digest={selected.release.digest}
+              />
               <PreviewBody preview={selected} />
             </div>
             <details className="review-properties">
@@ -473,7 +479,7 @@ export function ReviewWorkspace({
                     <dd lang="zh-CN">{selected.release.display_name_zh}</dd>
                   </>
                 )}
-                <dt>{t("Published by")}</dt>
+                <dt>{t("Submitted by", "提交账号")}</dt>
                 <dd>
                   {author.value ? (
                     <Person source={source} person={author.value} />

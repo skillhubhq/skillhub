@@ -1,3 +1,4 @@
+import { provenanceInfo } from "./provenance";
 import type { NamespaceRole } from "../bindings/github.com/skillhubhq/skillhub/gen/common/registry/v1/models";
 import type {
   createHubClients,
@@ -33,6 +34,7 @@ const team = (v?: Team) => {
 };
 const contribution = (v: Contribution) => ({
   release_id: v.releaseId,
+  provenance: provenanceInfo(v.provenance),
   namespace: v.namespace,
   name: v.name,
   display_name_en: v.displayNameEn,

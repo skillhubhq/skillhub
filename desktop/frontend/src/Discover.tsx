@@ -1,3 +1,4 @@
+import { ProvenanceDetails } from "./ProvenancePanel";
 import { skillWebURL } from "./official";
 import { ProjectLink } from "./Downloads";
 import { EvaluationPanel } from "./EvaluationPanel";
@@ -719,7 +720,14 @@ export function Discover() {
                         : t("files", "个文件")}
                     </span>
                   </div>
+                  <ProvenanceDetails
+                    value={preview.release.provenance}
+                    reviewNote={preview.release.reason}
+                    version={preview.release.version}
+                    digest={preview.release.digest}
+                  />
                   <SkillPeople
+                    curated={!!preview.release.provenance}
                     source={selected.coordinate.split("/")[0]}
                     userId={preview.release.submitted_by}
                     namespace={preview.release.namespace}

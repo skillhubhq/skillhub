@@ -1,11 +1,13 @@
 package hubhttp
 
 import (
-	"connectrpc.com/connect"
 	"context"
+
+	"connectrpc.com/connect"
 	api "github.com/skillhubhq/skillhub/gen/api/community/v1"
 	c "github.com/skillhubhq/skillhub/internal/community"
 	"github.com/skillhubhq/skillhub/internal/hub"
+	"github.com/skillhubhq/skillhub/internal/provenancewire"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -19,7 +21,7 @@ func communityMemberDTO(v c.Member) *api.Member {
 	return &api.Member{Profile: communityProfileDTO(v.Profile), Roles: v.Roles}
 }
 func communityContributionDTO(v c.Contribution) *api.Contribution {
-	return &api.Contribution{ReleaseId: v.ReleaseID, Namespace: v.Namespace, Name: v.Name, DisplayNameEn: v.DisplayNameEN, DisplayNameZh: v.DisplayNameZH, Icon: v.Icon, Version: v.Version, Description: v.Description, Author: communityProfileDTO(v.Author)}
+	return &api.Contribution{Provenance: provenancewire.Encode(v.Provenance), ReleaseId: v.ReleaseID, Namespace: v.Namespace, Name: v.Name, DisplayNameEn: v.DisplayNameEN, DisplayNameZh: v.DisplayNameZH, Icon: v.Icon, Version: v.Version, Description: v.Description, Author: communityProfileDTO(v.Author)}
 }
 func communityCommentDTO(v c.Comment) *api.Comment {
 	return &api.Comment{CommentId: v.CommentID, ReleaseId: v.ReleaseID, ParentId: v.ParentID, Author: communityProfileDTO(v.Author), Body: v.Body, CreatedAt: timestamppb.New(v.CreatedAt), Deleted: v.Deleted, CanDelete: v.CanDelete}

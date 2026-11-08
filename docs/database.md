@@ -56,3 +56,9 @@ Before reopening traffic, verify login, old-token rejection, non-admin audience 
 ## Behavior tests
 
 `SKILLHUB_TEST_POSTGRES_DSN` must target a disposable PostgreSQL installation with permission to create/drop test databases. The HTTP suite creates isolated schemas; maintenance tests create isolated databases. Run `go test -race -count=1 ./internal/hubhttp` and `go test -count=1 -run TestPostgres ./internal/hub` with matching native tools on PATH. CI executes the maintenance binary inside each PostgreSQL 15/16/18 service container, using its matching tools. Tests cover lease-before-DDL, disconnection, paired recovery, session invalidation, corruption/missing packages, wrong identity, failed recovery startup guards, transactional initialization failure and future-schema rejection. Restore assertions include platform duties, scan reports, notification/read state and curated selections. Ordinary `make check` runs SQLite coverage and skips PostgreSQL without an explicit DSN. See [testing](testing.md) for local fixture commands and [deployment checks](deployment-checklist.md) for operator verification.
+
+## Provenance schema compatibility
+
+The Hub accepts database schemas 1 and 2 and transactionally adds the immutable provenance column when opening schema 1. Existing accounts, sessions, registry identity and release bytes remain unchanged; releases without provenance continue to work. Backup verification and restore accept both versions without modifying the snapshot. The restored writable database is upgraded on its next normal start. Unknown future schemas and incomplete structures fail closed.
+
+Take a paired database/package backup **with the currently running binary before upgrading**. Retain that binary with its backup. A rollback to a binary that only supports schema 1 must restore its matching schema-1 snapshot into a fresh data directory; changing the executable alone is insufficient. Never downgrade the database in place.

@@ -18,6 +18,7 @@ import (
 	"github.com/gofrs/flock"
 	catalogv1 "github.com/skillhubhq/skillhub/gen/api/catalog/v1"
 	"github.com/skillhubhq/skillhub/internal/packageformat"
+	"github.com/skillhubhq/skillhub/internal/provenancewire"
 	"golang.org/x/mod/semver"
 )
 
@@ -488,7 +489,7 @@ func (c *Client) PlanProjectRestore(ctx context.Context, path string) (*ProjectR
 		if err != nil {
 			return nil, fmt.Errorf("%s/%s: %w", skill.Source, skill.Name, err)
 		}
-		desired := Installation{Source: source.Alias, SourceRef: source.CredentialRef, RegistryID: skill.RegistryID, RegistryURL: skill.RegistryURL, Namespace: skill.Namespace, Name: skill.Name, Version: skill.Version, Digest: skill.Digest, DisplayNameEN: release.DisplayNameEn, DisplayNameZH: release.DisplayNameZh, Icon: release.Icon, Tool: skill.Tool, Scope: "project", Project: state.Root, Target: target}
+		desired := Installation{Source: source.Alias, SourceRef: source.CredentialRef, RegistryID: skill.RegistryID, RegistryURL: skill.RegistryURL, Namespace: skill.Namespace, Name: skill.Name, Version: skill.Version, Digest: skill.Digest, DisplayNameEN: release.DisplayNameEn, DisplayNameZH: release.DisplayNameZh, Icon: release.Icon, Provenance: provenancewire.Decode(release.Provenance), Tool: skill.Tool, Scope: "project", Project: state.Root, Target: target}
 		next, err := c.store.PlanInstall(ctx, desired, archive)
 		if err != nil {
 			return nil, fmt.Errorf("%s: %w", skill.Target, err)
@@ -552,7 +553,7 @@ func (c *Client) ApplyProjectRestore(ctx context.Context, plan *ProjectRestorePl
 				if err != nil {
 					return err
 				}
-				expected := Installation{Source: source.Alias, SourceRef: source.CredentialRef, RegistryID: skill.RegistryID, RegistryURL: skill.RegistryURL, Namespace: skill.Namespace, Name: skill.Name, Version: skill.Version, Digest: skill.Digest, DisplayNameEN: release.DisplayNameEn, DisplayNameZH: release.DisplayNameZh, Icon: release.Icon, Tool: skill.Tool, Scope: "project", Project: plan.Project, Target: target}
+				expected := Installation{Source: source.Alias, SourceRef: source.CredentialRef, RegistryID: skill.RegistryID, RegistryURL: skill.RegistryURL, Namespace: skill.Namespace, Name: skill.Name, Version: skill.Version, Digest: skill.Digest, DisplayNameEN: release.DisplayNameEn, DisplayNameZH: release.DisplayNameZh, Icon: release.Icon, Provenance: provenancewire.Decode(release.Provenance), Tool: skill.Tool, Scope: "project", Project: plan.Project, Target: target}
 				// 用新计划核对确认过的文件状态；沿用旧计划的安装 ID 由 Apply 保证。
 				fresh, err := c.store.PlanInstall(ctx, expected, archive)
 				if err != nil {

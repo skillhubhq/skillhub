@@ -10,7 +10,7 @@ import (
 	"github.com/skillhubhq/skillhub/internal/packageformat"
 )
 
-const Engine = "builtin-static/1"
+const Engine = "builtin-static/2"
 const MaxFindings = 100
 
 type Finding struct {
@@ -35,6 +35,10 @@ type rule struct {
 }
 
 var rules = []rule{
+	{"process-execution", regexp.MustCompile(`\bsubprocess\.(Popen|run|call|check_call|check_output)\s*\(`), false, "Starts local commands. Review arguments, environment and intended user consent before running."},
+	{"process-termination", regexp.MustCompile(`\bos\.(kill|killpg)\s*\(`), false, "Can terminate local processes. Review how process IDs are selected and avoid unrelated services."},
+	{"external-script", regexp.MustCompile(`(?i)<script[^>]{0,1000}\bsrc\s*=\s*["']https?://`), false, "Loads an external script when opened in a browser. Review the source and integrity pinning."},
+
 	{"private-key", regexp.MustCompile(`-----BEGIN (RSA |EC |OPENSSH |DSA )?PRIVATE KEY-----`), true, "Remove embedded private key material; rotate exposed credentials."},
 	{"credential-token", regexp.MustCompile(`\b(gh[pousr]_[A-Za-z0-9]{36,255}|AKIA[A-Z0-9]{16})\b`), true, "Remove a credential-shaped token; verify and rotate it outside the package."},
 	{"download-execute", regexp.MustCompile(`(?i)(curl|wget)\b[^\n]{0,1000}\|\s*(sh|bash|zsh|python)\b`), false, "Remote content is piped into an interpreter. Review origin and integrity checks."},

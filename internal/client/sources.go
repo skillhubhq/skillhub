@@ -427,3 +427,13 @@ func (r *Remote) RequireSkillPresentation() error {
 	}
 	return errors.New("this Hub needs an upgrade to accept skill display names and icons")
 }
+
+// RequireProvenance 防止旧 Hub 丢弃署名和许可证声明。
+func (r *Remote) RequireProvenance() error {
+	for _, c := range r.Capabilities {
+		if c == "catalog.provenance.v1" {
+			return nil
+		}
+	}
+	return errors.New("this Hub needs an upgrade to accept upstream attribution")
+}

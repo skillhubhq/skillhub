@@ -19,7 +19,7 @@ CREATE TABLE releases (
  namespace TEXT NOT NULL REFERENCES namespaces(name), name TEXT NOT NULL, version TEXT NOT NULL,
  digest TEXT NOT NULL, archive_bytes INTEGER NOT NULL DEFAULT 0,
  display_name_en TEXT NOT NULL DEFAULT '', display_name_zh TEXT NOT NULL DEFAULT '', icon INTEGER NOT NULL DEFAULT 0,
- description TEXT NOT NULL, markdown TEXT NOT NULL,
+ description TEXT NOT NULL, markdown TEXT NOT NULL, provenance TEXT NOT NULL DEFAULT 'null',
  status INTEGER NOT NULL CHECK(status IN (1,2,3,4)), visibility INTEGER NOT NULL CHECK(visibility IN (1,2,3)),
  submitted_by TEXT NOT NULL REFERENCES users(id), created_at INTEGER NOT NULL,
  review_reason TEXT NOT NULL DEFAULT '', category TEXT NOT NULL DEFAULT '', published_order INTEGER NOT NULL DEFAULT 0,
@@ -59,5 +59,5 @@ CREATE TABLE community_reports (sequence INTEGER PRIMARY KEY AUTOINCREMENT, id T
 CREATE INDEX community_reports_queue ON community_reports(resolved,sequence);
 
 CREATE TABLE external_identities (issuer TEXT NOT NULL, subject TEXT NOT NULL, user_id TEXT NOT NULL UNIQUE REFERENCES users(id), PRIMARY KEY(issuer,subject));
-PRAGMA user_version=1;
+PRAGMA user_version=2;
 `

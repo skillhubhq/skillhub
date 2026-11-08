@@ -207,7 +207,7 @@ func TestScanApprovalRejectsStaleEvidence(t *testing.T) {
 	mustGovernance(t, s.SetNamespaceGrant(ctx, admin.Identity, "review-role", SetNamespaceGrant{NamespaceGrant: NamespaceGrant{Namespace: "team", Kind: taxonomy.PrincipalKind_PRINCIPAL_KIND_USER, SubjectID: reviewer.ID, Role: taxonomy.NamespaceRole_NAMESPACE_ROLE_REVIEWER}, Granted: true}))
 	r, e := s.SubmitRelease(ctx, admin.Identity, "submit-stale", SubmitRelease{Namespace: "team", Version: "1.0.0", Archive: governanceArchive(t, "benign"), Visibility: taxonomy.Visibility_VISIBILITY_MEMBERS})
 	mustGovernance(t, e)
-	_, e = s.db.Exec("UPDATE release_scans SET report=replace(report,'builtin-static/1','builtin-static/0') WHERE release_id=?", r.ID)
+	_, e = s.db.Exec("UPDATE release_scans SET report=replace(report,'builtin-static/2','builtin-static/0') WHERE release_id=?", r.ID)
 	mustGovernance(t, e)
 	if _, e = s.ReviewRelease(ctx, reviewer, "stale-engine", ReviewRelease{ReleaseID: r.ID, Approve: true}); !errors.Is(e, ErrScanRequired) {
 		t.Fatal("old engine accepted", e)

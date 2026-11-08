@@ -17,7 +17,77 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file api/catalog/v1/catalog_service.proto.
  */
 export const file_api_catalog_v1_catalog_service: GenFile = /*@__PURE__*/
-  fileDesc("CiRhcGkvY2F0YWxvZy92MS9jYXRhbG9nX3NlcnZpY2UucHJvdG8SDmFwaS5jYXRhbG9nLnYxIuYBCgVTa2lsbBIRCgluYW1lc3BhY2UYASABKAkSDAoEbmFtZRgCIAEoCRITCgtkZXNjcmlwdGlvbhgDIAEoCRIQCghjYXRlZ29yeRgEIAEoCRIMCgR0YWdzGAUgAygJEhYKDmxhdGVzdF92ZXJzaW9uGAYgASgJEhcKD2Rpc3BsYXlfbmFtZV9lbhgHIAEoCRIXCg9kaXNwbGF5X25hbWVfemgYCCABKAkSKwoEaWNvbhgJIAEoDjIdLmNvbW1vbi5yZWdpc3RyeS52MS5Ta2lsbEljb24SEAoIZmVhdHVyZWQYCiABKAgirQMKB1JlbGVhc2USEgoKcmVsZWFzZV9pZBgBIAEoCRIRCgluYW1lc3BhY2UYAiABKAkSDAoEbmFtZRgDIAEoCRIPCgd2ZXJzaW9uGAQgASgJEg4KBmRpZ2VzdBgFIAEoCRIxCgZzdGF0dXMYBiABKA4yIS5jb21tb24ucmVnaXN0cnkudjEuUmVsZWFzZVN0YXR1cxIyCgp2aXNpYmlsaXR5GAcgASgOMh4uY29tbW9uLnJlZ2lzdHJ5LnYxLlZpc2liaWxpdHkSEQoJZ3JvdXBfaWRzGAggAygJEhQKDHN1Ym1pdHRlZF9ieRgJIAEoCRIuCgpjcmVhdGVkX2F0GAogASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIVCg1yZXZpZXdfcmVhc29uGAsgASgJEhYKDnNraWxsX21hcmtkb3duGAwgASgJEhcKD2Rpc3BsYXlfbmFtZV9lbhgNIAEoCRIXCg9kaXNwbGF5X25hbWVfemgYDiABKAkSKwoEaWNvbhgPIAEoDjIdLmNvbW1vbi5yZWdpc3RyeS52MS5Ta2lsbEljb24i0wEKE1NlYXJjaFNraWxsc1JlcXVlc3QSFwoFcXVlcnkYASABKAlCCLpIBXIDGMgBEhEKCW5hbWVzcGFjZRgCIAEoCRIQCghjYXRlZ29yeRgDIAEoCRIMCgR0YWdzGAQgAygJEigKBHBhZ2UYBSABKAsyGi5hcGkuY29tbW9uLnYxLlBhZ2VSZXF1ZXN0Ei8KBW9yZGVyGAYgASgOMiAuY29tbW9uLnJlZ2lzdHJ5LnYxLkNhdGFsb2dPcmRlchIVCg1mZWF0dXJlZF9vbmx5GAcgASgIImYKFFNlYXJjaFNraWxsc1Jlc3BvbnNlEiUKBnNraWxscxgBIAMoCzIVLmFwaS5jYXRhbG9nLnYxLlNraWxsEicKBHBhZ2UYAiABKAsyGS5hcGkuY29tbW9uLnYxLlBhZ2VSZXN1bHQiSgoPR2V0U2tpbGxSZXF1ZXN0Eh0KCW5hbWVzcGFjZRgBIAEoCUIKukgHcgUQARiAARIYCgRuYW1lGAIgASgJQgq6SAdyBRABGIABIjgKEEdldFNraWxsUmVzcG9uc2USJAoFc2tpbGwYASABKAsyFS5hcGkuY2F0YWxvZy52MS5Ta2lsbCJ4ChNMaXN0UmVsZWFzZXNSZXF1ZXN0Eh0KCW5hbWVzcGFjZRgBIAEoCUIKukgHcgUQARiAARIYCgRuYW1lGAIgASgJQgq6SAdyBRABGIABEigKBHBhZ2UYAyABKAsyGi5hcGkuY29tbW9uLnYxLlBhZ2VSZXF1ZXN0ImoKFExpc3RSZWxlYXNlc1Jlc3BvbnNlEikKCHJlbGVhc2VzGAEgAygLMhcuYXBpLmNhdGFsb2cudjEuUmVsZWFzZRInCgRwYWdlGAIgASgLMhkuYXBpLmNvbW1vbi52MS5QYWdlUmVzdWx0IqUBChZEb3dubG9hZFJlbGVhc2VSZXF1ZXN0Eh0KCW5hbWVzcGFjZRgBIAEoCUIKukgHcgUQARiAARIYCgRuYW1lGAIgASgJQgq6SAdyBRABGIABEhsKB3ZlcnNpb24YAyABKAlCCrpIB3IFEAEYgAESNQoMa25vd25fZGlnZXN0GAQgASgJQh+6SBxyGjIYXihzaGEyNTY6WzAtOWEtZl17NjR9KT8kInoKF0Rvd25sb2FkUmVsZWFzZVJlc3BvbnNlEg8KB2FyY2hpdmUYASABKAwSDgoGZGlnZXN0GAIgASgJEigKB3JlbGVhc2UYAyABKAsyFy5hcGkuY2F0YWxvZy52MS5SZWxlYXNlEhQKDG5vdF9tb2RpZmllZBgEIAEoCDL5AgoOQ2F0YWxvZ1NlcnZpY2USWQoMU2VhcmNoU2tpbGxzEiMuYXBpLmNhdGFsb2cudjEuU2VhcmNoU2tpbGxzUmVxdWVzdBokLmFwaS5jYXRhbG9nLnYxLlNlYXJjaFNraWxsc1Jlc3BvbnNlEk0KCEdldFNraWxsEh8uYXBpLmNhdGFsb2cudjEuR2V0U2tpbGxSZXF1ZXN0GiAuYXBpLmNhdGFsb2cudjEuR2V0U2tpbGxSZXNwb25zZRJZCgxMaXN0UmVsZWFzZXMSIy5hcGkuY2F0YWxvZy52MS5MaXN0UmVsZWFzZXNSZXF1ZXN0GiQuYXBpLmNhdGFsb2cudjEuTGlzdFJlbGVhc2VzUmVzcG9uc2USYgoPRG93bmxvYWRSZWxlYXNlEiYuYXBpLmNhdGFsb2cudjEuRG93bmxvYWRSZWxlYXNlUmVxdWVzdBonLmFwaS5jYXRhbG9nLnYxLkRvd25sb2FkUmVsZWFzZVJlc3BvbnNlQsABChJjb20uYXBpLmNhdGFsb2cudjFCE0NhdGFsb2dTZXJ2aWNlUHJvdG9QAVo7Z2l0aHViLmNvbS9za2lsbGh1YmhxL3NraWxsaHViL2dlbi9hcGkvY2F0YWxvZy92MTtjYXRhbG9ndjGiAgNBQ1iqAg5BcGkuQ2F0YWxvZy5WMcoCDkFwaVxDYXRhbG9nXFYx4gIaQXBpXENhdGFsb2dcVjFcR1BCTWV0YWRhdGHqAhBBcGk6OkNhdGFsb2c6OlYxYgZwcm90bzM", [file_api_common_v1_types, file_buf_validate_validate, file_common_registry_v1_taxonomy, file_google_protobuf_timestamp]);
+  fileDesc("CiRhcGkvY2F0YWxvZy92MS9jYXRhbG9nX3NlcnZpY2UucHJvdG8SDmFwaS5jYXRhbG9nLnYxIqUBCgpQcm92ZW5hbmNlEhMKC2F1dGhvcl9uYW1lGAEgASgJEhIKCmF1dGhvcl91cmwYAiABKAkSEgoKc291cmNlX3VybBgDIAEoCRIQCghyZXZpc2lvbhgEIAEoCRIPCgdsaWNlbnNlGAUgASgJEhQKDGxpY2Vuc2VfZmlsZRgGIAEoCRIQCghtb2RpZmllZBgHIAEoCBIPCgdjaGFuZ2VzGAggASgJIpYCCgVTa2lsbBIRCgluYW1lc3BhY2UYASABKAkSDAoEbmFtZRgCIAEoCRITCgtkZXNjcmlwdGlvbhgDIAEoCRIQCghjYXRlZ29yeRgEIAEoCRIMCgR0YWdzGAUgAygJEhYKDmxhdGVzdF92ZXJzaW9uGAYgASgJEhcKD2Rpc3BsYXlfbmFtZV9lbhgHIAEoCRIXCg9kaXNwbGF5X25hbWVfemgYCCABKAkSKwoEaWNvbhgJIAEoDjIdLmNvbW1vbi5yZWdpc3RyeS52MS5Ta2lsbEljb24SEAoIZmVhdHVyZWQYCiABKAgSLgoKcHJvdmVuYW5jZRgLIAEoCzIaLmFwaS5jYXRhbG9nLnYxLlByb3ZlbmFuY2Ui3QMKB1JlbGVhc2USEgoKcmVsZWFzZV9pZBgBIAEoCRIRCgluYW1lc3BhY2UYAiABKAkSDAoEbmFtZRgDIAEoCRIPCgd2ZXJzaW9uGAQgASgJEg4KBmRpZ2VzdBgFIAEoCRIxCgZzdGF0dXMYBiABKA4yIS5jb21tb24ucmVnaXN0cnkudjEuUmVsZWFzZVN0YXR1cxIyCgp2aXNpYmlsaXR5GAcgASgOMh4uY29tbW9uLnJlZ2lzdHJ5LnYxLlZpc2liaWxpdHkSEQoJZ3JvdXBfaWRzGAggAygJEhQKDHN1Ym1pdHRlZF9ieRgJIAEoCRIuCgpjcmVhdGVkX2F0GAogASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIVCg1yZXZpZXdfcmVhc29uGAsgASgJEhYKDnNraWxsX21hcmtkb3duGAwgASgJEhcKD2Rpc3BsYXlfbmFtZV9lbhgNIAEoCRIXCg9kaXNwbGF5X25hbWVfemgYDiABKAkSKwoEaWNvbhgPIAEoDjIdLmNvbW1vbi5yZWdpc3RyeS52MS5Ta2lsbEljb24SLgoKcHJvdmVuYW5jZRgQIAEoCzIaLmFwaS5jYXRhbG9nLnYxLlByb3ZlbmFuY2Ui0wEKE1NlYXJjaFNraWxsc1JlcXVlc3QSFwoFcXVlcnkYASABKAlCCLpIBXIDGMgBEhEKCW5hbWVzcGFjZRgCIAEoCRIQCghjYXRlZ29yeRgDIAEoCRIMCgR0YWdzGAQgAygJEigKBHBhZ2UYBSABKAsyGi5hcGkuY29tbW9uLnYxLlBhZ2VSZXF1ZXN0Ei8KBW9yZGVyGAYgASgOMiAuY29tbW9uLnJlZ2lzdHJ5LnYxLkNhdGFsb2dPcmRlchIVCg1mZWF0dXJlZF9vbmx5GAcgASgIImYKFFNlYXJjaFNraWxsc1Jlc3BvbnNlEiUKBnNraWxscxgBIAMoCzIVLmFwaS5jYXRhbG9nLnYxLlNraWxsEicKBHBhZ2UYAiABKAsyGS5hcGkuY29tbW9uLnYxLlBhZ2VSZXN1bHQiSgoPR2V0U2tpbGxSZXF1ZXN0Eh0KCW5hbWVzcGFjZRgBIAEoCUIKukgHcgUQARiAARIYCgRuYW1lGAIgASgJQgq6SAdyBRABGIABIjgKEEdldFNraWxsUmVzcG9uc2USJAoFc2tpbGwYASABKAsyFS5hcGkuY2F0YWxvZy52MS5Ta2lsbCJ4ChNMaXN0UmVsZWFzZXNSZXF1ZXN0Eh0KCW5hbWVzcGFjZRgBIAEoCUIKukgHcgUQARiAARIYCgRuYW1lGAIgASgJQgq6SAdyBRABGIABEigKBHBhZ2UYAyABKAsyGi5hcGkuY29tbW9uLnYxLlBhZ2VSZXF1ZXN0ImoKFExpc3RSZWxlYXNlc1Jlc3BvbnNlEikKCHJlbGVhc2VzGAEgAygLMhcuYXBpLmNhdGFsb2cudjEuUmVsZWFzZRInCgRwYWdlGAIgASgLMhkuYXBpLmNvbW1vbi52MS5QYWdlUmVzdWx0IqUBChZEb3dubG9hZFJlbGVhc2VSZXF1ZXN0Eh0KCW5hbWVzcGFjZRgBIAEoCUIKukgHcgUQARiAARIYCgRuYW1lGAIgASgJQgq6SAdyBRABGIABEhsKB3ZlcnNpb24YAyABKAlCCrpIB3IFEAEYgAESNQoMa25vd25fZGlnZXN0GAQgASgJQh+6SBxyGjIYXihzaGEyNTY6WzAtOWEtZl17NjR9KT8kInoKF0Rvd25sb2FkUmVsZWFzZVJlc3BvbnNlEg8KB2FyY2hpdmUYASABKAwSDgoGZGlnZXN0GAIgASgJEigKB3JlbGVhc2UYAyABKAsyFy5hcGkuY2F0YWxvZy52MS5SZWxlYXNlEhQKDG5vdF9tb2RpZmllZBgEIAEoCDL5AgoOQ2F0YWxvZ1NlcnZpY2USWQoMU2VhcmNoU2tpbGxzEiMuYXBpLmNhdGFsb2cudjEuU2VhcmNoU2tpbGxzUmVxdWVzdBokLmFwaS5jYXRhbG9nLnYxLlNlYXJjaFNraWxsc1Jlc3BvbnNlEk0KCEdldFNraWxsEh8uYXBpLmNhdGFsb2cudjEuR2V0U2tpbGxSZXF1ZXN0GiAuYXBpLmNhdGFsb2cudjEuR2V0U2tpbGxSZXNwb25zZRJZCgxMaXN0UmVsZWFzZXMSIy5hcGkuY2F0YWxvZy52MS5MaXN0UmVsZWFzZXNSZXF1ZXN0GiQuYXBpLmNhdGFsb2cudjEuTGlzdFJlbGVhc2VzUmVzcG9uc2USYgoPRG93bmxvYWRSZWxlYXNlEiYuYXBpLmNhdGFsb2cudjEuRG93bmxvYWRSZWxlYXNlUmVxdWVzdBonLmFwaS5jYXRhbG9nLnYxLkRvd25sb2FkUmVsZWFzZVJlc3BvbnNlQsABChJjb20uYXBpLmNhdGFsb2cudjFCE0NhdGFsb2dTZXJ2aWNlUHJvdG9QAVo7Z2l0aHViLmNvbS9za2lsbGh1YmhxL3NraWxsaHViL2dlbi9hcGkvY2F0YWxvZy92MTtjYXRhbG9ndjGiAgNBQ1iqAg5BcGkuQ2F0YWxvZy5WMcoCDkFwaVxDYXRhbG9nXFYx4gIaQXBpXENhdGFsb2dcVjFcR1BCTWV0YWRhdGHqAhBBcGk6OkNhdGFsb2c6OlYxYgZwcm90bzM", [file_api_common_v1_types, file_buf_validate_validate, file_common_registry_v1_taxonomy, file_google_protobuf_timestamp]);
+
+/**
+ * Provenance 是提交者声明并经审核的上游署名；不代表作者拥有本 Hub 账号或认可收录。
+ *
+ * @generated from message api.catalog.v1.Provenance
+ */
+export type Provenance = Message<"api.catalog.v1.Provenance"> & {
+  /**
+   * 原作者或组织的公开名称。
+   *
+   * @generated from field: string author_name = 1;
+   */
+  authorName: string;
+
+  /**
+   * 原作者主页 HTTPS URL。
+   *
+   * @generated from field: string author_url = 2;
+   */
+  authorUrl: string;
+
+  /**
+   * 固定上游文件目录的 HTTPS URL。
+   *
+   * @generated from field: string source_url = 3;
+   */
+  sourceUrl: string;
+
+  /**
+   * 完整的上游 Git commit SHA。
+   *
+   * @generated from field: string revision = 4;
+   */
+  revision: string;
+
+  /**
+   * 随包许可证的 SPDX 标识。
+   *
+   * @generated from field: string license = 5;
+   */
+  license: string;
+
+  /**
+   * 包内许可证相对路径。
+   *
+   * @generated from field: string license_file = 6;
+   */
+  licenseFile: string;
+
+  /**
+   * 收录内容是否经过修改。
+   *
+   * @generated from field: bool modified = 7;
+   */
+  modified: boolean;
+
+  /**
+   * 修改说明；未修改时为空。
+   *
+   * @generated from field: string changes = 8;
+   */
+  changes: string;
+};
+
+/**
+ * Describes the message api.catalog.v1.Provenance.
+ * Use `create(ProvenanceSchema)` to create a new message.
+ */
+export const ProvenanceSchema: GenMessage<Provenance> = /*@__PURE__*/
+  messageDesc(file_api_catalog_v1_catalog_service, 0);
 
 /**
  * Skill 为目录资源投影，不作为领域聚合。
@@ -94,6 +164,13 @@ export type Skill = Message<"api.catalog.v1.Skill"> & {
    * @generated from field: bool featured = 10;
    */
   featured: boolean;
+
+  /**
+   * 最新可见版本的上游来源。
+   *
+   * @generated from field: api.catalog.v1.Provenance provenance = 11;
+   */
+  provenance?: Provenance | undefined;
 };
 
 /**
@@ -101,7 +178,7 @@ export type Skill = Message<"api.catalog.v1.Skill"> & {
  * Use `create(SkillSchema)` to create a new message.
  */
 export const SkillSchema: GenMessage<Skill> = /*@__PURE__*/
-  messageDesc(file_api_catalog_v1_catalog_service, 0);
+  messageDesc(file_api_catalog_v1_catalog_service, 1);
 
 /**
  * Release 是内容不可变的版本资源。
@@ -213,6 +290,13 @@ export type Release = Message<"api.catalog.v1.Release"> & {
    * @generated from field: common.registry.v1.SkillIcon icon = 15;
    */
   icon: SkillIcon;
+
+  /**
+   * 随版本固定的上游来源；维护者为 namespace，操作账号为 submitted_by。
+   *
+   * @generated from field: api.catalog.v1.Provenance provenance = 16;
+   */
+  provenance?: Provenance | undefined;
 };
 
 /**
@@ -220,7 +304,7 @@ export type Release = Message<"api.catalog.v1.Release"> & {
  * Use `create(ReleaseSchema)` to create a new message.
  */
 export const ReleaseSchema: GenMessage<Release> = /*@__PURE__*/
-  messageDesc(file_api_catalog_v1_catalog_service, 1);
+  messageDesc(file_api_catalog_v1_catalog_service, 2);
 
 /**
  * SearchSkillsRequest 中的过滤只能收窄访问范围。
@@ -283,7 +367,7 @@ export type SearchSkillsRequest = Message<"api.catalog.v1.SearchSkillsRequest"> 
  * Use `create(SearchSkillsRequestSchema)` to create a new message.
  */
 export const SearchSkillsRequestSchema: GenMessage<SearchSkillsRequest> = /*@__PURE__*/
-  messageDesc(file_api_catalog_v1_catalog_service, 2);
+  messageDesc(file_api_catalog_v1_catalog_service, 3);
 
 /**
  * SearchSkillsResponse 返回当前页。
@@ -311,7 +395,7 @@ export type SearchSkillsResponse = Message<"api.catalog.v1.SearchSkillsResponse"
  * Use `create(SearchSkillsResponseSchema)` to create a new message.
  */
 export const SearchSkillsResponseSchema: GenMessage<SearchSkillsResponse> = /*@__PURE__*/
-  messageDesc(file_api_catalog_v1_catalog_service, 3);
+  messageDesc(file_api_catalog_v1_catalog_service, 4);
 
 /**
  * GetSkillRequest 按空间与名称定位。
@@ -339,7 +423,7 @@ export type GetSkillRequest = Message<"api.catalog.v1.GetSkillRequest"> & {
  * Use `create(GetSkillRequestSchema)` to create a new message.
  */
 export const GetSkillRequestSchema: GenMessage<GetSkillRequest> = /*@__PURE__*/
-  messageDesc(file_api_catalog_v1_catalog_service, 4);
+  messageDesc(file_api_catalog_v1_catalog_service, 5);
 
 /**
  * GetSkillResponse 返回可见技能。
@@ -360,7 +444,7 @@ export type GetSkillResponse = Message<"api.catalog.v1.GetSkillResponse"> & {
  * Use `create(GetSkillResponseSchema)` to create a new message.
  */
 export const GetSkillResponseSchema: GenMessage<GetSkillResponse> = /*@__PURE__*/
-  messageDesc(file_api_catalog_v1_catalog_service, 5);
+  messageDesc(file_api_catalog_v1_catalog_service, 6);
 
 /**
  * ListReleasesRequest 不允许越权枚举版本。
@@ -395,7 +479,7 @@ export type ListReleasesRequest = Message<"api.catalog.v1.ListReleasesRequest"> 
  * Use `create(ListReleasesRequestSchema)` to create a new message.
  */
 export const ListReleasesRequestSchema: GenMessage<ListReleasesRequest> = /*@__PURE__*/
-  messageDesc(file_api_catalog_v1_catalog_service, 6);
+  messageDesc(file_api_catalog_v1_catalog_service, 7);
 
 /**
  * ListReleasesResponse 返回可见版本。
@@ -423,7 +507,7 @@ export type ListReleasesResponse = Message<"api.catalog.v1.ListReleasesResponse"
  * Use `create(ListReleasesResponseSchema)` to create a new message.
  */
 export const ListReleasesResponseSchema: GenMessage<ListReleasesResponse> = /*@__PURE__*/
-  messageDesc(file_api_catalog_v1_catalog_service, 7);
+  messageDesc(file_api_catalog_v1_catalog_service, 8);
 
 /**
  * DownloadReleaseRequest 只接受精确版本。
@@ -465,7 +549,7 @@ export type DownloadReleaseRequest = Message<"api.catalog.v1.DownloadReleaseRequ
  * Use `create(DownloadReleaseRequestSchema)` to create a new message.
  */
 export const DownloadReleaseRequestSchema: GenMessage<DownloadReleaseRequest> = /*@__PURE__*/
-  messageDesc(file_api_catalog_v1_catalog_service, 8);
+  messageDesc(file_api_catalog_v1_catalog_service, 9);
 
 /**
  * DownloadReleaseResponse 必须经客户端摘要校验。
@@ -507,7 +591,7 @@ export type DownloadReleaseResponse = Message<"api.catalog.v1.DownloadReleaseRes
  * Use `create(DownloadReleaseResponseSchema)` to create a new message.
  */
 export const DownloadReleaseResponseSchema: GenMessage<DownloadReleaseResponse> = /*@__PURE__*/
-  messageDesc(file_api_catalog_v1_catalog_service, 9);
+  messageDesc(file_api_catalog_v1_catalog_service, 10);
 
 /**
  * CatalogService 提供权限感知的目录和精确版本下载。

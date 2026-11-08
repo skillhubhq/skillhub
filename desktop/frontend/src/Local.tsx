@@ -1,3 +1,4 @@
+import { ProvenanceDetails, UpstreamAuthor } from "./ProvenancePanel";
 import { ProjectSkillPicker } from "./ProjectSkillPicker";
 import { Select } from "./Select";
 import { SkillSymbol, skillTitle } from "./SkillIdentity";
@@ -206,8 +207,16 @@ export function Installed() {
                       {hubName(item)} / {item.namespace}
                     </span>
                   </div>
+                  {item.provenance && (
+                    <UpstreamAuthor value={item.provenance} />
+                  )}
                   <details className="installation-details">
                     <summary>{t("Installation details", "安装详情")}</summary>
+                    <ProvenanceDetails
+                      value={item.provenance}
+                      version={item.version}
+                      digest={item.digest}
+                    />
                     <dl>
                       <dt>{t("Location", "安装位置")}</dt>
                       <dd>{item.target}</dd>

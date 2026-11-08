@@ -4,6 +4,9 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
 import * as registryv1$0 from "../../gen/common/registry/v1/models.js";
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
+import * as provenance$0 from "../provenance/models.js";
 
 export interface CacheInfo {
     "entries": number;
@@ -76,6 +79,7 @@ export interface InstallPlan {
  * Installation 以实际目录为唯一物理所有权边界。
  */
 export interface Installation {
+    "provenance"?: provenance$0.Record | null;
     "display_name_en": string;
     "display_name_zh": string;
     "icon": registryv1$0.SkillIcon;
@@ -202,6 +206,7 @@ export interface ProjectState {
 }
 
 export interface ReleaseInfo {
+    "provenance"?: provenance$0.Record | null;
     "display_name_en": string;
     "display_name_zh": string;
     "icon": registryv1$0.SkillIcon;

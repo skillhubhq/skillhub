@@ -6,10 +6,11 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
-	taxonomy "github.com/skillhubhq/skillhub/gen/common/registry/v1"
 	"os"
 	"path/filepath"
 
+	taxonomy "github.com/skillhubhq/skillhub/gen/common/registry/v1"
+	"github.com/skillhubhq/skillhub/internal/provenance"
 	"github.com/skillhubhq/skillhub/internal/sqliteutil"
 )
 
@@ -20,6 +21,7 @@ type Store struct {
 
 // Installation 以实际目录为唯一物理所有权边界。
 type Installation struct {
+	Provenance    *provenance.Record `json:"provenance,omitempty"`
 	DisplayNameEN string             `json:"display_name_en"`
 	DisplayNameZH string             `json:"display_name_zh"`
 	Icon          taxonomy.SkillIcon `json:"icon"`

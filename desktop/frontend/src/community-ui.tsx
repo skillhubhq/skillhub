@@ -1,3 +1,4 @@
+import { UpstreamAuthor } from "./ProvenancePanel";
 import { SkillSymbol, skillTitle } from "./SkillIdentity";
 import { AccessState } from "./AccessState";
 import {
@@ -222,7 +223,11 @@ export function Contributions({
         >
           <div className="card-overline">
             <SkillSymbol icon={item.icon} />
-            <span>v{item.version}</span>
+            <span title={item.version}>
+              {item.provenance
+                ? item.provenance.revision.slice(0, 7)
+                : `v${item.version}`}
+            </span>
           </div>
           <AppLink
             className="card-title"
@@ -234,7 +239,11 @@ export function Contributions({
             {item.namespace}/{item.name}
           </span>
           <p>{item.description}</p>
-          <Person source={source} person={item.author} />
+          {item.provenance ? (
+            <UpstreamAuthor value={item.provenance} />
+          ) : (
+            <Person source={source} person={item.author} />
+          )}
         </article>
       ))}
     </div>

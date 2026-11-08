@@ -35,6 +35,8 @@ The compact Inbox icon shows a pending-review count. Its dialog separates live w
 
 The portable `SKILL.md` name is the stable identifier. A release may additionally have English and Simplified Chinese display names (up to 80 Unicode characters each) and a built-in icon. Display falls back from the selected language to the other authored language, then the stable name. Authored content is never machine-translated.
 
+Curated releases separately identify the original author, the maintaining namespace and the authenticated operator. Their source commit, license and modification declaration are immutable, require review, and persist with installations. See [upstream attribution](governance.md#upstream-attribution).
+
 Presentation metadata is immutable, participates in review and is stored with local installations for offline display. It does not modify the original archive. Publishing, cards, details, reviews and local inventory use the same display rules. Custom uploaded skill icons are not supported.
 
 ## Navigation and preferences

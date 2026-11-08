@@ -97,6 +97,6 @@ CI 扫秘密和依赖，静态扫描只是证据，发布前审阅归档/依赖�
 
 ## 登录适配器与社区策略 [#login-adapters-and-community-policy]
 
-运行 `go test -race ./internal/identityprovider ./internal/hubhttp ./internal/hub ./internal/serverconfig`，验证配置、OIDC 签名与字段、OAuth PKCE、state/cookie/重放隔离、稳定身份、按模式准入、禁用/待审状态保留、安全头像初始化、配额、举报处理和 schema 10 升级恢复。适配器测试使用受控 HTTP transport，OIDC 使用本地 TLS 服务和真实签名，不要求或宣称使用真实提供方凭据。
+运行 `go test -race ./internal/identityprovider ./internal/hubhttp ./internal/hub ./internal/serverconfig`，验证配置、OIDC 签名与字段、OAuth PKCE、state/cookie/重放隔离、稳定身份、按模式准入、禁用/待审状态保留、安全头像初始化、配额、举报处理和 结构初始化与来源字段升级保留。适配器测试使用受控 HTTP transport，OIDC 使用本地 TLS 服务和真实签名，不要求或宣称使用真实提供方凭据。
 
 `TestPostgresCommunityPolicyAndModeration` 沿用 PostgreSQL 隔离测试库，覆盖 15、16、18。原生夹具验证举报弹窗、共享 Go 方法、队列权限、处理结果与评论占位。全部数据可丢弃，不打开部署方当前 Hub 数据。

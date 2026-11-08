@@ -74,6 +74,8 @@ message SubmitReleaseRequest {
   string display_name_zh = 10 [(buf.validate.field).string.max_len = 80];
   // 内置技能图标；零值使用默认图标。
   .common.registry.v1.SkillIcon icon = 11 [(buf.validate.field).enum.defined_only = true];
+  // 可选上游来源，固定于提交并接受独立审核。
+  api.catalog.v1.Provenance provenance = 12;
 }
 
 // SubmitReleaseResponse 不将待审核视为发布成功。

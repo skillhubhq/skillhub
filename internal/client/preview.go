@@ -11,9 +11,12 @@ import (
 	publishingv1 "github.com/skillhubhq/skillhub/gen/api/publishing/v1"
 	taxonomy "github.com/skillhubhq/skillhub/gen/common/registry/v1"
 	"github.com/skillhubhq/skillhub/internal/packageformat"
+	"github.com/skillhubhq/skillhub/internal/provenance"
+	"github.com/skillhubhq/skillhub/internal/provenancewire"
 )
 
 type ReleaseInfo struct {
+	Provenance    *provenance.Record     `json:"provenance,omitempty"`
 	DisplayNameEN string                 `json:"display_name_en"`
 	DisplayNameZH string                 `json:"display_name_zh"`
 	Icon          taxonomy.SkillIcon     `json:"icon"`
@@ -35,7 +38,7 @@ func ReleaseInformation(r *catalogv1.Release) ReleaseInfo {
 	if r == nil {
 		return ReleaseInfo{}
 	}
-	result := ReleaseInfo{ID: r.ReleaseId, Namespace: r.Namespace, Name: r.Name, DisplayNameEN: r.DisplayNameEn, DisplayNameZH: r.DisplayNameZh, Icon: r.Icon, Version: r.Version, Digest: r.Digest, Status: r.Status, Visibility: r.Visibility, Groups: r.GroupIds, SubmittedBy: r.SubmittedBy, Reason: r.ReviewReason, Markdown: r.SkillMarkdown}
+	result := ReleaseInfo{ID: r.ReleaseId, Namespace: r.Namespace, Name: r.Name, DisplayNameEN: r.DisplayNameEn, DisplayNameZH: r.DisplayNameZh, Icon: r.Icon, Provenance: provenancewire.Decode(r.Provenance), Version: r.Version, Digest: r.Digest, Status: r.Status, Visibility: r.Visibility, Groups: r.GroupIds, SubmittedBy: r.SubmittedBy, Reason: r.ReviewReason, Markdown: r.SkillMarkdown}
 	if result.Groups == nil {
 		result.Groups = []string{}
 	}

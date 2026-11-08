@@ -55,3 +55,17 @@ func TestBinaryFindingOverflowBlocksApproval(t *testing.T) {
 		t.Fatal("binary findings silently truncated", report, err)
 	}
 }
+
+func TestRuntimeCapabilitiesRemainReviewableWithoutExecution(t *testing.T) {
+	b := &packageformat.Bundle{Digest: "fixture", Files: []packageformat.File{{Path: "tool.py", Data: []byte("subprocess.Popen(command, shell=True)\nos.kill(pid, signal.SIGTERM)")}, {Path: "viewer.html", Data: []byte(`<script src="https://cdn.example.org/script.js"></script>`)}}}
+	r, e := Scan(context.Background(), b)
+	if e != nil || !r.Complete || r.Blocking || len(r.Findings) != 3 {
+		t.Fatal(r, e)
+	}
+	want := []string{"process-execution", "process-termination", "external-script"}
+	for i, f := range r.Findings {
+		if f.Rule != want[i] || f.Blocking {
+			t.Fatal(r)
+		}
+	}
+}
