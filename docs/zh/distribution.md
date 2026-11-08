@@ -6,7 +6,7 @@ GitHub 是源码、Issue 和版本下载的官方入口。各 Hub 只链接软�
 
 使用 [Releases](https://github.com/skillhubhq/skillhub/releases)，包括预发布，不把 `/releases/latest` 当作只有预发布时的默认入口。私有仓库下载需 GitHub 权限。
 
-矩阵为 Linux amd64 Hub/CLI、macOS arm64 Hub/CLI/App、Windows amd64 Hub/CLI/App。暂不分发 Linux App 或 Intel macOS 包。macOS 需 13+，Windows App 需 WebView2。当前预览未提供正式签名/公证/自动安装。
+矩阵为 Linux amd64 Hub/CLI、macOS arm64 Hub/CLI/App、Windows amd64 Hub/CLI/App。暂不分发 Linux App 或 Intel macOS 包。macOS 需 13+，Windows App 需 WebView2。桌面安装包未提供正式签名、公证或自动安装。
 
 版本包含 Hub/CLI 的 tar.gz/zip、App ZIP、macOS DMG、`SHA256SUMS`、`PROVENANCE.json`（revision、CI、目标及摘要），归档内含许可证和依赖清单。
 

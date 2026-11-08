@@ -6,7 +6,7 @@ GitHub is the canonical home for source, issues and versioned downloads. Each Hu
 
 Use [Releases](https://github.com/skillhubhq/skillhub/releases), including prereleases. `/releases/latest` is not the default entry while only previews exist. Private repositories require GitHub access; anonymous distribution starts only after repository visibility is changed by the owner.
 
-The current release matrix is Linux amd64 Hub/CLI, macOS arm64 Hub/CLI/App and Windows amd64 Hub/CLI/App. Linux App and Intel macOS packages are not currently published. macOS requires 13+; Windows App requires WebView2. Packages are unsigned previews. Signing, notarization and automatic App updates require separate work and are not implied by GitHub hosting.
+The current release matrix is Linux amd64 Hub/CLI, macOS arm64 Hub/CLI/App and Windows amd64 Hub/CLI/App. Linux App and Intel macOS packages are not currently published. macOS requires 13+; Windows App requires WebView2. Desktop packages do not include paid platform signing or Apple notarization. Signing, notarization and automatic App updates require separate work and are not implied by GitHub hosting.
 
 A release contains:
 
@@ -25,7 +25,7 @@ App settings provides manual update checking against the official GitHub Release
 
 A macOS DMG contains SkillHub.app, an Applications shortcut, license notices and bilingual installation instructions. Quit an existing App, drag the new copy to Applications, choose Replace, eject the image and reopen the installed App. Connections, credentials, drafts, preferences and installed skills live outside the bundle; keep those directories when replacing the application. Check database compatibility before downgrading.
 
-These previews use ad-hoc signing only, not Developer ID or Apple notarization. A DMG does not suppress Gatekeeper or managed-device policies. Verify the source and checksum and follow macOS guidance for trusted downloads; do not disable system-wide security controls. A local successful launch does not prove a browser-downloaded package will be accepted on another Mac.
+macOS packages use ad-hoc signing only, not Developer ID or Apple notarization. A DMG does not suppress Gatekeeper or managed-device policies. Verify the source and checksum and follow macOS guidance for trusted downloads; do not disable system-wide security controls. A local successful launch does not prove a browser-downloaded package will be accepted on another Mac.
 
 To build a local manual preview on macOS (no publication):
 
