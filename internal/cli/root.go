@@ -175,6 +175,7 @@ func (a *application) remoteCommand(use, short string, args cobra.PositionalArgs
 
 func (a *application) sourceCommand() *cobra.Command {
 	command := &cobra.Command{Use: "source", Short: "Manage independent Hub connections"}
+	a.addSourcePreferences(command)
 	command.AddCommand(&cobra.Command{Use: "add ALIAS URL", Short: "Connect a Hub and remember its stable identity", Args: cobra.ExactArgs(2), RunE: func(cmd *cobra.Command, args []string) error {
 		source, err := a.core.AddSource(cmd.Context(), args[0], args[1])
 		if err != nil {

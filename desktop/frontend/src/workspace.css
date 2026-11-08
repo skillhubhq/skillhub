@@ -368,3 +368,11 @@ dialog::backdrop {
   padding-top: 1.25rem;
   border-top: 1px solid var(--border);
 }
+
+.connection-note { overflow-wrap: anywhere; }
+.connection-server { display: grid; gap: .5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
+.connection-server p { margin: 0; }
+.connection-server button { justify-self: start; }
+.connection-preferences { margin-block: 1rem; }
+.connection-preferences .actions { justify-content: flex-end; align-items: center; }
+.connection-alias { display: block; margin-top: .5rem; }

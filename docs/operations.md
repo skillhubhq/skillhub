@@ -102,3 +102,11 @@ When an operator prepares a specific installation, record the following on its a
 4. Scheduled verified backup, independent copy, restore into a new directory, preserved registry identity/community/avatars/permissions, invalid old sessions, exact package download, measured restore time and upgrade/rollback drill. Assign retention, disk/backup-failure alerts and an operator.
 
 Do not treat a macOS test run, a Linux cross-build, a health check or a historical CI run as this target acceptance. The candidate manifest deliberately leaves `target_acceptance=not_run`; keep the signed-off target report alongside the manifest after execution.
+
+## Local connection names
+
+App **Settings → Connections → Manage connection** can edit a device-local connection name and note. Leave the name blank to use the Hub-provided name. **Refresh Hub information** anonymously checks the original address and stable registry identity before refreshing the site name/access mode; it never replaces the saved account.
+
+CLI equivalents are `skillhub source edit work --name "Team knowledge" --note "Review account"` and `skillhub source refresh work`. Empty values clear a field. Preferences stay on the device and work offline; do not put credentials in notes.
+
+The CLI ID (for example `work`) remains stable because commands, project manifests and existing installations reference it. The editable display name is used by App connection lists and the Hub switcher. Hub URL and registry identity are read-only; use a separate connection for another address. Site names, usernames and permissions are server-managed, separate from local preferences. Web serves one Hub and has no device connection editor.

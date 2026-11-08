@@ -359,6 +359,10 @@ export function ReadPreviewFile(target: client$0.PreviewTarget, path: string): $
     return $Call.ByID(1876381001, target, path);
 }
 
+export function RefreshSource(alias: string): $CancellablePromise<client$0.Source> {
+    return $Call.ByID(3541403121, alias);
+}
+
 export function Releases(coordinate: string, token: string): $CancellablePromise<$models.ReleasePage> {
     return $Call.ByID(2184082679, coordinate, token);
 }
@@ -425,6 +429,10 @@ export function Submissions(source: string, $namespace: string, token: string): 
 
 export function UnsetSkillConfiguration(target: string, name: string): $CancellablePromise<void> {
     return $Call.ByID(712285395, target, name);
+}
+
+export function UpdateSourcePreferences(alias: string, label: string, note: string): $CancellablePromise<client$0.Source> {
+    return $Call.ByID(2522235313, alias, label, note);
 }
 
 export function Yank(source: string, id: string, reason: string, requestID: string): $CancellablePromise<client$0.ReleaseInfo> {

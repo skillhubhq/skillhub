@@ -37,6 +37,8 @@ var (
 )
 
 type Source struct {
+	Label         string `json:"label"`
+	Note          string `json:"note"`
 	Official      bool   `json:"official"`
 	Alias         string `json:"alias"`
 	URL           string `json:"url"`

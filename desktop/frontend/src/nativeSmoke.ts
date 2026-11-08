@@ -1348,6 +1348,64 @@ export async function runNativeSmoke() {
         ),
       "connections show verified accounts in compact rows without cache clutter",
     );
+    const connectionCard = Array.from(
+      document.querySelectorAll(".source-card"),
+    ).find((card) =>
+      card.querySelector(".connection-alias")?.textContent?.includes("company"),
+    )!;
+    Array.from(connectionCard.querySelectorAll("button"))
+      .find((button) => button.textContent === "Manage connection")!
+      .click();
+    await waitForUI(
+      () => !!document.querySelector('input[name="connection-name"]'),
+    );
+    const connectionField = document.querySelector<HTMLInputElement>(
+      'input[name="connection-name"]',
+    )!;
+    Object.getOwnPropertyDescriptor(
+      HTMLInputElement.prototype,
+      "value",
+    )!.set!.call(connectionField, "Review workspace");
+    connectionField.dispatchEvent(new Event("input", { bubbles: true }));
+    await waitForUI(
+      () =>
+        !document.querySelector<HTMLButtonElement>(
+          ".connection-preferences button.primary",
+        )!.disabled,
+    );
+    document
+      .querySelector<HTMLButtonElement>(
+        ".connection-preferences button.primary",
+      )!
+      .click();
+    await waitForUI(
+      () => !!document.querySelector('.connection-preferences [role="status"]'),
+    );
+    const renamedConnection = ((await API.ListSources()) ?? []).find(
+      (source) => source.alias === "company",
+    )!;
+    check(
+      renamedConnection.label === "Review workspace" &&
+        renamedConnection.credential_ref ===
+          sources.find((source) => source.alias === "company")!.credential_ref,
+      "editing a connection name preserves its stable ID and saved login",
+    );
+    check(
+      (await API.Identity("company")).username === "admin",
+      "connection edit keeps the authenticated account usable",
+    );
+    document
+      .querySelector<HTMLButtonElement>(
+        "dialog[open] button[aria-label='Close dialog']",
+      )!
+      .click();
+    await waitForUI(() => !document.querySelector("dialog[open]"));
+    check(
+      Array.from(document.querySelectorAll(".source-card h2")).some((heading) =>
+        heading.textContent?.includes("Review workspace"),
+      ),
+      "saved local connection name is visible in the connection list",
+    );
     Array.from(document.querySelectorAll("button"))
       .find((b) => b.textContent === "Connect a hub")!
       .click();

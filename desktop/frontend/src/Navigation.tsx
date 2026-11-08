@@ -1,3 +1,4 @@
+import { connectionName } from "./ConnectionPreferences";
 import { OfficialBadge } from "./official";
 import { GitHubStar } from "./GitHubStar";
 import { HeaderFrame } from "./HeaderFrame";
@@ -235,7 +236,7 @@ function HubContext({ page }: { page: string }) {
       >
         <span className="hub-switch-label">Hub</span>
         <span className="hub-switch-name">
-          {current?.display_name || t("Connect a hub", "连接 Hub")}
+          {connectionName(current) || t("Connect a hub", "连接 Hub")}
         </span>
         {current && <OfficialBadge url={current.url} />}
         <span className="menu-chevron" aria-hidden="true">
@@ -256,9 +257,11 @@ function HubContext({ page }: { page: string }) {
           >
             <span>
               <strong>
-                {s.display_name || s.alias} <OfficialBadge url={s.url} />
+                {connectionName(s)} <OfficialBadge url={s.url} />
               </strong>
-              <small>{s.alias}</small>
+              <small>
+                {t("CLI ID", "CLI 标识")}: {s.alias}
+              </small>
             </span>
             {s.alias === ui.activeSource && <Icon name="review" />}
           </button>
