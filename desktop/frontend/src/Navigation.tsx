@@ -14,7 +14,7 @@ import { setTheme, useTheme } from "./preferences";
 
 const community = ["discover", "teams", "bookmarks", "profile"];
 const studio = ["publish", "submissions", "review", "management"];
-const library = ["installed", "projects"];
+const library = ["installed", "projects", "configuration"];
 export function Navigation({ page }: { page: string }) {
   const language = useLanguage();
   const ui = useUI();
@@ -51,6 +51,7 @@ export function Navigation({ page }: { page: string }) {
             ? [
                 ["installed", t("Installed")],
                 ["projects", t("Projects")],
+                ["configuration", t("Configuration", "配置")],
               ]
             : [
                 ["settings", t("Preferences", "偏好设置")],

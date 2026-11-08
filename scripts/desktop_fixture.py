@@ -99,6 +99,9 @@ def main():
                 (package / "SKILL.md").write_text(
                     f"---\nname: {name}\ndescription: {description}\n---\n# {name}\n\nThis is a disposable acceptance fixture.\n\n1. Read the supplied context.\n2. Record evidence and unresolved questions.\n3. Produce a concise checklist.\n", encoding="utf-8")
                 (package / "references").mkdir()
+                (package / "skillhub.config.json").write_text(json.dumps({"version": 1, "variables": [
+                    {"name": "EXAMPLE_REGION", "description": "Synthetic configuration fixture", "required": True, "secret": False}
+                ]}), encoding="utf-8")
                 (package / "references" / "checklist.md").write_text(
                     "# Review checklist\n\nConfirm the exact version, audience and rollback instructions.\n"
                     "\n<script>This is displayed as text, never executed.</script>\n", encoding="utf-8")

@@ -44,6 +44,8 @@ Avatar input is limited to PNG/JPEG, 512 KiB and 2048×2048. The server crops/re
 
 `internal/client` owns sources, credentials, generated remote clients, packages, target adapters, plans, local inventory and project manifests. CLI/App only adapt interaction; the core does not depend on UI frameworks.
 
+Local configuration uses a separate private `local-configuration/` directory and the existing OS credential abstraction. Installation locks precede the configuration lock; bounded metadata writes use staged files and atomic replacement. Secret-free credential references are committed before OS-store writes so interruptions remain diagnosable and removable. Bindings include source identity, installation, exact version/digest and tool/project. No remote RPC, exported value reader or agent execution path exists for this data. See [local configuration](local-configuration.md).
+
 Cross-process file locks coordinate local changes. SQLite transactions coordinate records, while installation journals bridge the filesystem/database crash boundary. Apply rechecks a single-use plan, authorization, exact digest and unmodified target. Actual target aliases cannot produce multiple physical owners. Unmanaged/modified files require explicit user resolution.
 
 Installations retain canonical Hub ID/URL, exact version/digest and the connection's opaque reference. Connection recovery verifies that the selected identity still addresses the same Hub and updates records under the target lock; it does not rewrite skill files. Local inventory can render stored presentation without contacting a Hub.

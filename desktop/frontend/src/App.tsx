@@ -16,6 +16,7 @@ import { API, Modal, PreviewBody, UIContext, toolLabel, type UI } from "./ui";
 import { Sources } from "./Sources";
 import { Discover } from "./Discover";
 import { Installed, Projects } from "./Local";
+import { Configuration } from "./Configuration";
 import { Management } from "./Management";
 import { isWeb } from "./platform";
 import { Settings } from "./Settings";
@@ -73,6 +74,7 @@ const pages = [
           title: "Projects",
           description: "",
         },
+        { id: "configuration", title: "Local configuration", description: "" },
       ]
     : []),
   {
@@ -417,6 +419,8 @@ export default function App() {
                 <Installed />
               ) : page === "projects" ? (
                 <Projects />
+              ) : page === "configuration" ? (
+                <Configuration />
               ) : (
                 <Management mode={page} />
               )}

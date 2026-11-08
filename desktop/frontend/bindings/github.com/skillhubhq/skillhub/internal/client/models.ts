@@ -16,6 +16,21 @@ export interface CacheInfo {
     "directory": string;
 }
 
+export interface ConfigTarget {
+    "installation": Installation;
+    "installed": boolean;
+    "saved": boolean;
+}
+
+export interface ConfigVariableStatus {
+    "name": string;
+    "description": string;
+    "secret": boolean;
+    "required": boolean;
+    "mode": string;
+    "status": string;
+}
+
 export interface DraftFile {
     "path": string;
     "text": string;
@@ -260,6 +275,15 @@ export interface ScanInfo {
     "blocking": boolean;
     "findings": ScanFinding[] | null;
     "scanned_at": string;
+}
+
+export interface SkillConfiguration {
+    "installation": Installation;
+    "installed": boolean;
+    "declared": boolean;
+    "changed": boolean;
+    "ready": boolean;
+    "variables": ConfigVariableStatus[] | null;
 }
 
 export interface Source {

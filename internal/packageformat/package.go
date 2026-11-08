@@ -20,6 +20,7 @@ import (
 	"time"
 	"unicode/utf8"
 
+	"github.com/skillhubhq/skillhub/internal/skillconfig"
 	"go.yaml.in/yaml/v3"
 )
 
@@ -119,6 +120,11 @@ func Inspect(data []byte) (*Bundle, error) {
 	sort.Slice(files, func(i, j int) bool { return files[i].Path < files[j].Path })
 	var markdown []byte
 	for _, file := range files {
+		if file.Path == skillconfig.FileName {
+			if _, err := skillconfig.Parse(file.Data); err != nil {
+				return nil, err
+			}
+		}
 		if file.Path == "SKILL.md" {
 			markdown = file.Data
 		}
