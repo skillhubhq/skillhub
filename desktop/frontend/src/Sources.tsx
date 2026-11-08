@@ -1,3 +1,4 @@
+import { ConnectionPreferences, connectionName } from "./ConnectionPreferences";
 import { OfficialBadge, officialHubURL, isOfficialHub } from "./official";
 import { needsSignIn } from "./AccessState";
 import { t } from "./i18n";
@@ -192,12 +193,22 @@ export function Sources() {
             <article className="source-card" key={source.alias}>
               <div className="connection-identity">
                 <h2>
-                  {source.display_name} <OfficialBadge url={source.url} />
+                  {connectionName(source)} <OfficialBadge url={source.url} />
                 </h2>
                 <p className="connection-address" title={source.url}>
                   {source.url}
                 </p>
-                <span className="connection-alias">{source.alias}</span>
+                {source.label && (
+                  <small>
+                    {t("Hub name", "站点名称")}: {source.display_name}
+                  </small>
+                )}
+                {source.note && (
+                  <p className="connection-note">{source.note}</p>
+                )}
+                <small className="connection-alias">
+                  {t("CLI ID", "CLI 标识")}: <code>{source.alias}</code>
+                </small>
               </div>
               <div className="connection-account">
                 <span className="badge">
@@ -205,6 +216,7 @@ export function Sources() {
                     ? t("Private community", "私有社区")
                     : t("Public community", "公开社区")}
                 </span>
+                <small>{t("Signed-in account", "登录账号")}</small>
                 <p>
                   {identities[source.alias]
                     ? identities[source.alias].username
@@ -237,16 +249,56 @@ export function Sources() {
               </div>
               {managing === source.alias && (
                 <Modal
-                  title={source.display_name}
+                  title={t("Manage connection", "管理连接")}
                   onClose={() => setManaging("")}
                 >
-                  <p className="connection-address">
-                    {source.alias} · {source.url}
-                  </p>
+                  <section className="connection-server">
+                    <strong>
+                      {source.display_name} <OfficialBadge url={source.url} />
+                    </strong>
+                    <p className="connection-address">{source.url}</p>
+                    <small>
+                      {t(
+                        "This is the connected server. Its name and accounts are managed by the Hub.",
+                        "这是连接的服务端，站点名称和账号由 Hub 管理。",
+                      )}
+                    </small>
+                    <button
+                      className="quiet"
+                      disabled={ui.busy}
+                      onClick={() =>
+                        void ui.run(async () => {
+                          await API.RefreshSource(source.alias);
+                          ui.changed(
+                            t("Hub information refreshed.", "站点信息已刷新。"),
+                          );
+                        })
+                      }
+                    >
+                      {t("Refresh Hub information", "刷新站点信息")}
+                    </button>
+                  </section>
+                  <ConnectionPreferences source={source} />
                   <details className="connection-technical">
-                    <summary>{t("Hub identity")}</summary>
+                    <summary>
+                      {t("Connection identifiers", "连接标识与地址")}
+                    </summary>
+                    <p>
+                      {t("CLI ID", "CLI 标识")}: <code>{source.alias}</code>
+                    </p>
+                    <p className="muted">
+                      {t(
+                        "This stable ID is used by CLI commands and project files. Editing the connection name leaves these references and your login intact. To connect another address, add a separate connection.",
+                        "稳定标识供 CLI 和项目文件引用。修改显示名不会改变这些引用或登录状态。使用其他地址时，请添加独立连接。",
+                      )}
+                    </p>
                     <code className="path">{source.registry_id}</code>
                   </details>
+                  <h3>{t("Account and access", "账号与访问")}</h3>
+                  <p>
+                    {t("Signed-in account", "登录账号")}:{" "}
+                    {identities[source.alias]?.username || t("Not signed in")}
+                  </p>
                   <div className="connection-actions">
                     <button
                       disabled={ui.busy}

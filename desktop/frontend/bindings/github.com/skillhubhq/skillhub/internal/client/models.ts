@@ -300,6 +300,8 @@ export interface SkillConfiguration {
 }
 
 export interface Source {
+    "label": string;
+    "note": string;
     "official": boolean;
     "alias": string;
     "url": string;

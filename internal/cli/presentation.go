@@ -134,7 +134,7 @@ func (a *application) output(cmd *cobra.Command, value any) error {
 			p.source(s)
 		}
 	case client.Source:
-		p.heading("Hub connected")
+		p.heading("Hub connection")
 		p.gap()
 		p.source(v)
 		p.hint("Sign in: skillhub login " + v.Alias)
@@ -266,7 +266,9 @@ func (a *application) output(cmd *cobra.Command, value any) error {
 
 func (p *presentation) source(s client.Source) {
 	p.heading(s.Alias)
-	p.field("Community", s.DisplayName)
+	p.field("Local name", s.Label)
+	p.field("Note", s.Note)
+	p.field("Hub name", s.DisplayName)
 	p.field("URL", s.URL)
 	status := "No saved login"
 	if s.HasCredential {

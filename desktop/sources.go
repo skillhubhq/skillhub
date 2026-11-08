@@ -142,3 +142,10 @@ func (s *DesktopService) ChangePassword(source, current, password string) error 
 	_, err = remote.Auth.ChangePassword(s.ctx, connect.NewRequest(&authv1.ChangePasswordRequest{CurrentPassword: current, NewPassword: password}))
 	return err
 }
+
+func (s *DesktopService) UpdateSourcePreferences(alias, label, note string) (client.Source, error) {
+	return s.core.UpdateSourcePreferences(s.ctx, alias, label, note)
+}
+func (s *DesktopService) RefreshSource(alias string) (client.Source, error) {
+	return s.core.RefreshSource(s.ctx, alias)
+}

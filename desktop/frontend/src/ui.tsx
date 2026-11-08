@@ -131,7 +131,7 @@ export function SourceSelect({
       </option>
       {sources.map((s) => (
         <option key={s.alias} value={s.alias}>
-          {s.alias} · {s.display_name}
+          {s.label || s.display_name} · {s.alias}
         </option>
       ))}
     </Select>
