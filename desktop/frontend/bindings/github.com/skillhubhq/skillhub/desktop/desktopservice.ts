@@ -192,6 +192,10 @@ export function DiscardPlan(id: string): $CancellablePromise<void> {
     return $Call.ByID(2974110414, id);
 }
 
+export function EnvironmentInstructions(target: string, shell: string): $CancellablePromise<string> {
+    return $Call.ByID(960592079, target, shell);
+}
+
 export function Evaluation(source: string, id: string): $CancellablePromise<client$0.EvaluationEvidence> {
     return $Call.ByID(138951903, source, id);
 }

@@ -73,3 +73,17 @@
   border: 1px solid var(--line);
   border-radius: 12px;
 }
+
+.configuration-guide {
+  display: grid;
+  gap: 0.9rem;
+  min-width: 0;
+}
+.configuration-guide p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.configuration-guide pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

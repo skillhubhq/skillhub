@@ -55,7 +55,7 @@ func (a *application) configureHelp(root *cobra.Command) {
 		switch c.Name() {
 		case "search", "info", "versions":
 			c.GroupID = "discover"
-		case "config", "install", "list", "update", "updates", "remove", "project", "cache":
+		case "config", "env", "install", "list", "update", "updates", "remove", "project", "cache":
 			c.GroupID = "local"
 		case "eval", "init", "validate", "publish", "review", "yank", "admin", "governance":
 			c.GroupID = "publish"
