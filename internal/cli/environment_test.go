@@ -87,10 +87,10 @@ func TestShellEnvironmentRoundTripAndRemoval(t *testing.T) {
 				t.Skip("shell not installed")
 			}
 			quote := func(v string) string { return "'" + strings.ReplaceAll(v, "'", "'\"'\"'") + "'" }
-			template := environmentShell
+			template := "set -eu\n" + environmentShell
 			if shell == "pwsh" {
 				quote = func(v string) string { return "'" + strings.ReplaceAll(v, "'", "''") + "'" }
-				template = environmentPowerShell
+				template = "$ErrorActionPreference = 'Stop'\nSet-StrictMode -Version Latest\n" + environmentPowerShell
 			}
 			helper := executable
 			if shell != "pwsh" {
@@ -101,7 +101,7 @@ func TestShellEnvironmentRoundTripAndRemoval(t *testing.T) {
 			if shell == "pwsh" {
 				checks = "\nskillhub_env use " + quote(target) + "\nskillhub_env doctor " + quote(target) + "\nif ($LASTEXITCODE -ne 0) {throw 'doctor failed'}\nskillhub_env deactivate\nif (Test-Path Env:SERVICE_VALUE) {throw 'value retained'}\nif ($env:SERVICE_REGION -ne 'fixture-region') {throw 'existing environment changed'}\n$env:SERVICE_VALUE='conflict'\ntry { skillhub_env use " + quote(target) + "; throw 'accepted conflict' } catch { if ($_.Exception.Message -eq 'accepted conflict') {throw} }\nif ($env:SERVICE_VALUE -ne 'conflict') {throw 'conflict overwritten'}\n"
 			} else {
-				checks = "\nskillhub_env use " + quote(target) + " || exit 10\nskillhub_env doctor " + quote(target) + " || exit 11\nskillhub_env deactivate || exit 12\n[ -z \"${SERVICE_VALUE+x}\" ] || exit 13\n[ \"$SERVICE_REGION\" = fixture-region ] || exit 14\nSERVICE_VALUE=unexported\nif skillhub_env use " + quote(target) + "; then exit 15; fi\n[ \"$SERVICE_VALUE\" = unexported ] || exit 16\nunset SERVICE_VALUE\nset -x\nif skillhub_env use " + quote(target) + "; then exit 17; fi\nset +x\n[ -z \"${SERVICE_VALUE+x}\" ] || exit 18\n"
+				checks = "\nskillhub_env use " + quote(target) + " || exit 10\nskillhub_env doctor " + quote(target) + " || exit 11\nskillhub_env deactivate || exit 12\n[ -z \"${SERVICE_VALUE+x}\" ] || exit 13\n[ \"$SERVICE_REGION\" = fixture-region ] || exit 14\nexport SERVICE_VALUE=" + quote(value) + "\nskillhub_env use " + quote(target) + " || exit 19\nskillhub_env deactivate || exit 20\n[ -n \"${SERVICE_VALUE+x}\" ] || exit 21\nunset SERVICE_VALUE\nSERVICE_VALUE=unexported\nif skillhub_env use " + quote(target) + "; then exit 15; fi\n[ \"$SERVICE_VALUE\" = unexported ] || exit 16\nunset SERVICE_VALUE\nset -x\nif skillhub_env use " + quote(target) + "; then exit 17; fi\nset +x\n[ -z \"${SERVICE_VALUE+x}\" ] || exit 18\n"
 			}
 			file := filepath.Join(t.TempDir(), "roundtrip.sh")
 			if shell == "pwsh" {

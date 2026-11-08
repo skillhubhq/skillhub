@@ -30,18 +30,18 @@ skillhub_env() {
         esac
       done < <(@EXECUTABLE@ --data @DATA@ env _read "$@")
       if [ "$__sh_complete" != 1 ]; then printf '%s\n' 'Configuration was not loaded. Resolve the error and retry.' >&2; return 1; fi
-      for __sh_record in "${__sh_records[@]}"; do
+      for __sh_record in ${__sh_records[@]+"${__sh_records[@]}"}; do
         if ! export "$__sh_record"; then
-          for __sh_name in "${__sh_names[@]}"; do unset "$__sh_name"; done
+          for __sh_name in ${__sh_names[@]+"${__sh_names[@]}"}; do unset "$__sh_name"; done
           printf '%s\n' 'Could not load configuration.' >&2; return 1
         fi
       done
-      __skillhub_loaded_names=("${__sh_names[@]}"); __skillhub_active=1
+      __skillhub_loaded_names=(${__sh_names[@]+"${__sh_names[@]}"}); __skillhub_active=1
       printf '%s\n' 'Loaded into this terminal. Start your tool yourself; existing apps are unchanged.'
       ;;
     deactivate)
       local __sh_name
-      for __sh_name in "${__skillhub_loaded_names[@]}"; do
+      for __sh_name in ${__skillhub_loaded_names[@]+"${__skillhub_loaded_names[@]}"}; do
         unset "$__sh_name" || { printf '%s\n' 'Could not clear configuration; close this terminal.' >&2; return 1; }
       done
       __skillhub_loaded_names=(); unset __skillhub_active

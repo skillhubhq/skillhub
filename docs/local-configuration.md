@@ -25,7 +25,7 @@ In the App, use **My library → Installed → Configure**, or **My library → 
 | Storage | Behavior |
 | --- | --- |
 | System credential store | Stores a value in macOS Keychain, Windows Credential Manager or Linux Secret Service; unavailable stores fail without a plaintext fallback |
-| Environment reference | Checks the variable with the declared name in the current process; never copies its value into SkillHub |
+| Environment reference | Checks the variable with the declared name in the current process; never persists its value in SkillHub |
 | Local non-secret value | Stores ordinary configuration in the private client data directory; unavailable for variables declared secret |
 
 CLI equivalents:

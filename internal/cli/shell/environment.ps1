@@ -1,6 +1,7 @@
 # Evaluate this value-free integration in PowerShell 7+. No profile is changed.
 if ($PSVersionTable.PSVersion.Major -lt 7) { throw 'PowerShell 7 or later is required for UTF-8 environment transfer.' }
-if ($global:SkillHubEnvironmentActive) { throw 'Deactivate the current SkillHub environment before reinitializing.' }
+if ((Get-Variable -Name SkillHubEnvironmentActive -Scope Global -ErrorAction SilentlyContinue) -and $global:SkillHubEnvironmentActive) { throw 'Deactivate the current SkillHub environment before reinitializing.' }
+$global:SkillHubEnvironmentActive = $false
 $global:SkillHubEnvironmentNames = @()
 function global:skillhub_env {
     param([Parameter(Position=0)][string]$Action, [Parameter(ValueFromRemainingArguments=$true)][string[]]$Targets)
