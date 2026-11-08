@@ -1,3 +1,4 @@
+import { connectionName } from "./ConnectionPreferences";
 import { useEffect, useState } from "react";
 import { API, Modal, useUI } from "./ui";
 import { useResource } from "./community-ui";
@@ -11,12 +12,21 @@ export function ReviewInbox({ source }: { source: string }) {
   const ui = useUI();
   const tasks = useResource(
     () => API.ReviewTasks(source, ""),
-    [source, ui.revision],
+    [source],
+    ui.revision,
   );
-  const count = tasks.value?.total ?? 0;
+  const notices = useResource(
+    () => API.Notifications(source, ""),
+    [source],
+    ui.revision,
+  );
+  const count = notices.value?.unread ?? 0;
   useEffect(() => {
     const refresh = () => {
-      if (document.visibilityState === "visible") tasks.reload();
+      if (document.visibilityState === "visible") {
+        tasks.reload();
+        notices.reload();
+      }
     };
     const timer = setInterval(refresh, 60000);
     window.addEventListener("focus", refresh);
@@ -27,10 +37,10 @@ export function ReviewInbox({ source }: { source: string }) {
       document.removeEventListener("visibilitychange", refresh);
     };
   }, [source]);
-  const label = tasks.error
+  const label = notices.error
     ? t("Inbox — could not refresh", "通知 — 暂时无法刷新")
     : count
-      ? `${t("Inbox", "通知")} · ${count} ${t("awaiting your review", "条待你审核")}`
+      ? `${t("Inbox", "通知")} · ${count} ${t("unread", "条未读")}`
       : t("Inbox", "通知");
   return (
     <>
@@ -43,12 +53,12 @@ export function ReviewInbox({ source }: { source: string }) {
         onClick={() => setOpen(true)}
       >
         <Icon name="inbox" />
-        {!tasks.error && count > 0 && (
+        {!notices.error && count > 0 && (
           <span className="inbox-count" aria-hidden="true">
             {count > 99 ? "99+" : count}
           </span>
         )}
-        {!!tasks.error && (
+        {!!notices.error && (
           <span className="inbox-unavailable" aria-hidden="true">
             !
           </span>
@@ -57,10 +67,11 @@ export function ReviewInbox({ source }: { source: string }) {
       {open && (
         <InboxDialog
           source={source}
-          initialTab={count ? "tasks" : "outcomes"}
+          initialTab={count ? "outcomes" : "tasks"}
           close={() => {
             setOpen(false);
             tasks.reload();
+            notices.reload();
           }}
         />
       )}
@@ -87,8 +98,7 @@ function InboxDialog({
       toolbar={
         <div className="review-inbox-content">
           <p className="inbox-context">
-            <strong>{hub?.display_name || source}</strong>
-            <span>{source}</span>
+            <strong>{connectionName(hub) || source}</strong>
           </p>
           <div
             className="inbox-tabs"
@@ -105,7 +115,7 @@ function InboxDialog({
               aria-pressed={tab === "outcomes"}
               onClick={() => setTab("outcomes")}
             >
-              {t("Your submission updates", "我的审核结果")}
+              {t("Updates", "动态")}
             </button>
           </div>
         </div>
@@ -131,12 +141,25 @@ function ReviewOutcomes({
   const [token, setToken] = useState("");
   const inbox = useResource(
     () => API.Notifications(source, token),
-    [source, token, ui.revision],
+    [source, token],
+    ui.revision,
   );
   return (
-    <section aria-label={t("Review outcomes", "审核结果")}>
+    <section aria-label={t("Updates", "动态")}>
       <div className="section-heading">
         <h3>{t("Latest updates", "最近更新")}</h3>
+        <button
+          disabled={inbox.loading || !inbox.value?.unread}
+          onClick={() =>
+            void ui.run(async () => {
+              await API.MarkAllNotificationsRead(source);
+              inbox.reload();
+              ui.refresh();
+            })
+          }
+        >
+          {t("Mark all read", "全部已读")}
+        </button>
         <button disabled={inbox.loading} onClick={inbox.reload}>
           {t("Refresh")}
         </button>
@@ -158,7 +181,7 @@ function ReviewOutcomes({
       ) : !inbox.value.items?.length ? (
         <div className="inbox-empty">
           <Icon name="inbox" />
-          <strong>{t("No review updates yet.", "暂无审核更新。")}</strong>
+          <strong>{t("No updates yet.", "暂无审核更新。")}</strong>
           <p>
             {t(
               "Decisions on your submissions will appear here.",
@@ -176,27 +199,43 @@ function ReviewOutcomes({
               onClick={() =>
                 void ui.run(async () => {
                   await API.MarkNotificationRead(source, n.id);
+                  if (n.unavailable) {
+                    inbox.reload();
+                    return;
+                  }
                   close();
+                  if (n.kind === "reply") {
+                    ui.navigate(
+                      `discover?${new URLSearchParams({ source, skill: n.coordinate.split("@")[0], tab: "discussion" })}`,
+                    );
+                    return;
+                  }
                   ui.navigate(
                     `submissions?${new URLSearchParams({ source, release: n.release_id })}`,
                   );
                 })
               }
             >
-              <strong>{n.coordinate}</strong>
+              <strong>
+                {n.unavailable
+                  ? t("Content unavailable", "内容已不可用")
+                  : n.coordinate}
+              </strong>
               <span className="inbox-outcome-meta">
                 <span
                   className={`outcome-status ${n.approved ? "approved" : "changes"}`}
                 >
-                  {n.approved
-                    ? t("Approved", "已批准")
-                    : t("Changes requested", "需要修改")}
+                  {n.kind === "reply"
+                    ? t("New reply", "新回复")
+                    : n.approved
+                      ? t("Approved", "已批准")
+                      : t("Changes requested", "需要修改")}
                 </span>
                 <time>{dateLabel(n.created_at)}</time>
                 {!n.read && <span>{t("Unread", "未读")}</span>}
               </span>
               <span className="inbox-open">
-                {t("View feedback", "查看反馈")}
+                {n.unavailable ? t("Mark read", "标为已读") : t("Open", "打开")}
                 <Icon name="arrow" />
               </span>
             </button>

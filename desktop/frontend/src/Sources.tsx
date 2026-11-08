@@ -30,8 +30,17 @@ export function Sources() {
   const sourceKey = ui.sources.map((s) => s.alias).join("/");
   useEffect(() => {
     let active = true;
-    setIdentities({});
-    setIdentityState({});
+    const aliases = new Set(ui.sources.map((source) => source.alias));
+    setIdentities((old) =>
+      Object.fromEntries(
+        Object.entries(old).filter(([alias]) => aliases.has(alias)),
+      ),
+    );
+    setIdentityState((old) =>
+      Object.fromEntries(
+        Object.entries(old).filter(([alias]) => aliases.has(alias)),
+      ),
+    );
     for (const source of ui.sources)
       void API.Identity(source.alias)
         .then((identity) => {
@@ -44,13 +53,19 @@ export function Sources() {
           }
         })
         .catch((error) => {
-          if (active)
+          if (active) {
+            setIdentities((old) => {
+              const next = { ...old };
+              delete next[source.alias];
+              return next;
+            });
             setIdentityState((old) => ({
               ...old,
               [source.alias]: needsSignIn(String(error))
                 ? "signed-out"
                 : "unavailable",
             }));
+          }
         });
     return () => {
       active = false;
@@ -272,7 +287,12 @@ export function Sources() {
                   <h3>{t("Account and access", "账号与访问")}</h3>
                   <p>
                     {t("Signed-in account", "登录账号")}:{" "}
-                    {identities[source.alias]?.username || t("Not signed in")}
+                    {identities[source.alias]?.username ||
+                      (!identityState[source.alias]
+                        ? t("Checking account…", "正在确认账号…")
+                        : identityState[source.alias] === "signed-out"
+                          ? t("Not signed in")
+                          : t("Account not verified", "账号暂未验证"))}
                   </p>
                   <div className="connection-actions">
                     <button

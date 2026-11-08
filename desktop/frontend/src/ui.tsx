@@ -18,6 +18,7 @@ import {
 } from "react";
 import { API } from "./platform";
 import { SkillDocument } from "./SkillDocument";
+import { headingAnchor } from "./documentLinks";
 import type { ChangePlan } from "../bindings/github.com/skillhubhq/skillhub/desktop/models";
 import type {
   PreviewContent,
@@ -220,8 +221,7 @@ export function Modal({
     return () => {
       // 在 React 移除 dialog 前关闭，避免 Chromium 丢失原始焦点目标。
       dialog.close();
-      unlock();
-      // 等待顶层模态状态解除，再恢复焦点；StrictMode 重新打开时不抢焦点。
+      // 等待节点移除和顶层模态状态解除，再恢复滚动与焦点。
       queueMicrotask(() => {
         if (
           !dialog.open &&
@@ -229,6 +229,7 @@ export function Modal({
           trigger.isConnected
         )
           trigger.focus({ preventScroll: true });
+        unlock();
       });
     };
   }, []);
@@ -276,12 +277,37 @@ export function PreviewBody({
   const ui = useUI();
   const [file, setFile] = useState<PreviewContent | null>(null);
   const content = useRef<HTMLDivElement>(null);
-  useEffect(
-    () => setFile(null),
-    [preview.target.source, preview.release.id, preview.release.digest],
-  );
+  const [anchor, setAnchor] = useState("");
+  const documentRequest = useRef(0);
+  const openDocument = (path: string, fragment: string) => {
+    const request = ++documentRequest.current;
+    void ui.run(async () => {
+      if (!(preview.files ?? []).some((f) => f.path === path))
+        throw new Error(
+          t("Linked file is not in this package.", "链接文件不在此技能包中。"),
+        );
+      const value = await API.ReadPreviewFile(preview.target, path);
+      if (request !== documentRequest.current) return;
+      setAnchor(fragment);
+      setFile(value);
+    });
+  };
   useEffect(() => {
-    if (file) content.current?.scrollIntoView({ block: "nearest" });
+    documentRequest.current++;
+    setFile(null);
+    return () => {
+      documentRequest.current++;
+    };
+  }, [preview.target.source, preview.release.id, preview.release.digest]);
+  useEffect(() => {
+    if (file) {
+      const heading =
+        anchor &&
+        Array.from(
+          content.current?.querySelectorAll("h1,h2,h3,h4,h5,h6") || [],
+        ).find((h) => headingAnchor(h.textContent || "") === anchor);
+      (heading || content.current)?.scrollIntoView({ block: "nearest" });
+    }
   }, [file]);
   const r = preview.release;
   return (
@@ -307,7 +333,44 @@ export function PreviewBody({
           {t("Audience groups:")} {(r.groups ?? []).join(", ")}
         </p>
       )}
-      {view !== "files" && <SkillDocument key={r.id} text={r.markdown} />}
+      {view !== "files" && !file && (
+        <SkillDocument key={r.id} text={r.markdown} onNavigate={openDocument} />
+      )}
+      {file && (
+        <div ref={content} className="package-document">
+          <button
+            onClick={() => {
+              documentRequest.current++;
+              setFile(null);
+              setAnchor("");
+            }}
+          >
+            {t("Back to overview", "返回概览")}
+          </button>
+          <h3>{file.path}</h3>
+          {file.text ? (
+            /\.md$/i.test(file.path) ? (
+              <SkillDocument
+                key={file.path}
+                text={file.content}
+                path={file.path}
+                onNavigate={openDocument}
+              />
+            ) : (
+              <pre className="markdown">
+                {file.content || t("(empty file)")}
+              </pre>
+            )
+          ) : (
+            <p>
+              {t(
+                "This file cannot be previewed as text.",
+                "此文件无法以文本预览。",
+              )}
+            </p>
+          )}
+        </div>
+      )}
       {view !== "readme" && (
         <details open={view === "files" ? true : undefined}>
           <summary>
@@ -336,22 +399,6 @@ export function PreviewBody({
               </li>
             ))}
           </ul>
-          {file && (
-            <div ref={content}>
-              <h3>{file.path}</h3>
-              {file.text ? (
-                <pre className="markdown">
-                  {file.content || t("(empty file)")}
-                </pre>
-              ) : (
-                <p className="notice">
-                  {t(
-                    "This is a binary or non-UTF-8 file and cannot be previewed as text.",
-                  )}
-                </p>
-              )}
-            </div>
-          )}
         </details>
       )}
       {view !== "readme" && r.reason && (

@@ -25,7 +25,7 @@ func mapItems[T, U any](items []T, convert func(T) *U) []*U {
 	return result
 }
 func skillDTO(v hub.Skill) *catalogv1.Skill {
-	return &catalogv1.Skill{Provenance: provenancewire.Encode(v.Provenance), Namespace: v.Namespace, Name: v.Name, DisplayNameEn: v.DisplayNameEN, DisplayNameZh: v.DisplayNameZH, Icon: v.Icon, Description: v.Description, Category: v.Category, Tags: v.Tags, LatestVersion: v.LatestVersion, Featured: v.Featured}
+	return &catalogv1.Skill{Revision: v.Revision, CanEdit: v.CanEdit, Provenance: provenancewire.Encode(v.Provenance), Namespace: v.Namespace, Name: v.Name, DisplayNameEn: v.DisplayNameEN, DisplayNameZh: v.DisplayNameZH, Icon: v.Icon, Description: v.Description, Category: v.Category, Tags: v.Tags, LatestVersion: v.LatestVersion, Featured: v.Featured}
 }
 func releaseDTO(v hub.Release) *catalogv1.Release {
 	return &catalogv1.Release{Provenance: provenancewire.Encode(v.Provenance), ReleaseId: v.ID, Namespace: v.Namespace, Name: v.Name, DisplayNameEn: v.DisplayNameEN, DisplayNameZh: v.DisplayNameZH, Icon: v.Icon, Version: v.Version, Digest: v.Digest, Status: v.Status, Visibility: v.Visibility, GroupIds: v.GroupIDs, SubmittedBy: v.SubmittedBy, CreatedAt: timestamppb.New(v.CreatedAt), ReviewReason: v.ReviewReason, SkillMarkdown: v.Markdown}
@@ -153,4 +153,17 @@ func (s *Server) DeleteRelease(ctx context.Context, req *connect.Request[publish
 		return nil, err
 	}
 	return connect.NewResponse(&publishingv1.DeleteReleaseResponse{ReleaseId: result.ReleaseID}), nil
+}
+
+func (s *Server) UpdateSkillMetadata(ctx context.Context, req *connect.Request[catalogv1.UpdateSkillMetadataRequest]) (*connect.Response[catalogv1.UpdateSkillMetadataResponse], error) {
+	u, err := s.identity(ctx, req.Header())
+	if err != nil {
+		return nil, err
+	}
+	v := req.Msg
+	revision, err := s.store.UpdateSkillMetadata(ctx, u, v.GetMutation().GetIdempotencyKey(), hub.SkillMetadataChange{Namespace: v.Namespace, Name: v.Name, ExpectedRevision: v.ExpectedRevision, DisplayNameEN: v.DisplayNameEn, DisplayNameZH: v.DisplayNameZh, Description: v.Description, Icon: v.Icon, Category: v.Category, Tags: v.Tags})
+	if err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(&catalogv1.UpdateSkillMetadataResponse{Revision: revision}), nil
 }

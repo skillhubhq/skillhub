@@ -9,6 +9,8 @@ import "google/protobuf/timestamp.proto";
 
 // CatalogService 提供权限感知的目录和精确版本下载。
 service CatalogService {
+  // UpdateSkillMetadata 修改技能展示资料，版本包保持不变。
+  rpc UpdateSkillMetadata(UpdateSkillMetadataRequest) returns (UpdateSkillMetadataResponse);
   // SearchSkills 只返回主体有权发现的技能。
   rpc SearchSkills(SearchSkillsRequest) returns (SearchSkillsResponse);
   // GetSkill 查询完整坐标对应的技能。
@@ -63,6 +65,10 @@ message Skill {
   bool featured = 10;
   // 最新可见版本的上游来源。
   Provenance provenance = 11;
+  // 技能资料并发修订。
+  uint64 revision = 12;
+  // 当前身份可编辑技能资料。
+  bool can_edit = 13;
 }
 
 // Release 是内容不可变的版本资源。
@@ -202,4 +208,33 @@ message DownloadReleaseResponse {
   Release release = 3;
   // 当前主体获准下载且包摘要匹配 known_digest；此时 archive 为空。
   bool not_modified = 4;
+}
+
+// UpdateSkillMetadataRequest 更新技能资料并校验并发修订。
+message UpdateSkillMetadataRequest {
+  // 幂等请求。
+  .api.common.v1.Mutation mutation = 1;
+  // 所属团队。
+  string namespace = 2;
+  // 稳定名称。
+  string name = 3;
+  // 当前资料修订。
+  uint64 expected_revision = 4;
+  // 英文展示名称。
+  string display_name_en = 5;
+  // 中文展示名称。
+  string display_name_zh = 6;
+  // 简介。
+  string description = 7;
+  // 内置图标。
+  .common.registry.v1.SkillIcon icon = 8;
+  // 分类。
+  string category = 9;
+  // 标签。
+  repeated string tags = 10;
+}
+// UpdateSkillMetadataResponse 返回新的资料修订。
+message UpdateSkillMetadataResponse {
+  // 资料修订。
+  uint64 revision = 1;
 }

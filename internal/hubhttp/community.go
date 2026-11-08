@@ -21,10 +21,10 @@ func communityMemberDTO(v c.Member) *api.Member {
 	return &api.Member{Profile: communityProfileDTO(v.Profile), Roles: v.Roles}
 }
 func communityContributionDTO(v c.Contribution) *api.Contribution {
-	return &api.Contribution{Provenance: provenancewire.Encode(v.Provenance), ReleaseId: v.ReleaseID, Namespace: v.Namespace, Name: v.Name, DisplayNameEn: v.DisplayNameEN, DisplayNameZh: v.DisplayNameZH, Icon: v.Icon, Version: v.Version, Description: v.Description, Author: communityProfileDTO(v.Author)}
+	return &api.Contribution{Unavailable: v.Unavailable, Provenance: provenancewire.Encode(v.Provenance), ReleaseId: v.ReleaseID, Namespace: v.Namespace, Name: v.Name, DisplayNameEn: v.DisplayNameEN, DisplayNameZh: v.DisplayNameZH, Icon: v.Icon, Version: v.Version, Description: v.Description, Author: communityProfileDTO(v.Author)}
 }
 func communityCommentDTO(v c.Comment) *api.Comment {
-	return &api.Comment{CommentId: v.CommentID, ReleaseId: v.ReleaseID, ParentId: v.ParentID, Author: communityProfileDTO(v.Author), Body: v.Body, CreatedAt: timestamppb.New(v.CreatedAt), Deleted: v.Deleted, CanDelete: v.CanDelete}
+	return &api.Comment{CommentId: v.CommentID, ReleaseId: v.ReleaseID, ParentId: v.ParentID, Author: communityProfileDTO(v.Author), Body: v.Body, CreatedAt: timestamppb.New(v.CreatedAt), Deleted: v.Deleted, CanDelete: v.CanDelete, Version: v.Version}
 }
 func communityDiscussionDTO(v c.Discussion) *api.Discussion {
 	return &api.Discussion{LikeCount: v.LikeCount, CommentCount: v.CommentCount, Liked: v.Liked, Bookmarked: v.Bookmarked, CanInteract: v.CanInteract}
@@ -234,4 +234,15 @@ func (s *Server) ResolveReport(ctx context.Context, req *connect.Request[api.Res
 		return nil, e
 	}
 	return connect.NewResponse(&api.ResolveReportResponse{}), nil
+}
+
+func (s *Server) RemoveBookmark(ctx context.Context, req *connect.Request[api.RemoveBookmarkRequest]) (*connect.Response[api.RemoveBookmarkResponse], error) {
+	u, err := s.identity(ctx, req.Header())
+	if err != nil {
+		return nil, err
+	}
+	if err = s.store.RemoveBookmark(ctx, u, req.Msg.GetMutation().GetIdempotencyKey(), req.Msg.Namespace, req.Msg.Name); err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(&api.RemoveBookmarkResponse{}), nil
 }

@@ -73,7 +73,7 @@ func configHash(value any) string {
 	return hex.EncodeToString(sum[:])
 }
 func configBinding(i Installation) string {
-	return configHash([]string{i.ID, i.RegistryID, i.RegistryURL, i.Namespace, i.Name, i.Version, i.Digest, i.Tool, i.Scope, i.Project, i.Target, i.Fingerprint})
+	return configHash([]string{i.ID, i.RegistryID, i.RegistryURL, i.SourceRef, i.Namespace, i.Name, i.Version, i.Digest, i.Tool, i.Scope, i.Project, i.Target, i.Fingerprint})
 }
 func (c *Client) configRef(s configState, name string) string {
 	return "skill-config:" + configHash([]string{c.store.root, s.Binding, name})
@@ -253,7 +253,7 @@ func (c *Client) SkillConfiguration(ctx context.Context, target string) (SkillCo
 	return r, err
 }
 
-// 显式设置绑定本次安装版本；旧绑定必须先由用户清理，不能自动继承授权。
+// 显式设置绑定本次安装版本；版本更新后先重新授权。
 func (c *Client) SetSkillConfiguration(ctx context.Context, target, name, mode, value string) error {
 	target, err := canonicalTarget(target)
 	if err != nil {
@@ -286,7 +286,7 @@ func (c *Client) SetSkillConfiguration(ctx context.Context, target, name, mode, 
 				return err
 			}
 			if s.Binding != "" && s.Binding != configBinding(i) {
-				return errors.New("skill changed; clear saved configuration and review its current requirements")
+				return errors.New("skill changed; review and renew authorization for its current requirements")
 			}
 			s.Installation = i
 			s.Binding = configBinding(i)
@@ -419,4 +419,75 @@ func (c *Client) ConfigurationTargets(ctx context.Context) ([]ConfigTarget, erro
 	}
 	sort.Slice(result, func(i, j int) bool { return result[i].Installation.Target < result[j].Installation.Target })
 	return result, err
+}
+
+// 用户确认当前包摘要后重新授权；来源、账号或安装目标不同必须独立配置。
+func (c *Client) RenewSkillConfiguration(ctx context.Context, target, expectedDigest string) error {
+	target, err := canonicalTarget(target)
+	if err != nil {
+		return err
+	}
+	return c.store.withTarget(ctx, target, func() error {
+		return c.withConfig(ctx, func(dir *os.Root) error {
+			i, d, _, err := c.configInstallation(ctx, target)
+			if err != nil {
+				return err
+			}
+			if i.Digest != expectedDigest {
+				return errors.New("installed skill changed; review its requirements again")
+			}
+			old, err := readConfigState(dir, target)
+			if err != nil {
+				return err
+			}
+			a, b := old.Installation, i
+			if a.RegistryID != b.RegistryID || a.RegistryURL != b.RegistryURL || a.SourceRef != b.SourceRef || a.Namespace != b.Namespace || a.Name != b.Name || a.Tool != b.Tool || a.Scope != b.Scope || a.Project != b.Project || a.Target != b.Target {
+				return errors.New("configuration belongs to a different source, account or installation")
+			}
+			if old.Binding == configBinding(i) {
+				return nil
+			}
+			next := configState{Installation: i, Binding: configBinding(i), Values: map[string]configValue{}}
+			var created []string
+			committed := false
+			defer func() {
+				if !committed {
+					for _, ref := range created {
+						_ = c.credentials.Delete(ref)
+					}
+				}
+			}()
+			for _, v := range d.Variables {
+				entry, ok := old.Values[v.Name]
+				if !ok || (v.Secret && entry.Mode == "value") {
+					continue
+				}
+				if entry.Mode == "keychain" {
+					secret, e := c.credentials.Get(c.configRef(old, v.Name))
+					if errors.Is(e, ErrCredentialMissing) {
+						continue
+					}
+					if e != nil {
+						return ErrCredentialStore
+					}
+					ref := c.configRef(next, v.Name)
+					if e = c.credentials.Set(ref, secret); e != nil {
+						return ErrCredentialStore
+					}
+					created = append(created, ref)
+				}
+				next.Values[v.Name] = entry
+			}
+			if err = writeConfigState(dir, next); err != nil {
+				return err
+			}
+			committed = true
+			for name, v := range old.Values {
+				if v.Mode == "keychain" {
+					_ = c.credentials.Delete(c.configRef(old, name))
+				}
+			}
+			return nil
+		})
+	})
 }

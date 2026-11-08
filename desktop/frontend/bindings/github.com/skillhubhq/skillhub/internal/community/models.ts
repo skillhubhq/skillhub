@@ -9,6 +9,7 @@ import * as registryv1$0 from "../../gen/common/registry/v1/models.js";
 import * as provenance$0 from "../provenance/models.js";
 
 export interface Comment {
+    "version": string;
     "comment_id": string;
     "release_id": string;
     "parent_id": string;
@@ -20,6 +21,7 @@ export interface Comment {
 }
 
 export interface Contribution {
+    "unavailable": boolean;
     "provenance"?: provenance$0.Record | null;
     "display_name_en": string;
     "display_name_zh": string;

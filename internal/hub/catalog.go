@@ -48,6 +48,8 @@ type Release struct {
 }
 
 type Skill struct {
+	Revision      uint64             `json:"revision"`
+	CanEdit       bool               `json:"can_edit"`
 	Provenance    *provenance.Record `json:"provenance,omitempty"`
 	Featured      bool               `json:"featured"`
 	DisplayNameEN string             `json:"display_name_en"`
@@ -61,13 +63,14 @@ type Skill struct {
 	LatestVersion string
 }
 type Search struct {
-	Order        taxonomy.CatalogOrder
-	FeaturedOnly bool
-	Query        string
-	Namespace    string
-	Name         string
-	Category     string
-	Tags         []string
+	IncludeArchived bool
+	Order           taxonomy.CatalogOrder
+	FeaturedOnly    bool
+	Query           string
+	Namespace       string
+	Name            string
+	Category        string
+	Tags            []string
 }
 type SubmitRelease struct {
 	Provenance    *provenance.Record `json:"provenance,omitempty"`
@@ -95,12 +98,12 @@ type YankRelease struct {
 
 // 权限表达式在目录、精确版本和下载中共用；所有角色值都限定在已知集合内。
 const activeReleaseSQL = `EXISTS(SELECT 1 FROM namespaces active_namespace WHERE active_namespace.name=r.namespace AND active_namespace.archived=0)`
-const readableSQL = activeReleaseSQL + ` AND (@admin=1 OR r.visibility=1 OR (@actor<>'' AND (r.visibility=2 OR
- EXISTS(SELECT 1 FROM release_groups a JOIN group_members m ON a.group_id=m.group_id WHERE a.release_id=r.id AND m.user_id=@actor) OR
- EXISTS(SELECT 1 FROM namespace_grants g WHERE g.namespace=r.namespace AND g.role IN (2,3,4) AND ((g.kind=1 AND g.subject_id=@actor) OR (g.kind=2 AND EXISTS(SELECT 1 FROM group_members m WHERE m.group_id=g.subject_id AND m.user_id=@actor)))))))`
+const readableSQL = `(@admin=1 OR EXISTS(SELECT 1 FROM skills skill WHERE skill.namespace=r.namespace AND skill.name=r.name AND (skill.visibility=1 OR (@actor<>'' AND (skill.visibility=2 OR
+ EXISTS(SELECT 1 FROM json_each(skill.audience_groups) a JOIN group_members m ON a.value=m.group_id WHERE m.user_id=@actor) OR
+ EXISTS(SELECT 1 FROM namespace_grants g WHERE g.namespace=r.namespace AND g.role IN (2,3,4) AND ((g.kind=1 AND g.subject_id=@actor) OR (g.kind=2 AND EXISTS(SELECT 1 FROM group_members m WHERE m.group_id=g.subject_id AND m.user_id=@actor)))))))))`
 const manageableSQL = activeReleaseSQL + ` AND (@admin=1 OR (@actor<>'' AND EXISTS(SELECT 1 FROM namespace_grants g WHERE g.namespace=r.namespace AND g.role IN (2,3,4) AND ((g.kind=1 AND g.subject_id=@actor) OR (g.kind=2 AND EXISTS(SELECT 1 FROM group_members m WHERE m.group_id=g.subject_id AND m.user_id=@actor))))))`
-const releaseColumns = `r.id,r.namespace,r.name,r.version,r.digest,r.status,r.visibility,r.submitted_by,r.created_at,r.review_reason,r.markdown,r.description,r.category,r.sequence,r.display_name_en,r.display_name_zh,r.icon,r.provenance,
- COALESCE((SELECT json_group_array(group_id) FROM (SELECT group_id FROM release_groups WHERE release_id=r.id ORDER BY group_id) AS ordered_groups),'[]'),
+const releaseColumns = `r.id,r.namespace,r.name,r.version,r.digest,r.status,CASE WHEN r.ever_published=1 THEN (SELECT visibility FROM skills WHERE namespace=r.namespace AND name=r.name) ELSE r.visibility END,r.submitted_by,r.created_at,r.review_reason,r.markdown,r.description,r.category,r.sequence,r.display_name_en,r.display_name_zh,r.icon,r.provenance,
+ CASE WHEN r.ever_published=1 THEN (SELECT audience_groups FROM skills WHERE namespace=r.namespace AND name=r.name) ELSE COALESCE((SELECT json_group_array(group_id) FROM (SELECT group_id FROM release_groups WHERE release_id=r.id ORDER BY group_id) AS ordered_groups),'[]') END,
  COALESCE((SELECT json_group_array(tag) FROM (SELECT tag FROM release_tags WHERE release_id=r.id ORDER BY tag) AS ordered_tags),'[]')`
 
 type scanner interface{ Scan(...any) error }
@@ -127,7 +130,7 @@ func scanRelease(row scanner) (Release, error) {
 	return r, nil
 }
 func releaseByID(ctx context.Context, tx *hubdb.Tx, id string) (Release, error) {
-	r, err := scanRelease(tx.QueryRowContext(ctx, "SELECT "+releaseColumns+" FROM releases r WHERE r.id=?", id))
+	r, err := scanRelease(tx.QueryRowContext(ctx, "SELECT "+releaseColumns+" FROM releases r WHERE r.id=? AND r.cleaned=0", id))
 	return r, assertExists(err)
 }
 func principalArgs(user Identity) []any {
@@ -233,12 +236,29 @@ func (s *Store) SubmitRelease(ctx context.Context, actor Identity, key string, c
 		if review {
 			status = taxonomy.ReleaseStatus_RELEASE_STATUS_PENDING
 		}
+		// 同一未发布版本的新提交使用新的身份；旧审核不能作用于新内容。
+		var published bool
+		if err = tx.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM releases WHERE namespace=? AND name=? AND version=? AND ever_published=1)", cmd.Namespace, bundle.Metadata.Name, cmd.Version).Scan(&published); err != nil {
+			return Release{}, err
+		}
+		if published {
+			return Release{}, ErrConflict
+		}
+		if _, err = tx.ExecContext(ctx, "UPDATE releases SET superseded=1,status=CASE WHEN status=1 THEN 3 ELSE status END WHERE namespace=? AND name=? AND version=?", cmd.Namespace, bundle.Metadata.Name, cmd.Version); err != nil {
+			return Release{}, err
+		}
+		if _, err = tx.ExecContext(ctx, "INSERT INTO skills(namespace,name,visibility,display_name_en,display_name_zh,icon,description,category,tags) VALUES(?,?,?,?,?,?,?,?,?) ON CONFLICT DO NOTHING", cmd.Namespace, bundle.Metadata.Name, cmd.Visibility, cmd.DisplayNameEN, cmd.DisplayNameZH, cmd.Icon, bundle.Metadata.Description, cmd.Category, jsonText(cmd.Tags)); err != nil {
+			return Release{}, err
+		}
 		id := uuid.NewString()
 		_, err = tx.ExecContext(ctx, `INSERT INTO releases(id,namespace,name,version,digest,description,markdown,status,visibility,submitted_by,created_at,category,display_name_en,display_name_zh,icon,provenance) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, id, cmd.Namespace, bundle.Metadata.Name, cmd.Version, bundle.Digest, bundle.Metadata.Description, bundle.Markdown, status, cmd.Visibility, user.ID, s.now().Unix(), cmd.Category, cmd.DisplayNameEN, cmd.DisplayNameZH, cmd.Icon, provenance.Encode(cmd.Provenance))
 		if isUnique(err) {
 			return Release{}, ErrConflict
 		}
 		if err != nil {
+			return Release{}, err
+		}
+		if _, err = tx.ExecContext(ctx, "UPDATE releases SET version_order=?,ever_published=? WHERE id=?", versionOrder(cmd.Version), status == taxonomy.ReleaseStatus_RELEASE_STATUS_PUBLISHED, id); err != nil {
 			return Release{}, err
 		}
 		for _, group := range cmd.GroupIDs {
@@ -264,6 +284,9 @@ func (s *Store) SubmitRelease(ctx context.Context, actor Identity, key string, c
 			return Release{}, err
 		}
 		if !review {
+			if err = publishSkillDetails(ctx, tx, id); err != nil {
+				return Release{}, err
+			}
 			if _, err = tx.ExecContext(ctx, "UPDATE releases SET published_order=(SELECT max(sequence) FROM audit) WHERE id=?", id); err != nil {
 				return Release{}, err
 			}
@@ -314,11 +337,16 @@ func (s *Store) ReviewRelease(ctx context.Context, actor Identity, key string, c
 		if _, err = tx.ExecContext(ctx, "INSERT INTO audit(actor_id,action,resource,created_at,detail) VALUES(?,?,?,?,?)", user.ID, "release.review", r.ID, s.now().Unix(), cmd.Reason); err != nil {
 			return Release{}, err
 		}
-		if _, err = tx.ExecContext(ctx, "UPDATE releases SET status=?,review_reason=?,published_order=CASE WHEN ?=2 THEN (SELECT max(sequence) FROM audit) ELSE 0 END WHERE id=?", status, cmd.Reason, status, r.ID); err != nil {
+		if _, err = tx.ExecContext(ctx, "UPDATE releases SET status=?,review_reason=?,ever_published=CASE WHEN ?=2 THEN 1 ELSE ever_published END,published_order=CASE WHEN ?=2 THEN (SELECT max(sequence) FROM audit) ELSE 0 END WHERE id=?", status, cmd.Reason, status, status, r.ID); err != nil {
 			return Release{}, err
 		}
 		if _, err = tx.ExecContext(ctx, "INSERT INTO review_notifications(recipient,release_id,approved,created_at) VALUES(?,?,?,?) ON CONFLICT DO NOTHING", r.SubmittedBy, r.ID, cmd.Approve, s.now().Unix()); err != nil {
 			return Release{}, err
+		}
+		if status == taxonomy.ReleaseStatus_RELEASE_STATUS_PUBLISHED {
+			if err = publishSkillDetails(ctx, tx, r.ID); err != nil {
+				return Release{}, err
+			}
 		}
 		return releaseByID(ctx, tx, r.ID)
 	})
@@ -370,21 +398,21 @@ func (s *Store) SearchSkills(ctx context.Context, actor Identity, filter Search,
 	args := append(principalArgs(user), sql.Named("query", strings.ToLower(filter.Query)), sql.Named("namespace", filter.Namespace), sql.Named("name", filter.Name), sql.Named("category", filter.Category), sql.Named("tags", string(tags)))
 	after, order := "r.namespace||'/'||r.name>@after", "r.namespace,r.name"
 	if filter.Order == taxonomy.CatalogOrder_CATALOG_ORDER_RECENT {
-		after = "(@after='' OR r.published_order<CAST(COALESCE(NULLIF(@after,''),'0') AS BIGINT))"
-		order = "r.published_order DESC"
+		after = "(@after='' OR r.activity_order<CAST(COALESCE(NULLIF(@after,''),'0') AS BIGINT))"
+		order = "r.activity_order DESC"
 	}
-	args = append(args, sql.Named("featured", filter.FeaturedOnly))
-	query := `WITH visible AS (SELECT r.*,ROW_NUMBER() OVER(PARTITION BY namespace,name ORDER BY published_order DESC) AS rank FROM releases r WHERE status=2 AND ` + readableSQL + `)
-SELECT r.namespace,r.name,r.description,r.category,r.version,r.display_name_en,r.display_name_zh,r.icon,r.provenance,r.published_order,EXISTS(SELECT 1 FROM featured_skills f WHERE f.namespace=r.namespace AND f.name=r.name),COALESCE((SELECT json_group_array(tag) FROM (SELECT tag FROM release_tags WHERE release_id=r.id ORDER BY tag) AS ordered_tags),'[]') FROM visible r
-WHERE rank=1 AND ` + after + ` AND (@featured=0 OR EXISTS(SELECT 1 FROM featured_skills f WHERE f.namespace=r.namespace AND f.name=r.name)) AND (@namespace='' OR r.namespace=@namespace) AND (@name='' OR r.name=@name) AND (@category='' OR r.category=@category)
-AND (@query='' OR instr(lower(r.name||' '||r.description||' '||r.display_name_en||' '||r.display_name_zh),@query)>0)
-AND NOT EXISTS(SELECT 1 FROM json_each(@tags) wanted WHERE NOT EXISTS(SELECT 1 FROM release_tags t WHERE t.release_id=r.id AND t.tag=wanted.value))
+	args = append(args, sql.Named("featured", filter.FeaturedOnly), sql.Named("archived", filter.IncludeArchived))
+	query := `WITH visible AS (SELECT r.*,ROW_NUMBER() OVER(PARTITION BY namespace,name ORDER BY version_order DESC,published_order DESC) AS rank,MAX(published_order) OVER(PARTITION BY namespace,name) AS activity_order FROM releases r WHERE status=2 AND (@archived=1 OR ` + activeReleaseSQL + `) AND ` + readableSQL + `)
+SELECT r.namespace,r.name,m.description,m.category,r.version,m.display_name_en,m.display_name_zh,m.icon,r.provenance,r.activity_order,EXISTS(SELECT 1 FROM featured_skills f WHERE f.namespace=r.namespace AND f.name=r.name),m.tags,m.revision,(` + strings.Replace(manageableSQL, "(2,3,4)", "(2,4)", 1) + `) FROM visible r JOIN skills m ON m.namespace=r.namespace AND m.name=r.name
+WHERE rank=1 AND ` + after + ` AND (@featured=0 OR EXISTS(SELECT 1 FROM featured_skills f WHERE f.namespace=r.namespace AND f.name=r.name)) AND (@namespace='' OR r.namespace=@namespace) AND (@name='' OR r.name=@name) AND (@category='' OR m.category=@category)
+AND (@query='' OR instr(lower(r.name||' '||m.description||' '||m.display_name_en||' '||m.display_name_zh),@query)>0)
+AND NOT EXISTS(SELECT 1 FROM json_each(@tags) wanted WHERE NOT EXISTS(SELECT 1 FROM json_each(m.tags) t WHERE t.value=wanted.value))
 ORDER BY ` + order + ` LIMIT @limit`
 	return pageQuery(s, ctx, tx, page, scope(user.ID, "search", filter), query, args, func(rows *sql.Rows) (Skill, string, error) {
 		var v Skill
 		var published int64
 		var tags, origin string
-		err := rows.Scan(&v.Namespace, &v.Name, &v.Description, &v.Category, &v.LatestVersion, &v.DisplayNameEN, &v.DisplayNameZH, &v.Icon, &origin, &published, &v.Featured, &tags)
+		err := rows.Scan(&v.Namespace, &v.Name, &v.Description, &v.Category, &v.LatestVersion, &v.DisplayNameEN, &v.DisplayNameZH, &v.Icon, &origin, &published, &v.Featured, &tags, &v.Revision, &v.CanEdit)
 		if err == nil {
 			err = json.Unmarshal([]byte(tags), &v.Tags)
 		}
@@ -399,7 +427,7 @@ ORDER BY ` + order + ` LIMIT @limit`
 }
 
 func (s *Store) GetSkill(ctx context.Context, actor Identity, namespace, name string) (Skill, error) {
-	result, err := s.SearchSkills(ctx, actor, Search{Namespace: namespace, Name: name}, Page{Size: 1})
+	result, err := s.SearchSkills(ctx, actor, Search{Namespace: namespace, Name: name, IncludeArchived: true}, Page{Size: 1})
 	if err != nil {
 		return Skill{}, err
 	}
@@ -440,7 +468,7 @@ func (s *Store) listReleases(ctx context.Context, actor Identity, namespace, nam
 	}
 	args := append(principalArgs(user), sql.Named("namespace", namespace), sql.Named("name", name), sql.Named("mine", filter.Mine), sql.Named("active", filter.ActiveOnly), sql.Named("status", filter.Status), sql.Named("query", strings.ToLower(filter.Query)))
 	columns := strings.Replace(releaseColumns, "r.markdown", "''", 1)
-	query := "SELECT " + columns + ` FROM releases r WHERE (@after='' OR r.sequence<CAST(COALESCE(NULLIF(@after,''),'0') AS INTEGER)) AND (@namespace='' OR r.namespace=@namespace) AND (@name='' OR r.name=@name) AND (@mine=0 OR r.submitted_by=@actor) AND (@active=0 OR r.status=1 OR NOT EXISTS(SELECT 1 FROM releases newer WHERE newer.namespace=r.namespace AND newer.name=r.name AND newer.sequence>r.sequence AND (@mine=0 OR newer.submitted_by=@actor))) AND (@status=0 OR r.status=@status) AND (@query='' OR instr(lower(r.namespace||'/'||r.name||' '||r.version||' '||r.display_name_en||' '||r.display_name_zh),@query)>0) AND ` + visibility + ` ORDER BY r.sequence DESC LIMIT @limit`
+	query := "SELECT " + columns + ` FROM releases r WHERE r.cleaned=0 AND r.superseded=0 AND (@after='' OR r.sequence<CAST(COALESCE(NULLIF(@after,''),'0') AS INTEGER)) AND (@namespace='' OR r.namespace=@namespace) AND (@name='' OR r.name=@name) AND (@mine=0 OR r.submitted_by=@actor) AND (@active=0 OR r.status=1 OR NOT EXISTS(SELECT 1 FROM releases newer WHERE newer.namespace=r.namespace AND newer.name=r.name AND newer.sequence>r.sequence AND newer.cleaned=0 AND newer.superseded=0 AND (@mine=0 OR newer.submitted_by=@actor))) AND (@status=0 OR r.status=@status) AND (@query='' OR instr(lower(r.namespace||'/'||r.name||' '||r.version||' '||r.display_name_en||' '||r.display_name_zh),@query)>0) AND ` + visibility + ` ORDER BY r.sequence DESC LIMIT @limit`
 	return pageQuery(s, ctx, tx, page, scope(user.ID, "releases", []any{namespace, name, submissions, filter}), query, args, func(rows *sql.Rows) (Release, string, error) {
 		v, err := scanRelease(rows)
 		return v, strconv.FormatInt(v.Sequence, 10), err
@@ -539,4 +567,24 @@ func (s *Store) writeBlob(digest string, data []byte) error {
 		return err
 	}
 	return syncPackageDirectory(dir)
+}
+
+func jsonText(value any) string { raw, _ := json.Marshal(value); return string(raw) }
+
+// 审核通过后原子更新技能访问规则，所有版本和互动共用该规则。
+func publishSkillDetails(ctx context.Context, tx *hubdb.Tx, id string) error {
+	var visibility int
+	var ns, name, groups string
+	err := tx.QueryRowContext(ctx, `SELECT r.namespace,r.name,r.visibility,COALESCE((SELECT json_group_array(group_id) FROM (SELECT group_id FROM release_groups WHERE release_id=r.id ORDER BY group_id) AS ordered_groups),'[]') FROM releases r WHERE r.id=?`, id).Scan(&ns, &name, &visibility, &groups)
+	if err != nil {
+		return err
+	}
+	_, err = tx.ExecContext(ctx, `UPDATE skills SET visibility=?,audience_groups=?,
+        display_name_en=(SELECT display_name_en FROM releases WHERE id=?),
+        display_name_zh=(SELECT display_name_zh FROM releases WHERE id=?),
+        description=(SELECT description FROM releases WHERE id=?),
+        icon=(SELECT icon FROM releases WHERE id=?),category=(SELECT category FROM releases WHERE id=?),
+        tags=COALESCE((SELECT json_group_array(tag) FROM (SELECT tag FROM release_tags WHERE release_id=? ORDER BY tag) AS ordered_tags),'[]'),
+        revision=revision+1 WHERE namespace=? AND name=?`, visibility, groups, id, id, id, id, id, id, ns, name)
+	return err
 }

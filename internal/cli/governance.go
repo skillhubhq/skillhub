@@ -25,7 +25,7 @@ func (a *application) governanceCommand() *cobra.Command {
 			return a.output(cmd, v)
 		}))
 	}
-	notices := a.remoteCommand("notifications", "List review outcomes for your source-local identity", cobra.NoArgs, func(cmd *cobra.Command, _ *client.Remote, args []string) error {
+	notices := a.remoteCommand("notifications", "List review outcomes and replies for your Hub account", cobra.NoArgs, func(cmd *cobra.Command, _ *client.Remote, args []string) error {
 		token, _ := cmd.Flags().GetString("page-token")
 		v, e := a.core.Notifications(cmd.Context(), source(cmd), token)
 		if e != nil {
@@ -35,6 +35,9 @@ func (a *application) governanceCommand() *cobra.Command {
 	})
 	notices.Flags().String("page-token", "", "notification cursor")
 	root.AddCommand(notices)
+	root.AddCommand(a.remoteCommand("notifications-read-all", "Mark all your notifications as read", cobra.NoArgs, func(cmd *cobra.Command, _ *client.Remote, _ []string) error {
+		return a.core.MarkAllNotificationsRead(cmd.Context(), source(cmd))
+	}))
 	root.AddCommand(a.remoteCommand("notification-read NOTIFICATION_ID", "Mark your notification as read", cobra.ExactArgs(1), func(cmd *cobra.Command, _ *client.Remote, args []string) error {
 		return a.core.MarkNotificationRead(cmd.Context(), source(cmd), args[0])
 	}))

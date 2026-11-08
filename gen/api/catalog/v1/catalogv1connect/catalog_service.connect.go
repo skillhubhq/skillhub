@@ -33,6 +33,9 @@ const (
 // reflection-formatted method names, remove the leading slash and convert the remaining slash to a
 // period.
 const (
+	// CatalogServiceUpdateSkillMetadataProcedure is the fully-qualified name of the CatalogService's
+	// UpdateSkillMetadata RPC.
+	CatalogServiceUpdateSkillMetadataProcedure = "/api.catalog.v1.CatalogService/UpdateSkillMetadata"
 	// CatalogServiceSearchSkillsProcedure is the fully-qualified name of the CatalogService's
 	// SearchSkills RPC.
 	CatalogServiceSearchSkillsProcedure = "/api.catalog.v1.CatalogService/SearchSkills"
@@ -48,6 +51,8 @@ const (
 
 // CatalogServiceClient is a client for the api.catalog.v1.CatalogService service.
 type CatalogServiceClient interface {
+	// UpdateSkillMetadata 修改技能展示资料，版本包保持不变。
+	UpdateSkillMetadata(context.Context, *connect.Request[v1.UpdateSkillMetadataRequest]) (*connect.Response[v1.UpdateSkillMetadataResponse], error)
 	// SearchSkills 只返回主体有权发现的技能。
 	SearchSkills(context.Context, *connect.Request[v1.SearchSkillsRequest]) (*connect.Response[v1.SearchSkillsResponse], error)
 	// GetSkill 查询完整坐标对应的技能。
@@ -69,6 +74,12 @@ func NewCatalogServiceClient(httpClient connect.HTTPClient, baseURL string, opts
 	baseURL = strings.TrimRight(baseURL, "/")
 	catalogServiceMethods := v1.File_api_catalog_v1_catalog_service_proto.Services().ByName("CatalogService").Methods()
 	return &catalogServiceClient{
+		updateSkillMetadata: connect.NewClient[v1.UpdateSkillMetadataRequest, v1.UpdateSkillMetadataResponse](
+			httpClient,
+			baseURL+CatalogServiceUpdateSkillMetadataProcedure,
+			connect.WithSchema(catalogServiceMethods.ByName("UpdateSkillMetadata")),
+			connect.WithClientOptions(opts...),
+		),
 		searchSkills: connect.NewClient[v1.SearchSkillsRequest, v1.SearchSkillsResponse](
 			httpClient,
 			baseURL+CatalogServiceSearchSkillsProcedure,
@@ -98,10 +109,16 @@ func NewCatalogServiceClient(httpClient connect.HTTPClient, baseURL string, opts
 
 // catalogServiceClient implements CatalogServiceClient.
 type catalogServiceClient struct {
-	searchSkills    *connect.Client[v1.SearchSkillsRequest, v1.SearchSkillsResponse]
-	getSkill        *connect.Client[v1.GetSkillRequest, v1.GetSkillResponse]
-	listReleases    *connect.Client[v1.ListReleasesRequest, v1.ListReleasesResponse]
-	downloadRelease *connect.Client[v1.DownloadReleaseRequest, v1.DownloadReleaseResponse]
+	updateSkillMetadata *connect.Client[v1.UpdateSkillMetadataRequest, v1.UpdateSkillMetadataResponse]
+	searchSkills        *connect.Client[v1.SearchSkillsRequest, v1.SearchSkillsResponse]
+	getSkill            *connect.Client[v1.GetSkillRequest, v1.GetSkillResponse]
+	listReleases        *connect.Client[v1.ListReleasesRequest, v1.ListReleasesResponse]
+	downloadRelease     *connect.Client[v1.DownloadReleaseRequest, v1.DownloadReleaseResponse]
+}
+
+// UpdateSkillMetadata calls api.catalog.v1.CatalogService.UpdateSkillMetadata.
+func (c *catalogServiceClient) UpdateSkillMetadata(ctx context.Context, req *connect.Request[v1.UpdateSkillMetadataRequest]) (*connect.Response[v1.UpdateSkillMetadataResponse], error) {
+	return c.updateSkillMetadata.CallUnary(ctx, req)
 }
 
 // SearchSkills calls api.catalog.v1.CatalogService.SearchSkills.
@@ -126,6 +143,8 @@ func (c *catalogServiceClient) DownloadRelease(ctx context.Context, req *connect
 
 // CatalogServiceHandler is an implementation of the api.catalog.v1.CatalogService service.
 type CatalogServiceHandler interface {
+	// UpdateSkillMetadata 修改技能展示资料，版本包保持不变。
+	UpdateSkillMetadata(context.Context, *connect.Request[v1.UpdateSkillMetadataRequest]) (*connect.Response[v1.UpdateSkillMetadataResponse], error)
 	// SearchSkills 只返回主体有权发现的技能。
 	SearchSkills(context.Context, *connect.Request[v1.SearchSkillsRequest]) (*connect.Response[v1.SearchSkillsResponse], error)
 	// GetSkill 查询完整坐标对应的技能。
@@ -143,6 +162,12 @@ type CatalogServiceHandler interface {
 // and JSON codecs. They also support gzip compression.
 func NewCatalogServiceHandler(svc CatalogServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
 	catalogServiceMethods := v1.File_api_catalog_v1_catalog_service_proto.Services().ByName("CatalogService").Methods()
+	catalogServiceUpdateSkillMetadataHandler := connect.NewUnaryHandler(
+		CatalogServiceUpdateSkillMetadataProcedure,
+		svc.UpdateSkillMetadata,
+		connect.WithSchema(catalogServiceMethods.ByName("UpdateSkillMetadata")),
+		connect.WithHandlerOptions(opts...),
+	)
 	catalogServiceSearchSkillsHandler := connect.NewUnaryHandler(
 		CatalogServiceSearchSkillsProcedure,
 		svc.SearchSkills,
@@ -169,6 +194,8 @@ func NewCatalogServiceHandler(svc CatalogServiceHandler, opts ...connect.Handler
 	)
 	return "/api.catalog.v1.CatalogService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
+		case CatalogServiceUpdateSkillMetadataProcedure:
+			catalogServiceUpdateSkillMetadataHandler.ServeHTTP(w, r)
 		case CatalogServiceSearchSkillsProcedure:
 			catalogServiceSearchSkillsHandler.ServeHTTP(w, r)
 		case CatalogServiceGetSkillProcedure:
@@ -185,6 +212,10 @@ func NewCatalogServiceHandler(svc CatalogServiceHandler, opts ...connect.Handler
 
 // UnimplementedCatalogServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedCatalogServiceHandler struct{}
+
+func (UnimplementedCatalogServiceHandler) UpdateSkillMetadata(context.Context, *connect.Request[v1.UpdateSkillMetadataRequest]) (*connect.Response[v1.UpdateSkillMetadataResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("api.catalog.v1.CatalogService.UpdateSkillMetadata is not implemented"))
+}
 
 func (UnimplementedCatalogServiceHandler) SearchSkills(context.Context, *connect.Request[v1.SearchSkillsRequest]) (*connect.Response[v1.SearchSkillsResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("api.catalog.v1.CatalogService.SearchSkills is not implemented"))

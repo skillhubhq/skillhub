@@ -12,7 +12,7 @@ import (
 type DeleteRelease struct{ ReleaseID, ConfirmCoordinate string }
 type DeletedRelease struct{ ReleaseID string }
 
-// 清理正文与关联内容；占位防止相同坐标被复用，审计与已安装副本保留。
+// 清理包正文；版本标识与技能互动保留，历史列表隐藏清理后的记录。
 func (s *Store) DeleteRelease(ctx context.Context, actor Identity, key string, cmd DeleteRelease) (DeletedRelease, error) {
 	if cmd.ReleaseID == "" || cmd.ConfirmCoordinate == "" {
 		return DeletedRelease{}, ErrInvalid
@@ -42,15 +42,15 @@ func (s *Store) DeleteRelease(ctx context.Context, actor Identity, key string, c
 		if _, err = tx.ExecContext(ctx, "INSERT INTO package_cleanup(digest) VALUES(?) ON CONFLICT DO NOTHING", r.Digest); err != nil {
 			return DeletedRelease{}, err
 		}
-		for _, table := range []string{"community_reports", "evaluation_evidence", "review_notifications", "release_scans", "reactions", "comments", "release_groups", "release_tags"} {
+		for _, table := range []string{"evaluation_evidence", "review_notifications", "release_scans"} {
 			if _, err = tx.ExecContext(ctx, "DELETE FROM "+table+" WHERE release_id=?", r.ID); err != nil {
 				return DeletedRelease{}, err
 			}
 		}
-		if _, err = tx.ExecContext(ctx, "INSERT INTO release_tombstones(id,namespace,name,version,digest,deleted_at) VALUES(?,?,?,?,?,?)", r.ID, r.Namespace, r.Name, r.Version, r.Digest, s.now().Unix()); err != nil {
+		if _, err = tx.ExecContext(ctx, "INSERT INTO release_tombstones(id,namespace,name,version,digest,deleted_at) SELECT id,namespace,name,version,digest,? FROM releases WHERE id=? AND ever_published=1 ON CONFLICT DO NOTHING", s.now().Unix(), r.ID); err != nil {
 			return DeletedRelease{}, err
 		}
-		if _, err = tx.ExecContext(ctx, "DELETE FROM releases WHERE id=?", r.ID); err != nil {
+		if _, err = tx.ExecContext(ctx, "UPDATE releases SET cleaned=1,markdown='',archive_bytes=0 WHERE id=?", r.ID); err != nil {
 			return DeletedRelease{}, err
 		}
 		if err = s.auditChange(ctx, tx, user.ID, "release.delete", r.ID, map[string]string{"coordinate": coordinate, "digest": r.Digest}); err != nil {
@@ -114,7 +114,7 @@ func purgeReleaseResponses(ctx context.Context, tx *hubdb.Tx, id string) error {
 		return err
 	}
 	for _, k := range remove {
-		if _, err = tx.ExecContext(ctx, "DELETE FROM mutations WHERE actor=? AND method=? AND key=?", k.actor, k.method, k.key); err != nil {
+		if _, err = tx.ExecContext(ctx, "UPDATE mutations SET result=?,invalidated=1 WHERE actor=? AND method=? AND key=?", []byte("null"), k.actor, k.method, k.key); err != nil {
 			return err
 		}
 	}

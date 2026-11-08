@@ -112,6 +112,11 @@ def main():
                     cli("review", "approve", submitted["release_id"], "--source", "company", "--reason", "Reviewed fixture")
                     with (package / "SKILL.md").open("a", encoding="utf-8") as f:
                         f.write("\nVersion 1.1 adds a final handoff check.\n")
+                    rejected = cli("publish", str(package), "--source", "company", "--namespace", "platform", "--version", "1.0.1",
+                                   "--visibility", "members", "--category", "operations", "--tag", "review")
+                    env["SKILLHUB_TOKEN_COMPANY"] = company_admin
+                    cli("review", "reject", rejected["release"]["release_id"], "--source", "company", "--reason", "Disposable history cleanup fixture")
+                    env["SKILLHUB_TOKEN_COMPANY"] = reviewer_token
                     cli("publish", str(package), "--source", "company", "--namespace", "platform", "--version", "1.1.0",
                         "--visibility", "members", "--category", "operations", "--tag", "review",
                         "--display-name-en", "Release Readiness", "--display-name-zh", "发布就绪检查", "--icon", "workflow")

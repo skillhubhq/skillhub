@@ -27,8 +27,8 @@ func TestNamespaceLifecycleTransportGuards(t *testing.T) {
 		t.Fatal(e)
 	}
 	_, e = f.catalog.DownloadRelease(ctx, authenticated(&catalog.DownloadReleaseRequest{Namespace: "team", Name: release.Msg.Release.Name, Version: "1.0.0"}, f.owner))
-	if connect.CodeOf(e) != connect.CodeNotFound {
-		t.Fatal("download bypass", e)
+	if e != nil {
+		t.Fatal("archive blocked authorized download", e)
 	}
 	_, e = f.admin.PurgeNamespace(ctx, authenticated(&admin.PurgeNamespaceRequest{Mutation: mutation(), Name: "team", ExpectedRevision: archived.Msg.Lifecycle.Revision, ConfirmName: "other"}, f.owner))
 	if connect.CodeOf(e) != connect.CodeInvalidArgument {

@@ -6,7 +6,7 @@ The Hub owns publication checks, independent review, audit and platform duties. 
 
 Every new submission is inspected with the bounded, offline `builtin-static/2` scanner after archive validation. Nothing in the package is executed or sent to a third party. A report records the immutable package digest, engine version, timestamp, rule ID, file and line, and fixed remediation text; matched secret text is never copied into findings.
 
-- Private-key headers and selected credential-shaped tokens block approval. Fix the package and submit a new immutable version; even administrators cannot override this gate.
+- Private-key headers and selected credential-shaped tokens block approval. Fix the package and submit a new review revision; even administrators cannot override this gate.
 - Remote shell pipelines, local process execution/termination, external HTML scripts, destructive command patterns and instruction-override language require independent review. Binary files are explicitly uninspected. These findings force pending review even in a namespace that normally permits direct publication.
 - A reviewer must record a note for warning/incomplete reports. The normal author/reviewer separation still applies. A missing, outdated or mismatched report blocks approval until a successful rescan.
 - A clean report means **no built-in rules matched**, not that the skill is safe. Static patterns cannot establish intent, detect all credentials or prevent prompt injection. This is not antivirus, sandboxing or an execution permission system.
@@ -19,7 +19,7 @@ Web/App show a compact expandable report above the submission body. The approval
 
 A review decision and the submitter’s notification commit in the same transaction. Idempotent review retries do not create duplicate notifications. The inbox is scoped to the selected connection and authenticated user, paginated, and includes approved/requested-changes outcomes. Opening one marks it read and links to the exact version’s feedback.
 
-Both listing and marking read recheck current namespace access. Revocation hides an old notification; no copied skill body is retained in the inbox. Notifications persist across restarts and backup/restore. Email, webhooks and desktop push are not supported. The inbox also provides a live, permission-filtered review-task queue, a pending count and the oldest submission date. It excludes self-submissions and updates on read, focus and periodic visible-window refresh. It is a pull-based task list, not guaranteed push delivery.
+The inbox includes review outcomes and replies, with an unread count and mark-all-read. Current access controls target details. An inaccessible target appears as unavailable and can still be marked read by its recipient; no copied skill body is retained. Notifications persist across restarts and backup/restore. Email, webhooks and desktop push are not supported. The inbox also provides a live, permission-filtered review-task queue, a pending count and the oldest submission date. It excludes self-submissions and updates on read, focus and periodic visible-window refresh. It is a pull-based task list, not guaranteed push delivery.
 
 ## Platform duties
 
@@ -96,7 +96,7 @@ skillhub publish ./example-skill --source community --namespace curators \
   --provenance ./attribution.json
 ```
 
-The Hub requires the referenced text license file to exist in the package. A reviewer still checks license applicability, source ownership, exact commit and preservation of notices; the Hub does not fetch or independently verify the upstream repository. Changed files require `modified: true` and a change description. Every attributed submission requires independent review, even in a namespace allowing direct publication. Metadata is immutable with its version and participates in idempotency checks. A correction requires a new version.
+The Hub requires the referenced text license file to exist in the package. A reviewer still checks license applicability, source ownership, exact commit and preservation of notices; the Hub does not fetch or independently verify the upstream repository. Changed files require `modified: true` and a change description. Every attributed submission requires independent review, even in a namespace allowing direct publication. Metadata is immutable with its version and participates in idempotency checks. A published package correction requires a new version. Unpublished submissions can be revised with the same proposed version.
 
 When upstream supplies no release number, use a clearly identified Hub snapshot version such as `0.0.0-upstream.<commit-prefix>`; do not invent an upstream `1.0.0`. Installation stores the attribution alongside the exact package digest for offline display. Older Hubs lacking `catalog.provenance.v1` are rejected when publishing attribution, rather than silently losing it.
 
@@ -106,7 +106,7 @@ A team is a namespace with a display profile. **Only Hub administrators** can pr
 
 | State/action | Content and access |
 | --- | --- |
-| Archive | Hides the team and all its versions from community discovery, direct downloads, contributions, evaluation views and review tasks. Publishing, reviewing, profile changes, role changes and interactions stop, including through old clients. Content, prior version states and role grants remain stored. |
+| Archive | Hides the team from default discovery and stops publication, review and other writes. Authorized readers retain access to history, downloads and evaluation evidence. Role grants continue to control reads. |
 | Restore | Reactivates the retained grants and prior version states. Withdrawn/rejected versions stay withdrawn/rejected; pending work returns to the queue. Review permissions are rechecked. |
 | Permanently delete | Requires an archived team, its current revision and the exact namespace typed again. Deletes all its releases, discussions/replies, reactions, review notifications, scans, evaluation evidence, content reports, profile, curation and namespace grants. The name remains reserved and cannot be reused. |
 
@@ -130,10 +130,10 @@ Use isolated Hubs for write-workflow acceptance. If an explicitly authorized tes
 
 ## Version cleanup
 
-My releases defaults to each skill’s latest submission by the current publisher, plus all pending submissions. Use **All versions** to find older attempts. A namespace maintainer or administrator can permanently delete a rejected or withdrawn version from its detail view. Published and pending versions must be withdrawn first.
+My releases defaults to each skill’s latest submission by the current publisher, plus all pending submissions. Use **All versions** to find older attempts. A namespace maintainer or administrator can clean the package of a rejected or withdrawn version from its detail view. Published and pending versions must be withdrawn first.
 
 ```sh
 skillhub review delete RELEASE_ID --source company --confirm research/example@1.0.0
 ```
 
-Deletion removes the version’s files, comments, reactions, evaluations, scan reports and notifications. Audit events and a reserved coordinate remain; the same namespace/name/version cannot be reused. Installed copies remain on users’ devices. Shared package files stay until their final reference is removed. Storage failures can be retried with the same request ID. Clients expose deletion when the Hub advertises `publishing.cleanup.v1`.
+Cleanup removes package files, evaluations, scan reports and review notifications. Skill discussion, reactions, audit events and a minimal version record remain. A published coordinate cannot be reused; an unpublished proposal can be revised. Installed copies remain on users’ devices. Shared package files stay until their final reference is removed. Storage failures can be retried with the same request ID. Clients expose deletion when the Hub advertises `publishing.cleanup.v1`.

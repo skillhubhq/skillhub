@@ -73,13 +73,19 @@ func TestDiscoveryCapacity(t *testing.T) {
 	// 每个技能三版，偶数技能公开，奇数技能仅维护者可读；另有 200 条待审。
 	const skills = 2000
 	for i := 0; i < skills; i++ {
+		visibility := 1
+		if i%2 == 1 {
+			visibility = 3
+		}
+		_, e = tx.ExecContext(ctx, "INSERT INTO skills(namespace,name,visibility,description) VALUES('capacity',?,?,'Capacity fixture')", fmt.Sprintf("skill-%04d", i), visibility)
+		mustGovernance(t, e)
 		for v := 1; v <= 3; v++ {
 			visibility := 1
 			if i%2 == 1 {
 				visibility = 3
 			}
 			seq := i*3 + v
-			_, e = tx.ExecContext(ctx, `INSERT INTO releases(id,namespace,name,version,digest,description,markdown,status,visibility,submitted_by,created_at,published_order) VALUES(?,'capacity',?,?,?,'Capacity fixture','Fixture',2,?,?,?,?)`, fmt.Sprintf("capacity-%d", seq), fmt.Sprintf("skill-%04d", i), fmt.Sprintf("%d.0.0", v), "sha256:fixture", visibility, admin.ID, seq, seq)
+			_, e = tx.ExecContext(ctx, `INSERT INTO releases(id,namespace,name,version,digest,description,markdown,status,visibility,submitted_by,created_at,published_order,version_order,ever_published) VALUES(?,'capacity',?,?,?,'Capacity fixture','Fixture',2,?,?,?,?,?,1)`, fmt.Sprintf("capacity-%d", seq), fmt.Sprintf("skill-%04d", i), fmt.Sprintf("%d.0.0", v), "sha256:fixture", visibility, admin.ID, seq, seq, versionOrder(fmt.Sprintf("%d.0.0", v)))
 			mustGovernance(t, e)
 		}
 		if i%10 == 0 {
@@ -88,6 +94,8 @@ func TestDiscoveryCapacity(t *testing.T) {
 		}
 	}
 	for i := 0; i < 200; i++ {
+		_, e = tx.ExecContext(ctx, "INSERT INTO skills(namespace,name,visibility) VALUES('capacity',?,2)", fmt.Sprintf("pending-%d", i))
+		mustGovernance(t, e)
 		_, e = tx.ExecContext(ctx, `INSERT INTO releases(id,namespace,name,version,digest,description,markdown,status,visibility,submitted_by,created_at) VALUES(?,'capacity',?,'1.0.0','fixture','Pending','Pending',1,2,?,?)`, fmt.Sprintf("pending-%d", i), fmt.Sprintf("pending-%d", i), admin.ID, i+1)
 		mustGovernance(t, e)
 	}

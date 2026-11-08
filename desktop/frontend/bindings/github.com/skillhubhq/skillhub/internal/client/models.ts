@@ -140,6 +140,9 @@ export interface NamespaceLifecycle {
 }
 
 export interface Notification {
+    "kind": string;
+    "comment_id": string;
+    "unavailable": boolean;
     "id": string;
     "release_id": string;
     "coordinate": string;
@@ -149,6 +152,7 @@ export interface Notification {
 }
 
 export interface NotificationPage {
+    "unread": number;
     "supported": boolean;
     "items": Notification[] | null;
     "next_page": string;
@@ -299,7 +303,20 @@ export interface SkillConfiguration {
     "variables": ConfigVariableStatus[] | null;
 }
 
+export interface SkillMetadataChange {
+    "namespace": string;
+    "name": string;
+    "expected_revision": number;
+    "display_name_en": string;
+    "display_name_zh": string;
+    "description": string;
+    "icon": registryv1$0.SkillIcon;
+    "category": string;
+    "tags": string[] | null;
+}
+
 export interface Source {
+    "account_id": string;
     "label": string;
     "note": string;
     "official": boolean;

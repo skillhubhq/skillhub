@@ -6,6 +6,8 @@ export function lockModalScroll() {
   if (locks++ === 0) {
     const root = document.documentElement;
     const body = document.body;
+    const main = document.querySelector<HTMLElement>(".desktop-shell > main");
+    const mainPosition = main ? [main.scrollLeft, main.scrollTop] : null;
     const x = window.scrollX;
     const y = window.scrollY;
     const gap = Math.max(0, window.innerWidth - root.clientWidth);
@@ -17,6 +19,12 @@ export function lockModalScroll() {
       [body, "left"],
       [body, "width"],
       [body, "padding-right"],
+      ...(main
+        ? [
+            [main, "overflow"],
+            [main, "scroll-behavior"],
+          ]
+        : []),
     ].map(([element, name]) => {
       const el = element as HTMLElement;
       const prop = name as string;
@@ -28,12 +36,15 @@ export function lockModalScroll() {
       };
     });
     const padding = parseFloat(getComputedStyle(body).paddingRight) || 0;
+    if (main) main.style.overflow = "hidden";
     root.style.overflow = "hidden";
-    body.style.position = "fixed";
-    body.style.top = `${-y}px`;
-    body.style.left = `${-x}px`;
-    body.style.width = "100%";
-    if (gap) body.style.paddingRight = `${padding + gap}px`;
+    if (!main) {
+      body.style.position = "fixed";
+      body.style.top = `${-y}px`;
+      body.style.left = `${-x}px`;
+      body.style.width = "100%";
+      if (gap) body.style.paddingRight = `${padding + gap}px`;
+    }
     restore = () => {
       for (const { el, prop, value, priority } of saved)
         if (prop !== "scroll-behavior") {
@@ -42,7 +53,23 @@ export function lockModalScroll() {
         }
       root.style.scrollBehavior = "auto";
       window.scrollTo(x, y);
-      const original = saved.find((item) => item.prop === "scroll-behavior")!;
+      if (main && mainPosition) {
+        main.style.scrollBehavior = "auto";
+        main.scrollTo(mainPosition[0], mainPosition[1]);
+        const originalMain = saved.find(
+          (item) => item.el === main && item.prop === "scroll-behavior",
+        )!;
+        if (originalMain.value)
+          main.style.setProperty(
+            originalMain.prop,
+            originalMain.value,
+            originalMain.priority,
+          );
+        else main.style.removeProperty(originalMain.prop);
+      }
+      const original = saved.find(
+        (item) => item.el === root && item.prop === "scroll-behavior",
+      )!;
       if (original.value)
         root.style.setProperty(
           original.prop,

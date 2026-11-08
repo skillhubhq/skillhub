@@ -1,3 +1,4 @@
+import { ResourceState, useResource } from "./community-ui";
 import { ProvenanceDetails, UpstreamAuthor } from "./ProvenancePanel";
 import { ProjectSkillPicker } from "./ProjectSkillPicker";
 import { Select } from "./Select";
@@ -22,17 +23,16 @@ import {
 } from "./ui";
 export function Installed() {
   const ui = useUI();
-  const [items, setItems] = useState<Installation[]>([]);
+  const inventory = useResource(() => API.ListInstalled(), [], ui.revision);
+  const items = inventory.value ?? [];
+  const setItems = inventory.setValue;
   const [filter, setFilter] = useState("");
   const [checks, setChecks] = useState<UpdateCheck[]>([]);
   const [repairSources, setRepairSources] = useState<Record<string, string>>(
     {},
   );
   useEffect(() => {
-    void ui.run(async () => {
-      setItems((await API.ListInstalled()) ?? []);
-      setChecks([]);
-    });
+    setChecks([]);
   }, [ui.revision]);
   const origin = (item: Installation) =>
     JSON.stringify([item.registry_id, item.registry_url]);
@@ -71,7 +71,7 @@ export function Installed() {
       .includes(filter.toLowerCase()),
   );
   return (
-    <>
+    <ResourceState {...inventory} retry={inventory.reload}>
       <div className="toolbar library-toolbar">
         <input
           aria-label={t("Filter installed skills")}
@@ -273,7 +273,16 @@ export function Installed() {
                   )}
                 </div>
                 <div className="actions installation-actions">
-                  <button disabled={ui.busy} onClick={() => ui.navigate(`configuration?${new URLSearchParams({ target: item.target })}`)}>{t("Configure", "配置")}</button>
+                  <button
+                    disabled={ui.busy}
+                    onClick={() =>
+                      ui.navigate(
+                        `configuration?${new URLSearchParams({ target: item.target })}`,
+                      )
+                    }
+                  >
+                    {t("Configure", "配置")}
+                  </button>
                   {current ? (
                     <span className="installation-current" role="status">
                       {t("Up to date", "已是最新")}
@@ -316,7 +325,7 @@ export function Installed() {
           })}
         </div>
       )}
-    </>
+    </ResourceState>
   );
 }
 export function Projects() {
@@ -486,13 +495,15 @@ export function Projects() {
             <div>
               <h2>{t("Project skills", "项目技能")}</h2>
             </div>
-            {(project.manifest.skills ?? []).length > 0 && (
+            {((project.manifest.skills ?? []).length > 0 ||
+              (project.lock?.skills ?? []).length > 0) && (
               <span className={`badge ${project.needs_lock ? "warning" : ""}`}>
                 {project.needs_lock ? t("Needs locking") : t("Versions locked")}
               </span>
             )}
           </div>
-          {(project.manifest.skills ?? []).length > 0 && (
+          {((project.manifest.skills ?? []).length > 0 ||
+            (project.lock?.skills ?? []).length > 0) && (
             <>
               <p className="muted">
                 {t(
@@ -501,24 +512,11 @@ export function Projects() {
               </p>
               <div className="actions wrap">
                 <button
-                  disabled={ui.busy}
-                  onClick={() =>
-                    void ui.run(async () => {
-                      setProject(await API.LockProject(project.root));
-                      ui.changed(
-                        t("Project versions and package digests are locked."),
-                      );
-                    })
-                  }
-                >
-                  {t("Lock versions")}
-                </button>
-                <button
                   className="primary"
-                  disabled={ui.busy || project.needs_lock}
+                  disabled={ui.busy}
                   onClick={() => ui.plan(() => API.PlanRestore(project.root))}
                 >
-                  {t("Review restore")}
+                  {t("Review and apply changes", "预览并应用变更")}
                 </button>
               </div>
             </>
@@ -527,8 +525,8 @@ export function Projects() {
             {(project.manifest.skills ?? []).length === 0 ? (
               <p className="muted">
                 {t(
-                  "No skills yet. Add a skill, then lock and restore its version for your team.",
-                  "还没有技能。添加技能后，锁定版本并为团队恢复安装。",
+                  "Add a skill, then review and apply the project changes.",
+                  "添加技能后，预览并应用项目变更。",
                 )}
               </p>
             ) : (

@@ -116,7 +116,7 @@ func TestCommunityAudienceRepliesReactionsAndProfiles(t *testing.T) {
 		t.Fatal("replay bypassed revocation", err)
 	}
 	bookmarks, err := apiClient.ListBookmarks(ctx, authenticated(&api.ListBookmarksRequest{}, member))
-	if err != nil || len(bookmarks.Msg.Contributions) != 0 {
+	if err != nil || len(bookmarks.Msg.Contributions) != 1 || !bookmarks.Msg.Contributions[0].Unavailable || bookmarks.Msg.Contributions[0].ReleaseId != "" || bookmarks.Msg.Contributions[0].Description != "" {
 		t.Fatal("revoked bookmark leaked", err)
 	}
 }

@@ -221,12 +221,15 @@ func (s *Store) ScanRelease(ctx context.Context, actor Identity, key, id string)
 }
 
 type ReviewNotification struct {
-	ID         string    `json:"id"`
-	ReleaseID  string    `json:"release_id"`
-	Coordinate string    `json:"coordinate"`
-	Approved   bool      `json:"approved"`
-	Read       bool      `json:"read"`
-	CreatedAt  time.Time `json:"created_at"`
+	Kind        string    `json:"kind"`
+	CommentID   string    `json:"comment_id"`
+	Unavailable bool      `json:"unavailable"`
+	ID          string    `json:"id"`
+	ReleaseID   string    `json:"release_id"`
+	Coordinate  string    `json:"coordinate"`
+	Approved    bool      `json:"approved"`
+	Read        bool      `json:"read"`
+	CreatedAt   time.Time `json:"created_at"`
 }
 
 func (s *Store) ListNotifications(ctx context.Context, actor Identity, page Page) (PageResult[ReviewNotification], error) {
@@ -238,18 +241,38 @@ func (s *Store) ListNotifications(ctx context.Context, actor Identity, page Page
 	if err = authenticatedOnly(tx, u); err != nil {
 		return PageResult[ReviewNotification]{}, err
 	}
-	return pageQuery(s, ctx, tx, page, scope(u.ID, "review-notifications", nil), `SELECT n.sequence,n.release_id,r.namespace||'/'||r.name||'@'||r.version,n.approved,n.is_read,n.created_at FROM review_notifications n JOIN releases r ON r.id=n.release_id WHERE n.recipient=@actor AND (@after='' OR n.sequence<CAST(COALESCE(NULLIF(@after,''),'0') AS INTEGER)) AND `+manageableSQL+` ORDER BY n.sequence DESC LIMIT @limit`, principalArgs(u), func(rows *sql.Rows) (ReviewNotification, string, error) {
+	visible := `r.cleaned=0 AND ((n.kind='review' AND ` + manageableSQL + `) OR (n.kind='reply' AND ` + readableSQL + `))`
+	return pageQuery(s, ctx, tx, page, scope(u.ID, "notifications", nil), `SELECT n.sequence,CASE WHEN `+visible+` THEN n.release_id ELSE '' END,CASE WHEN `+visible+` THEN r.namespace||'/'||r.name||'@'||r.version ELSE '' END,n.approved,n.is_read,n.created_at,n.kind,CASE WHEN `+visible+` THEN n.comment_id ELSE '' END,NOT (`+visible+`) FROM review_notifications n JOIN releases r ON r.id=n.release_id WHERE n.recipient=@actor AND (@after='' OR n.sequence<CAST(COALESCE(NULLIF(@after,''),'0') AS INTEGER)) ORDER BY n.sequence DESC LIMIT @limit`, principalArgs(u), func(rows *sql.Rows) (ReviewNotification, string, error) {
 		var n ReviewNotification
 		var seq, at int64
-		err := rows.Scan(&seq, &n.ReleaseID, &n.Coordinate, &n.Approved, &n.Read, &at)
+		err := rows.Scan(&seq, &n.ReleaseID, &n.Coordinate, &n.Approved, &n.Read, &at, &n.Kind, &n.CommentID, &n.Unavailable)
 		n.ID = strconv.FormatInt(seq, 10)
 		n.CreatedAt = time.Unix(at, 0)
 		return n, n.ID, err
 	})
 }
+func (s *Store) UnreadNotifications(ctx context.Context, actor Identity) (uint32, error) {
+	tx, u, err := s.read(ctx, actor)
+	if err != nil {
+		return 0, err
+	}
+	defer tx.Rollback()
+	if u.ID == "" {
+		return 0, ErrUnauthenticated
+	}
+	var count uint32
+	err = tx.QueryRowContext(ctx, "SELECT count(*) FROM review_notifications WHERE recipient=? AND is_read=0", u.ID).Scan(&count)
+	return count, err
+}
+func (s *Store) MarkAllNotificationsRead(ctx context.Context, actor Identity) error {
+	return s.markNotificationsRead(ctx, actor, "", true)
+}
 func (s *Store) MarkNotificationRead(ctx context.Context, actor Identity, id string) error {
+	return s.markNotificationsRead(ctx, actor, id, false)
+}
+func (s *Store) markNotificationsRead(ctx context.Context, actor Identity, id string, all bool) error {
 	seq, err := strconv.ParseInt(id, 10, 64)
-	if err != nil || seq <= 0 {
+	if !all && (err != nil || seq <= 0) {
 		return ErrInvalid
 	}
 	// 已读操作天然幂等；权限检查和修改仍在同一事务中进行。
@@ -268,15 +291,16 @@ func (s *Store) MarkNotificationRead(ctx context.Context, actor Identity, id str
 	if u.ID == "" {
 		return ErrUnauthenticated
 	}
-	var rid string
-	if err = tx.QueryRowContext(ctx, "SELECT release_id FROM review_notifications WHERE sequence=? AND recipient=?", seq, u.ID).Scan(&rid); err != nil {
-		return assertExists(err)
-	}
-	if _, err = scanAccess(ctx, tx, u, rid); err != nil {
+	result, err := tx.ExecContext(ctx, "UPDATE review_notifications SET is_read=1 WHERE recipient=? AND (?=1 OR sequence=?)", u.ID, all, seq)
+	if err != nil {
 		return err
 	}
-	if _, err = tx.ExecContext(ctx, "UPDATE review_notifications SET is_read=1 WHERE sequence=? AND recipient=?", seq, u.ID); err != nil {
+	n, err := result.RowsAffected()
+	if err != nil {
 		return err
+	}
+	if !all && n == 0 {
+		return ErrNotFound
 	}
 	return tx.Commit()
 }

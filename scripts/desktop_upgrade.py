@@ -62,6 +62,11 @@ def build_baseline(reference):
                 if original != normalized:
                     path.write_text(normalized, encoding="utf-8")
                     identity_overlays[name] = hashlib.sha256(path.read_bytes()).hexdigest()
+            # 独立构建标记确保覆盖安装的是不同二进制；同协议构建验证本地状态契约。
+            build_script = worktree / "desktop/build.mjs"
+            build_source = build_script.read_text(encoding="utf-8")
+            build_source = re.sub(r"const buildKind = [^;]+;", 'const buildKind = "replacement-fixture";', build_source)
+            build_script.write_text(build_source, encoding="utf-8")
             npm = "npm.cmd" if os.name == "nt" else "npm"
             for directory in ("sdk/typescript", "desktop/frontend"):
                 run([npm, "ci", "--ignore-scripts"], cwd=worktree / directory, timeout=600)

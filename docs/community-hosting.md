@@ -48,7 +48,7 @@ Signed-in readers can report a readable published version or comment. One report
 
 ## Deployment verification
 
-1. Back up metadata and packages together and restore into an isolated destination; see [database maintenance](database.md). Schema 1 includes personal namespaces, package accounting and reports. Never point an older binary at an upgraded database.
+1. Back up metadata and packages together and restore into an isolated destination; see [database maintenance](database.md). Never point an older binary at an upgraded database.
 2. Validate the chosen configuration and secret file permissions. Keep one independent local administrator. Confirm `mode`, `private` and assigned reviewers before opening traffic.
 3. Register the identity application's actual callback origin, test sign-in/denial, verify profile initialization, then disable the Hub account and confirm Web/App/CLI tokens no longer work.
 4. Submit as an ordinary member, verify pending review and self-approval rejection, approve with a different authorized account, install the exact version, report it and verify withdrawal blocks future access without altering installed files.

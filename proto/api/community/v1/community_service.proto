@@ -8,6 +8,8 @@ import "common/registry/v1/taxonomy.proto";
 import "google/protobuf/timestamp.proto";
 // CommunityService 提供受发布受众约束的身份、团队与社区互动。
 service CommunityService {
+  // RemoveBookmark 即使技能不可访问也允许移除本人的收藏。
+  rpc RemoveBookmark(RemoveBookmarkRequest) returns (RemoveBookmarkResponse);
   // GetParticipation 返回当前用户的投稿空间和模式配额。
   rpc GetParticipation(GetParticipationRequest) returns (GetParticipationResponse);
   // ReportContent 举报当前可访问的已发布版本或评论。
@@ -106,6 +108,8 @@ message Contribution {
   .common.registry.v1.SkillIcon icon = 9;
   // 上游署名；author 字段仍为实际提交账号的公开资料。
   api.catalog.v1.Provenance provenance = 10;
+  // 收藏的技能当前不可访问。
+  bool unavailable = 11;
 }
 // Comment 为社区资源的传输投影。
 message Comment {
@@ -125,6 +129,8 @@ message Comment {
   bool deleted = 7;
   // can_delete 表示本次操作的对应属性。
   bool can_delete = 8;
+  // 评论所讨论的内容版本。
+  string version = 9;
 }
 // Discussion 为社区资源的传输投影。
 message Discussion {
@@ -434,3 +440,15 @@ message ResolveReportRequest {
 }
 // ResolveReportResponse 表示处理已提交。
 message ResolveReportResponse {}
+
+// RemoveBookmarkRequest 按稳定技能身份移除收藏。
+message RemoveBookmarkRequest {
+  // 幂等请求。
+  .api.common.v1.Mutation mutation = 1;
+  // 团队名称。
+  string namespace = 2;
+  // 技能名称。
+  string name = 3;
+}
+// RemoveBookmarkResponse 表示移除已完成。
+message RemoveBookmarkResponse {}

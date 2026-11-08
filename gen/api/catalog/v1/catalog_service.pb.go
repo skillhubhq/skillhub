@@ -158,7 +158,11 @@ type Skill struct {
 	// 管理员精选，仍遵守当前受众。
 	Featured bool `protobuf:"varint,10,opt,name=featured,proto3" json:"featured,omitempty"`
 	// 最新可见版本的上游来源。
-	Provenance    *Provenance `protobuf:"bytes,11,opt,name=provenance,proto3" json:"provenance,omitempty"`
+	Provenance *Provenance `protobuf:"bytes,11,opt,name=provenance,proto3" json:"provenance,omitempty"`
+	// 技能资料并发修订。
+	Revision uint64 `protobuf:"varint,12,opt,name=revision,proto3" json:"revision,omitempty"`
+	// 当前身份可编辑技能资料。
+	CanEdit       bool `protobuf:"varint,13,opt,name=can_edit,json=canEdit,proto3" json:"can_edit,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -268,6 +272,20 @@ func (x *Skill) GetProvenance() *Provenance {
 		return x.Provenance
 	}
 	return nil
+}
+
+func (x *Skill) GetRevision() uint64 {
+	if x != nil {
+		return x.Revision
+	}
+	return 0
+}
+
+func (x *Skill) GetCanEdit() bool {
+	if x != nil {
+		return x.CanEdit
+	}
+	return false
 }
 
 // Release 是内容不可变的版本资源。
@@ -972,6 +990,179 @@ func (x *DownloadReleaseResponse) GetNotModified() bool {
 	return false
 }
 
+// UpdateSkillMetadataRequest 更新技能资料并校验并发修订。
+type UpdateSkillMetadataRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 幂等请求。
+	Mutation *v11.Mutation `protobuf:"bytes,1,opt,name=mutation,proto3" json:"mutation,omitempty"`
+	// 所属团队。
+	Namespace string `protobuf:"bytes,2,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	// 稳定名称。
+	Name string `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	// 当前资料修订。
+	ExpectedRevision uint64 `protobuf:"varint,4,opt,name=expected_revision,json=expectedRevision,proto3" json:"expected_revision,omitempty"`
+	// 英文展示名称。
+	DisplayNameEn string `protobuf:"bytes,5,opt,name=display_name_en,json=displayNameEn,proto3" json:"display_name_en,omitempty"`
+	// 中文展示名称。
+	DisplayNameZh string `protobuf:"bytes,6,opt,name=display_name_zh,json=displayNameZh,proto3" json:"display_name_zh,omitempty"`
+	// 简介。
+	Description string `protobuf:"bytes,7,opt,name=description,proto3" json:"description,omitempty"`
+	// 内置图标。
+	Icon v1.SkillIcon `protobuf:"varint,8,opt,name=icon,proto3,enum=common.registry.v1.SkillIcon" json:"icon,omitempty"`
+	// 分类。
+	Category string `protobuf:"bytes,9,opt,name=category,proto3" json:"category,omitempty"`
+	// 标签。
+	Tags          []string `protobuf:"bytes,10,rep,name=tags,proto3" json:"tags,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateSkillMetadataRequest) Reset() {
+	*x = UpdateSkillMetadataRequest{}
+	mi := &file_api_catalog_v1_catalog_service_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateSkillMetadataRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateSkillMetadataRequest) ProtoMessage() {}
+
+func (x *UpdateSkillMetadataRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_catalog_v1_catalog_service_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateSkillMetadataRequest.ProtoReflect.Descriptor instead.
+func (*UpdateSkillMetadataRequest) Descriptor() ([]byte, []int) {
+	return file_api_catalog_v1_catalog_service_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *UpdateSkillMetadataRequest) GetMutation() *v11.Mutation {
+	if x != nil {
+		return x.Mutation
+	}
+	return nil
+}
+
+func (x *UpdateSkillMetadataRequest) GetNamespace() string {
+	if x != nil {
+		return x.Namespace
+	}
+	return ""
+}
+
+func (x *UpdateSkillMetadataRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *UpdateSkillMetadataRequest) GetExpectedRevision() uint64 {
+	if x != nil {
+		return x.ExpectedRevision
+	}
+	return 0
+}
+
+func (x *UpdateSkillMetadataRequest) GetDisplayNameEn() string {
+	if x != nil {
+		return x.DisplayNameEn
+	}
+	return ""
+}
+
+func (x *UpdateSkillMetadataRequest) GetDisplayNameZh() string {
+	if x != nil {
+		return x.DisplayNameZh
+	}
+	return ""
+}
+
+func (x *UpdateSkillMetadataRequest) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *UpdateSkillMetadataRequest) GetIcon() v1.SkillIcon {
+	if x != nil {
+		return x.Icon
+	}
+	return v1.SkillIcon(0)
+}
+
+func (x *UpdateSkillMetadataRequest) GetCategory() string {
+	if x != nil {
+		return x.Category
+	}
+	return ""
+}
+
+func (x *UpdateSkillMetadataRequest) GetTags() []string {
+	if x != nil {
+		return x.Tags
+	}
+	return nil
+}
+
+// UpdateSkillMetadataResponse 返回新的资料修订。
+type UpdateSkillMetadataResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 资料修订。
+	Revision      uint64 `protobuf:"varint,1,opt,name=revision,proto3" json:"revision,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateSkillMetadataResponse) Reset() {
+	*x = UpdateSkillMetadataResponse{}
+	mi := &file_api_catalog_v1_catalog_service_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateSkillMetadataResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateSkillMetadataResponse) ProtoMessage() {}
+
+func (x *UpdateSkillMetadataResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_api_catalog_v1_catalog_service_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateSkillMetadataResponse.ProtoReflect.Descriptor instead.
+func (*UpdateSkillMetadataResponse) Descriptor() ([]byte, []int) {
+	return file_api_catalog_v1_catalog_service_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *UpdateSkillMetadataResponse) GetRevision() uint64 {
+	if x != nil {
+		return x.Revision
+	}
+	return 0
+}
+
 var File_api_catalog_v1_catalog_service_proto protoreflect.FileDescriptor
 
 const file_api_catalog_v1_catalog_service_proto_rawDesc = "" +
@@ -989,7 +1180,7 @@ const file_api_catalog_v1_catalog_service_proto_rawDesc = "" +
 	"\alicense\x18\x05 \x01(\tR\alicense\x12!\n" +
 	"\flicense_file\x18\x06 \x01(\tR\vlicenseFile\x12\x1a\n" +
 	"\bmodified\x18\a \x01(\bR\bmodified\x12\x18\n" +
-	"\achanges\x18\b \x01(\tR\achanges\"\x8d\x03\n" +
+	"\achanges\x18\b \x01(\tR\achanges\"\xc4\x03\n" +
 	"\x05Skill\x12\x1c\n" +
 	"\tnamespace\x18\x01 \x01(\tR\tnamespace\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
@@ -1004,7 +1195,9 @@ const file_api_catalog_v1_catalog_service_proto_rawDesc = "" +
 	" \x01(\bR\bfeatured\x12:\n" +
 	"\n" +
 	"provenance\x18\v \x01(\v2\x1a.api.catalog.v1.ProvenanceR\n" +
-	"provenance\"\x8d\x05\n" +
+	"provenance\x12\x1a\n" +
+	"\brevision\x18\f \x01(\x04R\brevision\x12\x19\n" +
+	"\bcan_edit\x18\r \x01(\bR\acanEdit\"\x8d\x05\n" +
 	"\aRelease\x12\x1d\n" +
 	"\n" +
 	"release_id\x18\x01 \x01(\tR\treleaseId\x12\x1c\n" +
@@ -1068,8 +1261,23 @@ const file_api_catalog_v1_catalog_service_proto_rawDesc = "" +
 	"\aarchive\x18\x01 \x01(\fR\aarchive\x12\x16\n" +
 	"\x06digest\x18\x02 \x01(\tR\x06digest\x121\n" +
 	"\arelease\x18\x03 \x01(\v2\x17.api.catalog.v1.ReleaseR\arelease\x12!\n" +
-	"\fnot_modified\x18\x04 \x01(\bR\vnotModified2\xf9\x02\n" +
-	"\x0eCatalogService\x12Y\n" +
+	"\fnot_modified\x18\x04 \x01(\bR\vnotModified\"\x85\x03\n" +
+	"\x1aUpdateSkillMetadataRequest\x123\n" +
+	"\bmutation\x18\x01 \x01(\v2\x17.api.common.v1.MutationR\bmutation\x12\x1c\n" +
+	"\tnamespace\x18\x02 \x01(\tR\tnamespace\x12\x12\n" +
+	"\x04name\x18\x03 \x01(\tR\x04name\x12+\n" +
+	"\x11expected_revision\x18\x04 \x01(\x04R\x10expectedRevision\x12&\n" +
+	"\x0fdisplay_name_en\x18\x05 \x01(\tR\rdisplayNameEn\x12&\n" +
+	"\x0fdisplay_name_zh\x18\x06 \x01(\tR\rdisplayNameZh\x12 \n" +
+	"\vdescription\x18\a \x01(\tR\vdescription\x121\n" +
+	"\x04icon\x18\b \x01(\x0e2\x1d.common.registry.v1.SkillIconR\x04icon\x12\x1a\n" +
+	"\bcategory\x18\t \x01(\tR\bcategory\x12\x12\n" +
+	"\x04tags\x18\n" +
+	" \x03(\tR\x04tags\"9\n" +
+	"\x1bUpdateSkillMetadataResponse\x12\x1a\n" +
+	"\brevision\x18\x01 \x01(\x04R\brevision2\xe9\x03\n" +
+	"\x0eCatalogService\x12n\n" +
+	"\x13UpdateSkillMetadata\x12*.api.catalog.v1.UpdateSkillMetadataRequest\x1a+.api.catalog.v1.UpdateSkillMetadataResponse\x12Y\n" +
 	"\fSearchSkills\x12#.api.catalog.v1.SearchSkillsRequest\x1a$.api.catalog.v1.SearchSkillsResponse\x12M\n" +
 	"\bGetSkill\x12\x1f.api.catalog.v1.GetSkillRequest\x1a .api.catalog.v1.GetSkillResponse\x12Y\n" +
 	"\fListReleases\x12#.api.catalog.v1.ListReleasesRequest\x1a$.api.catalog.v1.ListReleasesResponse\x12b\n" +
@@ -1088,57 +1296,64 @@ func file_api_catalog_v1_catalog_service_proto_rawDescGZIP() []byte {
 	return file_api_catalog_v1_catalog_service_proto_rawDescData
 }
 
-var file_api_catalog_v1_catalog_service_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_api_catalog_v1_catalog_service_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_api_catalog_v1_catalog_service_proto_goTypes = []any{
-	(*Provenance)(nil),              // 0: api.catalog.v1.Provenance
-	(*Skill)(nil),                   // 1: api.catalog.v1.Skill
-	(*Release)(nil),                 // 2: api.catalog.v1.Release
-	(*SearchSkillsRequest)(nil),     // 3: api.catalog.v1.SearchSkillsRequest
-	(*SearchSkillsResponse)(nil),    // 4: api.catalog.v1.SearchSkillsResponse
-	(*GetSkillRequest)(nil),         // 5: api.catalog.v1.GetSkillRequest
-	(*GetSkillResponse)(nil),        // 6: api.catalog.v1.GetSkillResponse
-	(*ListReleasesRequest)(nil),     // 7: api.catalog.v1.ListReleasesRequest
-	(*ListReleasesResponse)(nil),    // 8: api.catalog.v1.ListReleasesResponse
-	(*DownloadReleaseRequest)(nil),  // 9: api.catalog.v1.DownloadReleaseRequest
-	(*DownloadReleaseResponse)(nil), // 10: api.catalog.v1.DownloadReleaseResponse
-	(v1.SkillIcon)(0),               // 11: common.registry.v1.SkillIcon
-	(v1.ReleaseStatus)(0),           // 12: common.registry.v1.ReleaseStatus
-	(v1.Visibility)(0),              // 13: common.registry.v1.Visibility
-	(*timestamppb.Timestamp)(nil),   // 14: google.protobuf.Timestamp
-	(*v11.PageRequest)(nil),         // 15: api.common.v1.PageRequest
-	(v1.CatalogOrder)(0),            // 16: common.registry.v1.CatalogOrder
-	(*v11.PageResult)(nil),          // 17: api.common.v1.PageResult
+	(*Provenance)(nil),                  // 0: api.catalog.v1.Provenance
+	(*Skill)(nil),                       // 1: api.catalog.v1.Skill
+	(*Release)(nil),                     // 2: api.catalog.v1.Release
+	(*SearchSkillsRequest)(nil),         // 3: api.catalog.v1.SearchSkillsRequest
+	(*SearchSkillsResponse)(nil),        // 4: api.catalog.v1.SearchSkillsResponse
+	(*GetSkillRequest)(nil),             // 5: api.catalog.v1.GetSkillRequest
+	(*GetSkillResponse)(nil),            // 6: api.catalog.v1.GetSkillResponse
+	(*ListReleasesRequest)(nil),         // 7: api.catalog.v1.ListReleasesRequest
+	(*ListReleasesResponse)(nil),        // 8: api.catalog.v1.ListReleasesResponse
+	(*DownloadReleaseRequest)(nil),      // 9: api.catalog.v1.DownloadReleaseRequest
+	(*DownloadReleaseResponse)(nil),     // 10: api.catalog.v1.DownloadReleaseResponse
+	(*UpdateSkillMetadataRequest)(nil),  // 11: api.catalog.v1.UpdateSkillMetadataRequest
+	(*UpdateSkillMetadataResponse)(nil), // 12: api.catalog.v1.UpdateSkillMetadataResponse
+	(v1.SkillIcon)(0),                   // 13: common.registry.v1.SkillIcon
+	(v1.ReleaseStatus)(0),               // 14: common.registry.v1.ReleaseStatus
+	(v1.Visibility)(0),                  // 15: common.registry.v1.Visibility
+	(*timestamppb.Timestamp)(nil),       // 16: google.protobuf.Timestamp
+	(*v11.PageRequest)(nil),             // 17: api.common.v1.PageRequest
+	(v1.CatalogOrder)(0),                // 18: common.registry.v1.CatalogOrder
+	(*v11.PageResult)(nil),              // 19: api.common.v1.PageResult
+	(*v11.Mutation)(nil),                // 20: api.common.v1.Mutation
 }
 var file_api_catalog_v1_catalog_service_proto_depIdxs = []int32{
-	11, // 0: api.catalog.v1.Skill.icon:type_name -> common.registry.v1.SkillIcon
+	13, // 0: api.catalog.v1.Skill.icon:type_name -> common.registry.v1.SkillIcon
 	0,  // 1: api.catalog.v1.Skill.provenance:type_name -> api.catalog.v1.Provenance
-	12, // 2: api.catalog.v1.Release.status:type_name -> common.registry.v1.ReleaseStatus
-	13, // 3: api.catalog.v1.Release.visibility:type_name -> common.registry.v1.Visibility
-	14, // 4: api.catalog.v1.Release.created_at:type_name -> google.protobuf.Timestamp
-	11, // 5: api.catalog.v1.Release.icon:type_name -> common.registry.v1.SkillIcon
+	14, // 2: api.catalog.v1.Release.status:type_name -> common.registry.v1.ReleaseStatus
+	15, // 3: api.catalog.v1.Release.visibility:type_name -> common.registry.v1.Visibility
+	16, // 4: api.catalog.v1.Release.created_at:type_name -> google.protobuf.Timestamp
+	13, // 5: api.catalog.v1.Release.icon:type_name -> common.registry.v1.SkillIcon
 	0,  // 6: api.catalog.v1.Release.provenance:type_name -> api.catalog.v1.Provenance
-	15, // 7: api.catalog.v1.SearchSkillsRequest.page:type_name -> api.common.v1.PageRequest
-	16, // 8: api.catalog.v1.SearchSkillsRequest.order:type_name -> common.registry.v1.CatalogOrder
+	17, // 7: api.catalog.v1.SearchSkillsRequest.page:type_name -> api.common.v1.PageRequest
+	18, // 8: api.catalog.v1.SearchSkillsRequest.order:type_name -> common.registry.v1.CatalogOrder
 	1,  // 9: api.catalog.v1.SearchSkillsResponse.skills:type_name -> api.catalog.v1.Skill
-	17, // 10: api.catalog.v1.SearchSkillsResponse.page:type_name -> api.common.v1.PageResult
+	19, // 10: api.catalog.v1.SearchSkillsResponse.page:type_name -> api.common.v1.PageResult
 	1,  // 11: api.catalog.v1.GetSkillResponse.skill:type_name -> api.catalog.v1.Skill
-	15, // 12: api.catalog.v1.ListReleasesRequest.page:type_name -> api.common.v1.PageRequest
+	17, // 12: api.catalog.v1.ListReleasesRequest.page:type_name -> api.common.v1.PageRequest
 	2,  // 13: api.catalog.v1.ListReleasesResponse.releases:type_name -> api.catalog.v1.Release
-	17, // 14: api.catalog.v1.ListReleasesResponse.page:type_name -> api.common.v1.PageResult
+	19, // 14: api.catalog.v1.ListReleasesResponse.page:type_name -> api.common.v1.PageResult
 	2,  // 15: api.catalog.v1.DownloadReleaseResponse.release:type_name -> api.catalog.v1.Release
-	3,  // 16: api.catalog.v1.CatalogService.SearchSkills:input_type -> api.catalog.v1.SearchSkillsRequest
-	5,  // 17: api.catalog.v1.CatalogService.GetSkill:input_type -> api.catalog.v1.GetSkillRequest
-	7,  // 18: api.catalog.v1.CatalogService.ListReleases:input_type -> api.catalog.v1.ListReleasesRequest
-	9,  // 19: api.catalog.v1.CatalogService.DownloadRelease:input_type -> api.catalog.v1.DownloadReleaseRequest
-	4,  // 20: api.catalog.v1.CatalogService.SearchSkills:output_type -> api.catalog.v1.SearchSkillsResponse
-	6,  // 21: api.catalog.v1.CatalogService.GetSkill:output_type -> api.catalog.v1.GetSkillResponse
-	8,  // 22: api.catalog.v1.CatalogService.ListReleases:output_type -> api.catalog.v1.ListReleasesResponse
-	10, // 23: api.catalog.v1.CatalogService.DownloadRelease:output_type -> api.catalog.v1.DownloadReleaseResponse
-	20, // [20:24] is the sub-list for method output_type
-	16, // [16:20] is the sub-list for method input_type
-	16, // [16:16] is the sub-list for extension type_name
-	16, // [16:16] is the sub-list for extension extendee
-	0,  // [0:16] is the sub-list for field type_name
+	20, // 16: api.catalog.v1.UpdateSkillMetadataRequest.mutation:type_name -> api.common.v1.Mutation
+	13, // 17: api.catalog.v1.UpdateSkillMetadataRequest.icon:type_name -> common.registry.v1.SkillIcon
+	11, // 18: api.catalog.v1.CatalogService.UpdateSkillMetadata:input_type -> api.catalog.v1.UpdateSkillMetadataRequest
+	3,  // 19: api.catalog.v1.CatalogService.SearchSkills:input_type -> api.catalog.v1.SearchSkillsRequest
+	5,  // 20: api.catalog.v1.CatalogService.GetSkill:input_type -> api.catalog.v1.GetSkillRequest
+	7,  // 21: api.catalog.v1.CatalogService.ListReleases:input_type -> api.catalog.v1.ListReleasesRequest
+	9,  // 22: api.catalog.v1.CatalogService.DownloadRelease:input_type -> api.catalog.v1.DownloadReleaseRequest
+	12, // 23: api.catalog.v1.CatalogService.UpdateSkillMetadata:output_type -> api.catalog.v1.UpdateSkillMetadataResponse
+	4,  // 24: api.catalog.v1.CatalogService.SearchSkills:output_type -> api.catalog.v1.SearchSkillsResponse
+	6,  // 25: api.catalog.v1.CatalogService.GetSkill:output_type -> api.catalog.v1.GetSkillResponse
+	8,  // 26: api.catalog.v1.CatalogService.ListReleases:output_type -> api.catalog.v1.ListReleasesResponse
+	10, // 27: api.catalog.v1.CatalogService.DownloadRelease:output_type -> api.catalog.v1.DownloadReleaseResponse
+	23, // [23:28] is the sub-list for method output_type
+	18, // [18:23] is the sub-list for method input_type
+	18, // [18:18] is the sub-list for extension type_name
+	18, // [18:18] is the sub-list for extension extendee
+	0,  // [0:18] is the sub-list for field type_name
 }
 
 func init() { file_api_catalog_v1_catalog_service_proto_init() }
@@ -1152,7 +1367,7 @@ func file_api_catalog_v1_catalog_service_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_catalog_v1_catalog_service_proto_rawDesc), len(file_api_catalog_v1_catalog_service_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   11,
+			NumMessages:   13,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

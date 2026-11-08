@@ -22,11 +22,11 @@ The Hub has local accounts and configurable third-party identity adapters (OIDC 
 
 Browser sessions use HttpOnly, SameSite cookies with Origin and custom-header checks. CLI/App hold independent Hub-issued tokens through the OS credential store. External-login state and PKCE attempts (plus nonce for OIDC) are single-use, bounded and expire after five minutes; restart invalidates incomplete login. IdP tokens are not retained. Callback/login pages are browser transport endpoints, not a second business API.
 
-Every content operation rechecks release state and audience. Namespace roles, group audiences and platform duties have distinct responsibilities. Profile projections redact login identity except for authorized administrative/self access. See [identity and access](identity-and-access.md).
+Every content operation rechecks version availability and the skill’s current access policy. Namespace roles, group audiences and platform duties have distinct responsibilities. Profile projections redact login identity except for authorized administrative/self access. See [identity and access](identity-and-access.md).
 
 ## Catalog and governance
 
-Immutable releases contain package digests, audience and presentation metadata. Queries select the latest readable published release before filtering by query/category/tags/curation. Recent ordering uses publication sequence and deterministic cursor paging. Curation is a Hub-admin mutation keyed by namespace/name; it does not bypass authorization.
+Skills own their access policy and editable presentation. Immutable published packages contain digests and submission snapshots. Submission revisions have independent IDs; superseded submissions cannot be approved. Queries select the highest stable readable semantic version (or prerelease when no stable exists) before filtering by query/category/tags/curation. Recent ordering uses each skill’s latest publication sequence and deterministic cursor paging. Curation is a Hub-admin mutation keyed by namespace/name; it does not bypass authorization.
 
 Review tasks are a live query over actionable pending submissions. The same independent-review rule excludes self-submissions. Count, oldest timestamp and page are read consistently. A decision, its audit record and the submitter's notification commit together. Notification replay/read state remains owner- and permission-scoped.
 
@@ -36,7 +36,7 @@ Package inspection is bounded and offline. Reports bind the package digest and s
 
 Profiles, team profiles, comments, reactions and avatars are stored with Hub metadata and included in paired backups. `api.community.v1.CommunityService` owns the transport contract; domain projections live in `internal/community`.
 
-Comments are capped at 4,000 Unicode characters and 20 new comments per user per minute. Replies target an undeleted root in the same release. Removal leaves a tombstone, including on idempotent replay. Profile revisions prevent lost concurrent edits. All reads and mutations recheck release visibility and current access.
+Comments are capped at 4,000 Unicode characters and 20 new comments per user per minute. Replies target an undeleted root in the same skill. Removal leaves a tombstone, including on idempotent replay. Profile revisions prevent lost concurrent edits. All reads and mutations recheck the skill’s current access policy.
 
 Avatar input is limited to PNG/JPEG, 512 KiB and 2048×2048. The server crops/re-encodes a 128×128 PNG, removes metadata and never fetches arbitrary URLs. A login adapter may initialize an untouched empty avatar from its fixed trusted CDN; initials are the fallback.
 
@@ -68,4 +68,8 @@ SQLite backup creates a consistent snapshot and copies exactly its referenced pa
 
 Schema validation, recovery guards and permission checks are maintained product behavior. Test reports, machine-specific deployment material and development decisions belong in CI artifacts or ignored local storage. See [database maintenance](database.md), [operations](operations.md) and [testing](testing.md).
 
-Team lifecycle is Hub-admin controlled: archive suspends discovery, downloads and namespace operations while preserving data and grants; restore reactivates them. Permanent cleanup requires archive, revision and typed namespace confirmation, retains audit and shared identities, reserves deleted names, and queues reference-safe package reclamation. See [team lifecycle](governance.md#team-archive-and-permanent-cleanup).
+Team lifecycle is Hub-admin controlled: archive suspends discovery and writes while preserving authorized reads, downloads, data and grants; restore reactivates writes. Permanent cleanup requires archive, revision and typed namespace confirmation, retains audit and shared identities, reserves deleted names, and queues reference-safe package reclamation. See [team lifecycle](governance.md#team-archive-and-permanent-cleanup).
+
+## Skill identity and community
+
+The stable skill key is `(namespace, name)` within a registry. Reactions are unique per user, skill and kind. Comments retain their discussed version, while all versions and discussion use the current skill access policy. Package cleanup retains the version context and community records. Protocol major 2 describes these object boundaries; incompatible clients fail discovery explicitly.

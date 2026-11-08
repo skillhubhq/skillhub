@@ -220,6 +220,9 @@ func (t *Tx) QueryRowContext(ctx context.Context, q string, args ...any) *Row {
 	return &Row{row: t.Tx.QueryRowContext(ctx, q, args...)}
 }
 
+var jsonAggregate = regexp.MustCompile(`json_group_array\(([^()]*)\)`)
+var jsonElements = regexp.MustCompile(`json_each\(([@a-zA-Z0-9_.]+)\) ([a-zA-Z_]+)`)
+
 var schemaVersion = regexp.MustCompile(`PRAGMA user_version=(\d+);`)
 
 // 方言转换仅接受仓库内固定 SQL，不是用户 SQL 翻译器；新增方言必须通过真实行为测试。
@@ -229,8 +232,8 @@ func postgresSQL(q string) string {
 	q = strings.ReplaceAll(q, "BLOB", "BYTEA")
 	q = schemaVersion.ReplaceAllString(q, "UPDATE hub_schema SET version=$1 WHERE id=1;")
 	q = strings.ReplaceAll(q, "PRAGMA user_version", "SELECT version FROM hub_schema WHERE id=1")
-	q = strings.ReplaceAll(q, "json_group_array(", "json_agg(")
-	q = strings.ReplaceAll(q, "json_each(@tags) wanted", "json_array_elements_text(CAST(@tags AS json)) AS wanted(value)")
+	q = jsonAggregate.ReplaceAllString(q, "CAST(json_agg($1) AS TEXT)")
+	q = jsonElements.ReplaceAllString(q, "json_array_elements_text(CAST($1 AS json)) AS $2(value)")
 	q = strings.ReplaceAll(q, "instr(", "strpos(")
 	q = strings.ReplaceAll(q, "AND cursor_key>@after", "AND (kind||':'||subject_id||':'||role)>@after")
 	if strings.HasPrefix(strings.TrimSpace(q), "INSERT OR IGNORE ") {

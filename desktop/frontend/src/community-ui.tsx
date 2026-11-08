@@ -25,9 +25,11 @@ export type {
   Discussion,
   Page,
 } from "../bindings/github.com/skillhubhq/skillhub/internal/community/models";
+// deps 标识资源边界；refreshKey 只刷新同一资源，等待期间保留内容，失败则清空。
 export function useResource<T>(
   fetcher: () => Promise<T>,
   deps: DependencyList,
+  refreshKey?: unknown,
 ) {
   const [value, setValue] = useState<T | null>(null),
     [error, setError] = useState(""),
@@ -62,7 +64,7 @@ export function useResource<T>(
     return () => {
       active = false;
     };
-  }, [...deps, revision]);
+  }, [...deps, revision, refreshKey]);
   return {
     value: sameResource ? value : null,
     setValue,
@@ -221,43 +223,75 @@ export function Contributions({
   const ui = useUI();
   return (
     <div className="contribution-grid">
-      {items.map((item) => (
-        <article
-          className="contribution-card"
-          key={item.release_id}
-          onClick={(event) =>
-            openCard(event, () =>
-              ui.navigate(
-                `discover?${new URLSearchParams({ source, skill: `${item.namespace}/${item.name}`, version: item.version })}`,
-              ),
-            )
-          }
-        >
-          <div className="card-overline">
-            <SkillSymbol icon={item.icon} />
-            <span title={item.version}>
-              {item.provenance
-                ? item.provenance.revision.slice(0, 7)
-                : `v${item.version}`}
-            </span>
-          </div>
-          <AppLink
-            className="card-title"
-            to={`discover?${new URLSearchParams({ source, skill: `${item.namespace}/${item.name}`, version: item.version })}`}
+      {items.map((item) =>
+        item.unavailable ? (
+          <article
+            className="contribution-card"
+            key={`${item.namespace}/${item.name}`}
           >
-            {skillTitle(item)}
-          </AppLink>
-          <span className="skill-coordinate">
-            {item.namespace}/{item.name}
-          </span>
-          <p>{item.description}</p>
-          {item.provenance ? (
-            <UpstreamAuthor value={item.provenance} />
-          ) : (
-            <Person source={source} person={item.author} />
-          )}
-        </article>
-      ))}
+            <strong>
+              {item.namespace}/{item.name}
+            </strong>
+            <p>
+              {t(
+                "This saved skill is currently unavailable.",
+                "此收藏技能当前不可用。",
+              )}
+            </p>
+            <button
+              onClick={() =>
+                void ui.run(async () => {
+                  await API.CommunityRemoveBookmark(
+                    source,
+                    item.namespace,
+                    item.name,
+                    await API.NewRequestID(),
+                  );
+                  ui.refresh();
+                })
+              }
+            >
+              {t("Remove from saved", "移除收藏")}
+            </button>
+          </article>
+        ) : (
+          <article
+            className="contribution-card"
+            key={`${item.namespace}/${item.name}`}
+            onClick={(event) =>
+              openCard(event, () =>
+                ui.navigate(
+                  `discover?${new URLSearchParams({ source, skill: `${item.namespace}/${item.name}`, version: item.version })}`,
+                ),
+              )
+            }
+          >
+            <div className="card-overline">
+              <SkillSymbol icon={item.icon} />
+              <span title={item.version}>
+                {item.provenance
+                  ? item.provenance.revision.slice(0, 7)
+                  : `v${item.version}`}
+              </span>
+            </div>
+            <AppLink
+              className="card-title"
+              to={`discover?${new URLSearchParams({ source, skill: `${item.namespace}/${item.name}`, version: item.version })}`}
+            >
+              {skillTitle(item)}
+            </AppLink>
+            <span className="skill-coordinate">
+              {item.namespace}/{item.name}
+            </span>
+            <p>{item.description}</p>
+            {item.provenance ? (
+              <UpstreamAuthor value={item.provenance} />
+            ) : (
+              <Person source={source} person={item.author} />
+            )}
+          </article>
+        ),
+      )}
     </div>
   );
 }

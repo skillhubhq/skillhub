@@ -34,6 +34,7 @@ const team = (v?: Team) => {
 };
 const contribution = (v: Contribution) => ({
   release_id: v.releaseId,
+  unavailable: v.unavailable,
   provenance: provenanceInfo(v.provenance),
   namespace: v.namespace,
   name: v.name,
@@ -57,6 +58,7 @@ const comment = (v?: Comment) => {
     ).toISOString(),
     deleted: v.deleted,
     can_delete: v.canDelete,
+    version: v.version,
   };
 };
 const discussion = (v?: Discussion) => {
@@ -200,6 +202,13 @@ export function communityWeb(
         })),
         next_page: r.page?.nextPageToken ?? "",
       };
+    },
+    CommunityRemoveBookmark: async (_source, namespace, name, key) => {
+      await api.removeBookmark({
+        mutation: { idempotencyKey: key },
+        namespace,
+        name,
+      });
     },
     CommunityListContributions: async (_s, userId, namespace, token) => {
       const r = await api.listContributions({

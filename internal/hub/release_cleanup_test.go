@@ -85,12 +85,9 @@ func testReleaseCleanup(t *testing.T, cfg hubdb.Config) {
 	if _, e = s.SubmitRelease(ctx, author, "cleanup-submit", cmd); !errors.Is(e, ErrConflict) {
 		t.Fatal("old submit response replayed", e)
 	}
-	if _, e = s.SubmitRelease(ctx, author, "new-submit", cmd); !errors.Is(e, ErrConflict) {
-		t.Fatal("deleted coordinate reused", e)
-	}
 	_, e = s.DeleteRelease(ctx, author, "delete-shared", sharedCleanup)
 	mustGovernance(t, e)
-	for _, table := range []string{"releases", "comments", "reactions", "evaluation_evidence", "review_notifications", "release_scans", "release_groups", "release_tags"} {
+	for _, table := range []string{"evaluation_evidence", "review_notifications", "release_scans"} {
 		var count int
 		mustGovernance(t, s.db.QueryRow("SELECT count(*) FROM "+table).Scan(&count))
 		if count != 0 {
@@ -98,7 +95,7 @@ func testReleaseCleanup(t *testing.T, cfg hubdb.Config) {
 		}
 	}
 	var cached, audits int
-	mustGovernance(t, s.db.QueryRow("SELECT count(*) FROM mutations WHERE key IN ('cleanup-submit','cleanup-shared','cleanup-comment','cleanup-reply','cleanup-reject','cleanup-approve')").Scan(&cached))
+	mustGovernance(t, s.db.QueryRow("SELECT count(*) FROM mutations WHERE invalidated=0 AND key IN ('cleanup-submit','cleanup-shared','cleanup-comment','cleanup-reply','cleanup-reject','cleanup-approve')").Scan(&cached))
 	if cached != 0 {
 		t.Fatal("cached content retained", cached)
 	}
@@ -108,6 +105,23 @@ func testReleaseCleanup(t *testing.T, cfg hubdb.Config) {
 	}
 	if _, e = os.Stat(filepath.Join(s.root, "packages", r.Digest[7:]+".zip")); !errors.Is(e, os.ErrNotExist) {
 		t.Fatal("orphan blob retained", e)
+	}
+	var comments, reactions, versions int
+	mustGovernance(t, s.db.QueryRow("SELECT count(*) FROM comments").Scan(&comments))
+	mustGovernance(t, s.db.QueryRow("SELECT count(*) FROM reactions").Scan(&reactions))
+	mustGovernance(t, s.db.QueryRow("SELECT count(*) FROM releases WHERE cleaned=1 AND markdown=''").Scan(&versions))
+	if comments != 2 || reactions != 1 || versions != 2 {
+		t.Fatal("cleanup lost skill history", comments, reactions, versions)
+	}
+	cmd.Version = "1.0.1"
+	if _, e = s.SubmitRelease(ctx, author, "reuse-published", cmd); !errors.Is(e, ErrConflict) {
+		t.Fatal("published coordinate reused", e)
+	}
+	cmd.Version = "1.0.0"
+	replacement, e := s.SubmitRelease(ctx, author, "revise-rejected", cmd)
+	mustGovernance(t, e)
+	if replacement.ID == r.ID {
+		t.Fatal("revision reused identity")
 	}
 	mustGovernance(t, s.SetNamespaceGrant(ctx, admin, "cleanup-revoke", SetNamespaceGrant{NamespaceGrant: grant, Granted: false}))
 	if _, e = s.DeleteRelease(ctx, author, "cleanup-delete", cleanup); !errors.Is(e, ErrForbidden) {

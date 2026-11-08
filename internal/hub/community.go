@@ -59,7 +59,7 @@ func (s *Store) GetProfile(ctx context.Context, actor Identity, id string) (c.Pr
 	if user.ID != id && !user.Administrator {
 		var visible bool
 		args := append(principalArgs(user), sql.Named("subject", id))
-		err = tx.QueryRowContext(ctx, `SELECT EXISTS(SELECT 1 FROM releases r WHERE r.status=2 AND `+readableSQL+` AND (r.submitted_by=@subject OR EXISTS(SELECT 1 FROM comments c WHERE c.release_id=r.id AND c.author_id=@subject AND c.deleted=0))) OR `+sharedTeamProfileSQL, args...).Scan(&visible)
+		err = tx.QueryRowContext(ctx, `SELECT EXISTS(SELECT 1 FROM releases r WHERE r.status=2 AND `+readableSQL+` AND (r.submitted_by=@subject OR EXISTS(SELECT 1 FROM comments c WHERE EXISTS(SELECT 1 FROM releases discussed WHERE discussed.id=c.release_id AND discussed.namespace=r.namespace AND discussed.name=r.name) AND c.author_id=@subject AND c.deleted=0))) OR `+sharedTeamProfileSQL, args...).Scan(&visible)
 		if err != nil {
 			return c.Profile{}, err
 		}
@@ -96,7 +96,7 @@ func (s *Store) UpdateProfile(ctx context.Context, actor Identity, key string, c
 }
 
 // 企业成员可发现团队简介；成员名单和技能仍分别校验权限。
-const teamVisibleSQL = `n.archived=0 AND (@admin=1 OR (@directory=1 AND @actor<>'') OR EXISTS(SELECT 1 FROM releases r WHERE r.namespace=n.name AND r.status=2 AND ` + readableSQL + `) OR (@actor<>'' AND EXISTS(SELECT 1 FROM namespace_grants g WHERE g.namespace=n.name AND ((g.kind=1 AND g.subject_id=@actor) OR (g.kind=2 AND EXISTS(SELECT 1 FROM group_members gm WHERE gm.group_id=g.subject_id AND gm.user_id=@actor))))))`
+const teamVisibleSQL = `(@admin=1 OR (@directory=1 AND @actor<>'') OR EXISTS(SELECT 1 FROM releases r WHERE r.namespace=n.name AND r.status=2 AND ` + readableSQL + `) OR (@actor<>'' AND EXISTS(SELECT 1 FROM namespace_grants g WHERE g.namespace=n.name AND ((g.kind=1 AND g.subject_id=@actor) OR (g.kind=2 AND EXISTS(SELECT 1 FROM group_members gm WHERE gm.group_id=g.subject_id AND gm.user_id=@actor))))))`
 const teamColumns = `n.name,COALESCE(NULLIF(t.display_name,''),n.name),COALESCE(t.bio,''),COALESCE(t.revision,0)`
 
 func teamScan(row scanner) (c.Team, error) {
@@ -127,7 +127,7 @@ func (s *Store) ListTeams(ctx context.Context, actor Identity, page Page) (PageR
 		return PageResult[c.Team]{}, err
 	}
 	defer tx.Rollback()
-	result, err := pageQuery(s, ctx, tx, page, scope(user.ID, "community.teams", s.policy.Mode), `SELECT `+teamColumns+` FROM namespaces n LEFT JOIN team_profiles t ON t.namespace=n.name WHERE n.name>@after AND `+teamVisibleSQL+` ORDER BY n.name LIMIT @limit`, append(principalArgs(user), sql.Named("directory", !s.policy.IsCommunity())), func(rows *sql.Rows) (c.Team, string, error) { v, e := teamScan(rows); return v, v.Namespace, e })
+	result, err := pageQuery(s, ctx, tx, page, scope(user.ID, "community.teams", s.policy.Mode), `SELECT `+teamColumns+` FROM namespaces n LEFT JOIN team_profiles t ON t.namespace=n.name WHERE n.archived=0 AND n.name>@after AND `+teamVisibleSQL+` ORDER BY n.name LIMIT @limit`, append(principalArgs(user), sql.Named("directory", !s.policy.IsCommunity())), func(rows *sql.Rows) (c.Team, string, error) { v, e := teamScan(rows); return v, v.Namespace, e })
 	if err == nil {
 		for i := range result.Items {
 			teamCapabilities(ctx, tx, user, &result.Items[i])
@@ -183,34 +183,55 @@ func (s *Store) ListContributions(ctx context.Context, actor Identity, id, names
 	if bookmarks && user.ID == "" {
 		return PageResult[c.Contribution]{}, ErrUnauthenticated
 	}
-	query := `SELECT r.id,r.namespace,r.name,r.version,r.description,r.display_name_en,r.display_name_zh,r.icon,r.provenance,` + profileColumns + ` FROM releases r JOIN users u ON u.id=r.submitted_by LEFT JOIN profiles p ON p.user_id=u.id WHERE r.status=2 AND ` + readableSQL + ` AND r.id>@after AND (@subject='' OR r.submitted_by=@subject) AND (@namespace='' OR r.namespace=@namespace)`
+	activeSQL := activeReleaseSQL
 	if bookmarks {
-		query += ` AND EXISTS(SELECT 1 FROM reactions x WHERE x.release_id=r.id AND x.user_id=@actor AND x.bookmark=1)`
+		activeSQL = "1=1"
 	}
-	query += ` ORDER BY r.id LIMIT @limit`
+	query := `WITH visible AS (SELECT r.*,ROW_NUMBER() OVER(PARTITION BY namespace,name ORDER BY version_order DESC,published_order DESC) AS rank FROM releases r WHERE r.status=2 AND ` + activeSQL + ` AND ` + readableSQL + `) SELECT r.id,r.namespace,r.name,r.version,m.description,m.display_name_en,m.display_name_zh,m.icon,r.provenance,` + profileColumns + `,0 AS unavailable,r.namespace||'/'||r.name AS position FROM visible r JOIN skills m ON m.namespace=r.namespace AND m.name=r.name JOIN users u ON u.id=r.submitted_by LEFT JOIN profiles p ON p.user_id=u.id WHERE rank=1 AND r.namespace||'/'||r.name>@after AND (@subject='' OR EXISTS(SELECT 1 FROM releases authored WHERE authored.namespace=r.namespace AND authored.name=r.name AND authored.ever_published=1 AND authored.submitted_by=@subject)) AND (@namespace='' OR r.namespace=@namespace)`
+	if bookmarks {
+		query += ` AND EXISTS(SELECT 1 FROM reactions x WHERE x.namespace=r.namespace AND x.name=r.name AND x.user_id=@actor AND x.bookmark=1)`
+	}
+	if bookmarks {
+		query += ` UNION ALL SELECT '',x.namespace,x.name,'','','','',0,'null','','','','',0,'',1,x.namespace||'/'||x.name FROM reactions x WHERE x.user_id=@actor AND x.bookmark=1 AND x.namespace||'/'||x.name>@after AND NOT EXISTS(SELECT 1 FROM visible r WHERE r.namespace=x.namespace AND r.name=x.name)`
+	}
+	query += ` ORDER BY position LIMIT @limit`
 	return pageQuery(s, ctx, tx, page, scope(user.ID, "community.contributions", []any{id, namespace, bookmarks}), query, append(principalArgs(user), sql.Named("subject", id), sql.Named("namespace", namespace)), func(rows *sql.Rows) (c.Contribution, string, error) {
 		var v c.Contribution
-		var origin string
-		e := rows.Scan(&v.ReleaseID, &v.Namespace, &v.Name, &v.Version, &v.Description, &v.DisplayNameEN, &v.DisplayNameZH, &v.Icon, &origin, &v.Author.UserID, &v.Author.Username, &v.Author.DisplayName, &v.Author.Bio, &v.Author.Revision, &v.Author.Avatar)
+		var origin, position string
+		e := rows.Scan(&v.ReleaseID, &v.Namespace, &v.Name, &v.Version, &v.Description, &v.DisplayNameEN, &v.DisplayNameZH, &v.Icon, &origin, &v.Author.UserID, &v.Author.Username, &v.Author.DisplayName, &v.Author.Bio, &v.Author.Revision, &v.Author.Avatar, &v.Unavailable, &position)
 		if e == nil {
 			v.Provenance, e = provenance.Decode(origin)
 		}
 		v.Author = profileForViewer(v.Author, user)
-		return v, v.ReleaseID, e
+		return v, v.Namespace + "/" + v.Name, e
 	})
 }
 
-// 每个互动请求重新确认精确版本已发布且受众可见，撤权与撤下对重放同样有效。
+// 所有版本和互动按技能当前访问规则授权。
 func communityRelease(ctx context.Context, tx *hubdb.Tx, user Identity, id string) (string, error) {
 	var namespace string
 	args := append(principalArgs(user), sql.Named("release", id))
-	err := tx.QueryRowContext(ctx, `SELECT r.namespace FROM releases r WHERE r.id=@release AND r.status=2 AND `+readableSQL, args...).Scan(&namespace)
+	err := tx.QueryRowContext(ctx, `SELECT r.namespace FROM releases r WHERE r.id=@release AND r.ever_published=1 AND `+readableSQL, args...).Scan(&namespace)
 	return namespace, assertExists(err)
 }
+
+// 评论保留所讨论版本，访问权限统一归属技能。
+const discussionScopeSQL = `r.ever_published=1 AND r.namespace=(SELECT namespace FROM releases WHERE id=@release) AND r.name=(SELECT name FROM releases WHERE id=@release) AND ` + readableSQL
+
 func discussionAt(ctx context.Context, tx *hubdb.Tx, user Identity, id string) (c.Discussion, error) {
 	var d c.Discussion
 	d.CanInteract = user.ID != ""
-	err := tx.QueryRowContext(ctx, `SELECT (SELECT count(*) FROM reactions WHERE release_id=? AND bookmark=0),(SELECT count(*) FROM comments WHERE release_id=? AND deleted=0),EXISTS(SELECT 1 FROM reactions WHERE release_id=? AND user_id=? AND bookmark=0),EXISTS(SELECT 1 FROM reactions WHERE release_id=? AND user_id=? AND bookmark=1)`, id, id, id, user.ID, id, user.ID).Scan(&d.LikeCount, &d.CommentCount, &d.Liked, &d.Bookmarked)
+	var ns string
+	if err := tx.QueryRowContext(ctx, "SELECT namespace FROM releases WHERE id=?", id).Scan(&ns); err != nil {
+		return d, err
+	}
+	d.CanInteract = d.CanInteract && requireActiveNamespace(ctx, tx, ns) == nil
+	args := append(principalArgs(user), sql.Named("release", id))
+	err := tx.QueryRowContext(ctx, `SELECT
+ (SELECT count(*) FROM reactions x WHERE x.bookmark=0 AND x.namespace=(SELECT namespace FROM releases WHERE id=@release) AND x.name=(SELECT name FROM releases WHERE id=@release)),
+ (SELECT count(*) FROM comments c JOIN releases r ON r.id=c.release_id WHERE c.deleted=0 AND `+discussionScopeSQL+`),
+ EXISTS(SELECT 1 FROM reactions x WHERE x.namespace=(SELECT namespace FROM releases WHERE id=@release) AND x.name=(SELECT name FROM releases WHERE id=@release) AND x.user_id=@actor AND x.bookmark=0),
+ EXISTS(SELECT 1 FROM reactions x WHERE x.namespace=(SELECT namespace FROM releases WHERE id=@release) AND x.name=(SELECT name FROM releases WHERE id=@release) AND x.user_id=@actor AND x.bookmark=1)`, args...).Scan(&d.LikeCount, &d.CommentCount, &d.Liked, &d.Bookmarked)
 	return d, err
 }
 func (s *Store) GetDiscussion(ctx context.Context, actor Identity, id string) (c.Discussion, error) {
@@ -226,14 +247,17 @@ func (s *Store) GetDiscussion(ctx context.Context, actor Identity, id string) (c
 }
 func (s *Store) SetReaction(ctx context.Context, actor Identity, key string, cmd c.ReactionChange) (c.Discussion, error) {
 	return mutate(s, ctx, actor, "community.reaction", key, cmd, func(tx *hubdb.Tx, user Identity) error {
-		_, err := communityRelease(ctx, tx, user, cmd.ReleaseID)
-		return err
+		ns, err := communityRelease(ctx, tx, user, cmd.ReleaseID)
+		if err != nil {
+			return err
+		}
+		return requireActiveNamespace(ctx, tx, ns)
 	}, func(tx *hubdb.Tx, user Identity) (c.Discussion, error) {
 		var err error
 		if cmd.Active {
-			_, err = tx.ExecContext(ctx, `INSERT OR IGNORE INTO reactions(user_id,release_id,bookmark) VALUES(?,?,?)`, user.ID, cmd.ReleaseID, cmd.Bookmark)
+			_, err = tx.ExecContext(ctx, `INSERT INTO reactions(user_id,namespace,name,bookmark) SELECT ?,namespace,name,? FROM releases WHERE id=? ON CONFLICT DO NOTHING`, user.ID, cmd.Bookmark, cmd.ReleaseID)
 		} else {
-			_, err = tx.ExecContext(ctx, `DELETE FROM reactions WHERE user_id=? AND release_id=? AND bookmark=?`, user.ID, cmd.ReleaseID, cmd.Bookmark)
+			_, err = tx.ExecContext(ctx, `DELETE FROM reactions WHERE user_id=? AND namespace=(SELECT namespace FROM releases WHERE id=?) AND name=(SELECT name FROM releases WHERE id=?) AND bookmark=?`, user.ID, cmd.ReleaseID, cmd.ReleaseID, cmd.Bookmark)
 		}
 		if err != nil {
 			return c.Discussion{}, err
@@ -242,12 +266,12 @@ func (s *Store) SetReaction(ctx context.Context, actor Identity, key string, cmd
 	})
 }
 
-const commentColumns = `c.id,c.release_id,COALESCE(c.parent_id,''),CASE WHEN c.deleted=1 THEN '' ELSE c.body END,c.created_at,c.deleted,` + profileColumns
+const commentColumns = `c.id,c.release_id,COALESCE(c.parent_id,''),CASE WHEN c.deleted=1 THEN '' ELSE c.body END,c.created_at,c.deleted,(SELECT version FROM releases WHERE id=c.release_id),` + profileColumns
 
 func commentScan(row scanner) (c.Comment, error) {
 	var v c.Comment
 	var at int64
-	err := row.Scan(&v.CommentID, &v.ReleaseID, &v.ParentID, &v.Body, &at, &v.Deleted, &v.Author.UserID, &v.Author.Username, &v.Author.DisplayName, &v.Author.Bio, &v.Author.Revision, &v.Author.Avatar)
+	err := row.Scan(&v.CommentID, &v.ReleaseID, &v.ParentID, &v.Body, &at, &v.Deleted, &v.Version, &v.Author.UserID, &v.Author.Username, &v.Author.DisplayName, &v.Author.Bio, &v.Author.Revision, &v.Author.Avatar)
 	v.CreatedAt = time.Unix(at, 0)
 	return v, assertExists(err)
 }
@@ -263,7 +287,7 @@ func (s *Store) ListComments(ctx context.Context, actor Identity, id, parent str
 	}
 	if parent != "" {
 		var valid bool
-		err = tx.QueryRowContext(ctx, `SELECT EXISTS(SELECT 1 FROM comments WHERE id=? AND release_id=? AND parent_id IS NULL)`, parent, id).Scan(&valid)
+		err = tx.QueryRowContext(ctx, `SELECT EXISTS(SELECT 1 FROM comments c JOIN releases r ON r.id=c.release_id WHERE c.id=@parent AND c.parent_id IS NULL AND `+discussionScopeSQL+`)`, append(principalArgs(user), sql.Named("release", id), sql.Named("parent", parent))...).Scan(&valid)
 		if err != nil {
 			return PageResult[c.Comment]{}, err
 		}
@@ -272,10 +296,10 @@ func (s *Store) ListComments(ctx context.Context, actor Identity, id, parent str
 		}
 	}
 	moderate := requireRole(ctx, tx, user, namespace) == nil
-	return pageQuery(s, ctx, tx, page, scope(user.ID, "community.comments", []string{id, parent}), `SELECT `+commentColumns+`,c.sequence FROM comments c JOIN users u ON u.id=c.author_id LEFT JOIN profiles p ON p.user_id=u.id WHERE c.release_id=@release AND COALESCE(c.parent_id,'')=@parent AND c.sequence>CAST(COALESCE(NULLIF(@after,''),'0') AS INTEGER) ORDER BY c.sequence LIMIT @limit`, []any{sql.Named("release", id), sql.Named("parent", parent)}, func(rows *sql.Rows) (c.Comment, string, error) {
+	return pageQuery(s, ctx, tx, page, scope(user.ID, "community.comments", []string{id, parent}), `SELECT `+commentColumns+`,c.sequence FROM comments c JOIN releases r ON r.id=c.release_id JOIN users u ON u.id=c.author_id LEFT JOIN profiles p ON p.user_id=u.id WHERE `+discussionScopeSQL+` AND COALESCE(c.parent_id,'')=@parent AND c.sequence>CAST(COALESCE(NULLIF(@after,''),'0') AS INTEGER) ORDER BY c.sequence LIMIT @limit`, append(principalArgs(user), sql.Named("release", id), sql.Named("parent", parent)), func(rows *sql.Rows) (c.Comment, string, error) {
 		var v c.Comment
 		var at, seq int64
-		e := rows.Scan(&v.CommentID, &v.ReleaseID, &v.ParentID, &v.Body, &at, &v.Deleted, &v.Author.UserID, &v.Author.Username, &v.Author.DisplayName, &v.Author.Bio, &v.Author.Revision, &v.Author.Avatar, &seq)
+		e := rows.Scan(&v.CommentID, &v.ReleaseID, &v.ParentID, &v.Body, &at, &v.Deleted, &v.Version, &v.Author.UserID, &v.Author.Username, &v.Author.DisplayName, &v.Author.Bio, &v.Author.Revision, &v.Author.Avatar, &seq)
 		v.CreatedAt = time.Unix(at, 0)
 		v.CanDelete = !v.Deleted && (moderate || user.ID == v.Author.UserID)
 		v.Author = profileForViewer(v.Author, user)
@@ -288,8 +312,11 @@ func (s *Store) CreateComment(ctx context.Context, actor Identity, key string, c
 		return c.Comment{}, ErrInvalid
 	}
 	result, err := mutate(s, ctx, actor, "community.comment", key, cmd, func(tx *hubdb.Tx, user Identity) error {
-		_, err := communityRelease(ctx, tx, user, cmd.ReleaseID)
-		return err
+		ns, err := communityRelease(ctx, tx, user, cmd.ReleaseID)
+		if err != nil {
+			return err
+		}
+		return requireActiveNamespace(ctx, tx, ns)
 	}, func(tx *hubdb.Tx, user Identity) (c.Comment, error) {
 		var recent int
 		if err := tx.QueryRowContext(ctx, `SELECT count(*) FROM comments WHERE author_id=? AND created_at>?`, user.ID, s.now().Add(-time.Minute).Unix()).Scan(&recent); err != nil {
@@ -310,19 +337,27 @@ func (s *Store) CreateComment(ctx context.Context, actor Identity, key string, c
 		var parent any
 		if cmd.ParentID != "" {
 			var valid bool
-			if err := tx.QueryRowContext(ctx, `SELECT EXISTS(SELECT 1 FROM comments WHERE id=? AND release_id=? AND parent_id IS NULL AND deleted=0)`, cmd.ParentID, cmd.ReleaseID).Scan(&valid); err != nil {
+			if err := tx.QueryRowContext(ctx, `SELECT EXISTS(SELECT 1 FROM comments c JOIN releases r ON r.id=c.release_id WHERE c.id=@parent AND c.parent_id IS NULL AND c.deleted=0 AND `+discussionScopeSQL+`)`, append(principalArgs(user), sql.Named("release", cmd.ReleaseID), sql.Named("parent", cmd.ParentID))...).Scan(&valid); err != nil {
 				return c.Comment{}, err
 			}
 			if !valid {
 				return c.Comment{}, ErrInvalid
 			}
 			parent = cmd.ParentID
+			if err := tx.QueryRowContext(ctx, "SELECT release_id FROM comments WHERE id=?", cmd.ParentID).Scan(&cmd.ReleaseID); err != nil {
+				return c.Comment{}, err
+			}
 		}
 		id := uuid.NewString()
 		at := s.now()
 		_, err := tx.ExecContext(ctx, `INSERT INTO comments(id,release_id,parent_id,author_id,body,created_at) VALUES(?,?,?,?,?,?)`, id, cmd.ReleaseID, parent, user.ID, cmd.Body, at.Unix())
 		if err != nil {
 			return c.Comment{}, err
+		}
+		if cmd.ParentID != "" {
+			if _, err = tx.ExecContext(ctx, `INSERT INTO review_notifications(recipient,release_id,kind,comment_id,created_at) SELECT author_id,release_id,'reply',?,? FROM comments WHERE id=? AND author_id<>?`, id, at.Unix(), cmd.ParentID, user.ID); err != nil {
+				return c.Comment{}, err
+			}
 		}
 		p, err := profileAt(ctx, tx, user.ID)
 		return c.Comment{CommentID: id, ReleaseID: cmd.ReleaseID, ParentID: cmd.ParentID, Author: p, Body: cmd.Body, CreatedAt: at, CanDelete: true}, err
@@ -365,6 +400,14 @@ func (s *Store) DeleteComment(ctx context.Context, actor Identity, key, id strin
 			err = audit(ctx, tx, user.ID, "community.comment.delete", id, s.now())
 		}
 		return struct{}{}, err
+	})
+	return err
+}
+
+func (s *Store) RemoveBookmark(ctx context.Context, actor Identity, key, namespace, name string) error {
+	_, err := mutate(s, ctx, actor, "community.remove-bookmark", key, []string{namespace, name}, authenticatedOnly, func(tx *hubdb.Tx, u Identity) (bool, error) {
+		_, err := tx.ExecContext(ctx, "DELETE FROM reactions WHERE user_id=? AND namespace=? AND name=? AND bookmark=1", u.ID, namespace, name)
+		return true, err
 	})
 	return err
 }

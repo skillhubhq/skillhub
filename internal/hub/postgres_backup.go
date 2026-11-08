@@ -40,14 +40,14 @@ func postgresMetadata(ctx context.Context, db *hubdb.DB) (PostgresBackupInfo, er
 	if err := db.QueryRowContext(ctx, "SELECT current_schema()").Scan(&info.DatabaseSchema); err != nil || !pgSchemaName.MatchString(info.DatabaseSchema) {
 		return info, errors.New("maintenance requires a simple PostgreSQL schema name")
 	}
-	if err := db.QueryRowContext(ctx, "SELECT version FROM hub_schema WHERE id=1").Scan(&info.Schema); err != nil || (info.Schema < 1 || info.Schema > currentSchema) {
+	if err := db.QueryRowContext(ctx, "SELECT version FROM hub_schema WHERE id=1").Scan(&info.Schema); err != nil || info.Schema != currentSchema {
 		return info, errors.New("unsupported PostgreSQL Hub schema")
 	}
 	var count int
 	if err := db.QueryRowContext(ctx, "SELECT count(*),min(id) FROM instance").Scan(&count, &info.RegistryID); err != nil || count != 1 {
 		return info, errors.New("invalid PostgreSQL registry identity")
 	}
-	rows, err := db.QueryContext(ctx, "SELECT DISTINCT digest FROM releases ORDER BY digest")
+	rows, err := db.QueryContext(ctx, "SELECT DISTINCT digest FROM releases WHERE cleaned=0 ORDER BY digest")
 	if err != nil {
 		return info, err
 	}
@@ -169,7 +169,7 @@ func BackupPostgres(ctx context.Context, c hubdb.Config, root, destination strin
 
 // 专用 schema 禁止混入其他应用表，避免维护工具误带非 Hub 数据。
 func checkPostgresTables(ctx context.Context, db *hubdb.DB) error {
-	allowed := strings.Fields("hub_schema instance users sessions devices audit groups group_members namespaces namespace_grants categories releases release_groups release_tags mutations profiles team_profiles comments reactions external_identities access_requests platform_roles release_scans review_notifications featured_skills evaluation_evidence personal_namespaces community_reports namespace_tombstones package_cleanup release_tombstones")
+	allowed := strings.Fields("hub_schema instance users sessions devices audit groups group_members namespaces namespace_grants categories skills releases release_groups release_tags mutations profiles team_profiles comments reactions external_identities access_requests platform_roles release_scans review_notifications featured_skills evaluation_evidence personal_namespaces community_reports namespace_tombstones package_cleanup release_tombstones")
 	rows, err := db.QueryContext(ctx, "SELECT relname,relkind FROM pg_class WHERE relnamespace=current_schema()::regnamespace AND relkind IN ('r','p','v','m','f')")
 	if err != nil {
 		return err
@@ -284,7 +284,7 @@ func readPostgresBackup(root string) (PostgresBackupInfo, error) {
 		return info, errors.New("invalid manifest trailer")
 	}
 	_, timeErr := time.Parse(time.RFC3339, info.CreatedAt)
-	if info.PostgresMajor < 15 || info.Driver != "postgres" || info.Format != 2 || (info.Schema < 1 || info.Schema > currentSchema) || info.RegistryID == "" || info.DatabaseBytes <= 0 || !validBackupDigest(info.DatabaseDigest) || !pgSchemaName.MatchString(info.DatabaseSchema) || info.Packages != len(info.Digests) || timeErr != nil {
+	if info.PostgresMajor < 15 || info.Driver != "postgres" || info.Format != 2 || info.Schema != currentSchema || info.RegistryID == "" || info.DatabaseBytes <= 0 || !validBackupDigest(info.DatabaseDigest) || !pgSchemaName.MatchString(info.DatabaseSchema) || info.Packages != len(info.Digests) || timeErr != nil {
 		return info, errors.New("unsupported PostgreSQL backup metadata")
 	}
 	previous := ""

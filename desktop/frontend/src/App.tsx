@@ -1,3 +1,5 @@
+import { flushPublicationDraft } from "./pendingDraft";
+import { scrollPageToTop } from "./pageScroll";
 import { OpenSkillLink } from "./OpenSkillLink";
 import { Downloads, ProjectFooter } from "./Downloads";
 import { AccessState, needsSignIn } from "./AccessState";
@@ -5,7 +7,13 @@ import { useResource } from "./community-ui";
 import { Community } from "./Community";
 import { Navigation } from "./Navigation";
 import { t, useLanguage } from "./i18n";
-import { useCallback, useEffect, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import type { ChangePlan } from "../bindings/github.com/skillhubhq/skillhub/desktop/models";
 import type {
   ProjectRestoreResult,
@@ -168,6 +176,18 @@ export default function App() {
       ? rememberedSource
       : (sources[0]?.alias ?? ""));
   const remotePage = remotePages.has(page);
+  const scrollContext = remotePage ? activeSource : "local";
+  const previousContext = useRef({ page, source: scrollContext });
+  useLayoutEffect(() => {
+    const previous = previousContext.current;
+    if (
+      !isWeb &&
+      (previous.page !== page ||
+        (previous.source && scrollContext && previous.source !== scrollContext))
+    )
+      scrollPageToTop();
+    previousContext.current = { page, source: scrollContext };
+  }, [page, scrollContext]);
   const session = useResource(
     async () =>
       activeSource
@@ -243,11 +263,16 @@ export default function App() {
   useEffect(() => {
     const onHash = () => {
       const next = location.hash.slice(1);
-      setRoute(
-        pages.some((p) => p.id === next.split("?")[0]) ? next : "discover",
-      );
-      setError("");
-      setMessage("");
+      const change = () => {
+        setRoute(
+          pages.some((p) => p.id === next.split("?")[0]) ? next : "discover",
+        );
+        setError("");
+        setMessage("");
+      };
+      const saving = flushPublicationDraft();
+      if (saving) void saving.then(change).catch((e) => setError(explain(e)));
+      else change();
     };
     window.addEventListener("hashchange", onHash);
     return () => window.removeEventListener("hashchange", onHash);
@@ -272,16 +297,25 @@ export default function App() {
     changed,
     refresh: () => setRevision((value) => value + 1),
     navigate: (next) => {
-      const [nextPage, query = ""] = next.split("?");
-      if (remotePages.has(nextPage) && activeSource) {
-        const params = new URLSearchParams(query);
-        if (!params.has("source")) params.set("source", activeSource);
-        next = `${nextPage}?${params}`;
-      }
-      setError("");
-      setMessage("");
-      setRoute(next);
-      location.hash = next;
+      const change = () => {
+        const [nextPage, query = ""] = next.split("?");
+        if (remotePages.has(nextPage) && activeSource) {
+          const params = new URLSearchParams(query);
+          if (!params.has("source")) params.set("source", activeSource);
+          next = `${nextPage}?${params}`;
+        }
+        setError("");
+        setMessage("");
+        setRoute(next);
+        location.hash = next;
+      };
+      const saving = flushPublicationDraft();
+      if (saving)
+        void run(async () => {
+          await saving;
+          change();
+        });
+      else change();
     },
     plan: (task) => {
       void run(async () => {
@@ -443,6 +477,14 @@ export default function App() {
             <p className="muted">
               {t("Check the version and destination. Plan expires at")}{" "}
               {new Date(plan.expires_at).toLocaleTimeString()}.
+            </p>
+          )}
+          {plan.lock_update && !outcome && (
+            <p className="notice">
+              {t(
+                "Apply the project manifest and lock together with these changes.",
+                "应用以下更改时，同步更新项目锁定记录。",
+              )}
             </p>
           )}
           <div className="plan-list">

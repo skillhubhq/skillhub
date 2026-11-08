@@ -33,6 +33,7 @@ export type {
     ScanFinding,
     ScanInfo,
     SkillConfiguration,
+    SkillMetadataChange,
     Source,
     UpdateCheck
 } from "./models.js";

@@ -1,3 +1,4 @@
+import { pageScroller } from "./pageScroll";
 import { StrictMode, useState } from "react";
 import { flushSync } from "react-dom";
 import { createRoot } from "react-dom/client";
@@ -10,10 +11,13 @@ export async function runModalSmoke(
   const host = document.createElement("div");
   const spacer = document.createElement("div");
   spacer.style.height = "2000px";
-  document.body.append(host, spacer);
+  const scroller = pageScroller();
+  const native = scroller.matches(".desktop-shell > main");
+  (native ? scroller : document.body).append(host, spacer);
   const root = createRoot(host);
-  const originalY = window.scrollY;
+  const originalY = scroller.scrollTop;
   const originalBody = document.body.style.cssText;
+  const originalMain = scroller.style.cssText;
   const originalRoot = document.documentElement.style.cssText;
   const ui: UI = {
     busy: false,
@@ -89,16 +93,29 @@ export async function runModalSmoke(
         </StrictMode>,
       ),
     );
-    window.scrollTo(0, 120);
-    const before = window.scrollY;
+    scroller.scrollTo(0, 120);
+    const before = scroller.scrollTop;
+    if (native) {
+      const nav = document
+        .querySelector(".navigation-shell")!
+        .getBoundingClientRect();
+      check(
+        window.scrollY === 0 &&
+          nav.top === 0 &&
+          scroller.getBoundingClientRect().top >= nav.bottom,
+        "desktop scroll starts below stationary navigation",
+      );
+    }
     click("[data-modal-trigger]");
     const dialog = host.querySelector<HTMLDialogElement>("dialog")!;
     const body = dialog.querySelector<HTMLElement>(".modal-body")!;
     const bounds = dialog.getBoundingClientRect();
     check(
       before > 0 &&
-        document.body.style.position === "fixed" &&
-        document.body.style.top === `${-before}px`,
+        (native || document.body.style.position === "fixed") &&
+        (native
+          ? scroller.style.overflow === "hidden"
+          : document.body.style.top === `${-before}px`),
       "modal locks the page at its existing scroll position",
     );
     click("[data-long]");
@@ -141,10 +158,12 @@ export async function runModalSmoke(
     );
     await new Promise(requestAnimationFrame);
     check(
-      document.body.style.position === "fixed" &&
+      (native
+        ? scroller.style.overflow === "hidden"
+        : document.body.style.position === "fixed") &&
         host.querySelectorAll("dialog[open]").length === 1 &&
         document.activeElement === host.querySelector("[data-nested]"),
-      `closing nested modal keeps page locked and restores parent focus (open=${host.querySelectorAll("dialog[open]").length}, lock=${document.body.style.position}, focus=${document.activeElement?.textContent?.slice(0,40)})`,
+      `closing nested modal keeps page locked and restores parent focus (open=${host.querySelectorAll("dialog[open]").length}, lock=${document.body.style.position}, focus=${document.activeElement?.textContent?.slice(0, 40)})`,
     );
     click("[data-short]");
     check(
@@ -155,16 +174,17 @@ export async function runModalSmoke(
     click(".modal-head button");
     await new Promise(requestAnimationFrame);
     check(
-      window.scrollY === before &&
+      scroller.scrollTop === before &&
+        scroller.style.cssText === originalMain &&
         document.body.style.cssText === originalBody &&
         document.documentElement.style.cssText === originalRoot &&
         document.activeElement === host.querySelector("[data-modal-trigger]"),
-      "last modal restores page position, inline styles and trigger focus",
+      `last modal restores page position, inline styles and trigger focus (scroll=${scroller.scrollTop}/${before}, height=${scroller.scrollHeight}/${scroller.clientHeight}, main=${scroller.style.cssText === originalMain}, body=${document.body.style.cssText === originalBody}, root=${document.documentElement.style.cssText === originalRoot}, focus=${document.activeElement === host.querySelector("[data-modal-trigger]")})`,
     );
   } finally {
     flushSync(() => root.unmount());
     host.remove();
     spacer.remove();
-    window.scrollTo(0, originalY);
+    scroller.scrollTo(0, originalY);
   }
 }

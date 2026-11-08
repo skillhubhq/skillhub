@@ -148,11 +148,11 @@ function CommunityContent({
                 </button>
               </div>
             )}
-          {!value.page.items?.length && (
+          {!teamFilter && !value.page.items?.length && (
             <div className="quiet-empty">
               {t(
-                "Teams appear here when you have access to their space or published skills.",
-                "当你有权访问团队空间或已发布技能时，团队会显示在这里。",
+                "No teams are available in this hub yet.",
+                "此 Hub 暂无可浏览的团队。",
               )}
             </div>
           )}
@@ -185,13 +185,13 @@ function CommunityContent({
             <h2>{t("Saved skills", "已收藏的技能")}</h2>
             <p>
               {t(
-                "A private collection of exact versions. Only you can see your saves.",
-                "收藏精确版本，只有你自己能看到。",
+                "Your saved skills follow their current available versions.",
+                "收藏技能，方便查看它们当前可用的版本。",
               )}
             </p>
           </div>
           <Contributions source={source} items={value.page.items ?? []} />
-          {!value.page.items?.length && (
+          {!teamFilter && !value.page.items?.length && (
             <div className="quiet-empty">
               <h3>{t("No saved skills yet.", "还没有收藏技能。")}</h3>
               <p>

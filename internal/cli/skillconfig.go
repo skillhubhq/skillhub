@@ -10,6 +10,10 @@ import (
 
 func (a *application) configCommand() *cobra.Command {
 	root := &cobra.Command{Use: "config", Short: "Manage local skill requirements and system-store secrets", Long: "Configure installed skills locally. Values are never uploaded, printed by diagnostics, or automatically injected into agents."}
+	root.AddCommand(&cobra.Command{Use: "renew TARGET DIGEST", Short: "Authorize saved configuration for the reviewed installed digest", Args: cobra.ExactArgs(2), RunE: func(cmd *cobra.Command, args []string) error {
+		return a.core.RenewSkillConfiguration(cmd.Context(), args[0], args[1])
+	}})
+
 	root.AddCommand(&cobra.Command{Use: "list", Short: "List installations and retained local configurations", Args: cobra.NoArgs, RunE: func(cmd *cobra.Command, _ []string) error {
 		items, err := a.core.ConfigurationTargets(cmd.Context())
 		if err != nil {

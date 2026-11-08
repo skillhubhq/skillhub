@@ -29,9 +29,10 @@ type pendingPlan struct {
 	expires time.Time
 }
 type ChangePlan struct {
-	Handle    string               `json:"handle"`
-	Changes   []client.InstallPlan `json:"changes"`
-	ExpiresAt string               `json:"expires_at"`
+	LockUpdate bool                 `json:"lock_update"`
+	Handle     string               `json:"handle"`
+	Changes    []client.InstallPlan `json:"changes"`
+	ExpiresAt  string               `json:"expires_at"`
 }
 
 func (s *DesktopService) ServiceStartup(ctx context.Context, _ application.ServiceOptions) error {
@@ -91,9 +92,9 @@ func (s *DesktopService) holdPlan(p pendingPlan) (ChangePlan, error) {
 	if p.install != nil {
 		changes = append(changes, *p.install)
 	} else {
-		changes = p.project.Plans
+		changes = append(append([]client.InstallPlan{}, p.project.Plans...), p.project.Removals...)
 	}
-	return ChangePlan{Handle: id, Changes: changes, ExpiresAt: p.expires.UTC().Format(time.RFC3339)}, nil
+	return ChangePlan{LockUpdate: p.project != nil && p.project.LockUpdate, Handle: id, Changes: changes, ExpiresAt: p.expires.UTC().Format(time.RFC3339)}, nil
 }
 func (s *DesktopService) DiscardPlan(id string) {
 	s.mu.Lock()
