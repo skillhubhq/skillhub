@@ -11,7 +11,9 @@ CREATE TABLE audit (sequence INTEGER PRIMARY KEY AUTOINCREMENT, actor_id TEXT NO
 
 CREATE TABLE groups (id TEXT PRIMARY KEY, name TEXT NOT NULL UNIQUE);
 CREATE TABLE group_members (group_id TEXT NOT NULL REFERENCES groups(id), user_id TEXT NOT NULL REFERENCES users(id), PRIMARY KEY(group_id,user_id));
-CREATE TABLE namespaces (name TEXT PRIMARY KEY, review_required INTEGER NOT NULL, revision INTEGER NOT NULL);
+CREATE TABLE namespaces (name TEXT PRIMARY KEY, review_required INTEGER NOT NULL, revision INTEGER NOT NULL, archived INTEGER NOT NULL DEFAULT 0);
+CREATE TABLE namespace_tombstones (name TEXT PRIMARY KEY, deleted_at INTEGER NOT NULL);
+CREATE TABLE package_cleanup (digest TEXT PRIMARY KEY);
 CREATE TABLE namespace_grants (namespace TEXT NOT NULL REFERENCES namespaces(name), kind INTEGER NOT NULL CHECK(kind IN (1,2)), subject_id TEXT NOT NULL, role INTEGER NOT NULL CHECK(role IN (1,2,3,4)), PRIMARY KEY(namespace,kind,subject_id,role));
 CREATE TABLE categories (name TEXT PRIMARY KEY, title TEXT NOT NULL, archived INTEGER NOT NULL, revision INTEGER NOT NULL);
 CREATE TABLE releases (
@@ -59,5 +61,5 @@ CREATE TABLE community_reports (sequence INTEGER PRIMARY KEY AUTOINCREMENT, id T
 CREATE INDEX community_reports_queue ON community_reports(resolved,sequence);
 
 CREATE TABLE external_identities (issuer TEXT NOT NULL, subject TEXT NOT NULL, user_id TEXT NOT NULL UNIQUE REFERENCES users(id), PRIMARY KEY(issuer,subject));
-PRAGMA user_version=11;
+PRAGMA user_version=12;
 `

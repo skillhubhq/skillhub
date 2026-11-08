@@ -126,6 +126,19 @@ export interface LockedSkill {
     "target": string;
 }
 
+/**
+ * NamespaceLifecycle 保持字符串修订号，避免 JavaScript 大整数精度损失。
+ */
+export interface NamespaceLifecycle {
+    "name": string;
+    "revision": string;
+    "archived": boolean;
+    "releases": string;
+    "grants": string;
+    "comments": string;
+    "evidence": string;
+}
+
 export interface Notification {
     "id": string;
     "release_id": string;

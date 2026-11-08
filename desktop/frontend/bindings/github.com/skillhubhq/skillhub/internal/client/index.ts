@@ -13,6 +13,7 @@ export type {
     InstallPlan,
     Installation,
     LockedSkill,
+    NamespaceLifecycle,
     Notification,
     NotificationPage,
     OpenRequest,

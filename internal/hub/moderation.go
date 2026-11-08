@@ -110,7 +110,7 @@ func (s *Store) ListReports(ctx context.Context, actor Identity, resolved bool, 
 	if e = adminOnly(tx, u); e != nil {
 		return PageResult[ContentReport]{}, e
 	}
-	return pageQuery(s, ctx, tx, page, scope(u.ID, "content.reports", resolved), `SELECT p.sequence,p.id,p.reporter,p.release_id,p.comment_id,p.reason,p.resolved,p.resolution,p.created_at,p.resolved_at,r.namespace||'/'||r.name||'@'||r.version,CASE WHEN p.comment_id='' THEN r.description ELSE COALESCE(c.body,'') END FROM community_reports p JOIN releases r ON r.id=p.release_id LEFT JOIN comments c ON c.id=p.comment_id WHERE p.resolved=@resolved AND (@after='' OR p.sequence<CAST(COALESCE(NULLIF(@after,''),'0') AS BIGINT)) ORDER BY p.sequence DESC LIMIT @limit`, []any{sql.Named("resolved", resolved)}, func(rows *sql.Rows) (ContentReport, string, error) {
+	return pageQuery(s, ctx, tx, page, scope(u.ID, "content.reports", resolved), `SELECT p.sequence,p.id,p.reporter,p.release_id,p.comment_id,p.reason,p.resolved,p.resolution,p.created_at,p.resolved_at,r.namespace||'/'||r.name||'@'||r.version,CASE WHEN p.comment_id='' THEN r.description ELSE COALESCE(c.body,'') END FROM community_reports p JOIN releases r ON r.id=p.release_id LEFT JOIN comments c ON c.id=p.comment_id WHERE `+activeReleaseSQL+` AND p.resolved=@resolved AND (@after='' OR p.sequence<CAST(COALESCE(NULLIF(@after,''),'0') AS BIGINT)) ORDER BY p.sequence DESC LIMIT @limit`, []any{sql.Named("resolved", resolved)}, func(rows *sql.Rows) (ContentReport, string, error) {
 		var v ContentReport
 		var created, done, sequence int64
 		e := rows.Scan(&sequence, &v.ID, &v.Reporter, &v.ReleaseID, &v.CommentID, &v.Reason, &v.Resolved, &v.Resolution, &created, &done, &v.Coordinate, &v.Content)
@@ -126,7 +126,16 @@ func (s *Store) ResolveReport(ctx context.Context, actor Identity, key string, c
 	if cmd.ID == "" || cmd.Note == "" || !utf8.ValidString(cmd.Note) || utf8.RuneCountInString(cmd.Note) > 1000 || strings.ContainsRune(cmd.Note, 0) || (cmd.Action != taxonomy.ReportResolution_REPORT_RESOLUTION_DISMISS && cmd.Action != taxonomy.ReportResolution_REPORT_RESOLUTION_REMOVE_CONTENT) {
 		return ErrInvalid
 	}
-	_, e := mutate(s, ctx, actor, "content.resolve", key, cmd, adminOnly, func(tx *hubdb.Tx, u Identity) (bool, error) {
+	_, e := mutate(s, ctx, actor, "content.resolve", key, cmd, func(tx *hubdb.Tx, u Identity) error {
+		if err := adminOnly(tx, u); err != nil {
+			return err
+		}
+		var namespace string
+		if err := tx.QueryRowContext(ctx, "SELECT r.namespace FROM community_reports p JOIN releases r ON r.id=p.release_id WHERE p.id=?", cmd.ID).Scan(&namespace); err != nil {
+			return assertExists(err)
+		}
+		return requireRole(ctx, tx, u, namespace)
+	}, func(tx *hubdb.Tx, u Identity) (bool, error) {
 		var release, comment string
 		var resolved bool
 		e := tx.QueryRowContext(ctx, "SELECT release_id,comment_id,resolved FROM community_reports WHERE id=?", cmd.ID).Scan(&release, &comment, &resolved)

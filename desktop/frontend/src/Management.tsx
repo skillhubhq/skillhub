@@ -1,3 +1,4 @@
+import { TeamLifecycle } from "./TeamLifecycle";
 import { ContentReports } from "./Moderation";
 import { PlatformRoles } from "./Governance";
 import { Select } from "./Select";
@@ -288,6 +289,13 @@ function Records({
     source,
     kind === "grants" || kind === "groups" ? "groups" : "",
   );
+  const lifecycle = useResource(
+    () =>
+      kind === "namespaces" && administrator
+        ? API.NamespaceLifecycleSupported(source)
+        : Promise.resolve(false),
+    [source, kind, administrator],
+  );
   const title = tabs.find(([id]) => id === kind)?.[1] ?? kind;
   const loadGeneration = useRef(0);
   const load = (token = "", requestedKind = listing, query = activeFilter) => {
@@ -566,9 +574,11 @@ function Records({
                       )}
                       {kind === "namespaces" && (
                         <span>
-                          {row.enabled
-                            ? t("Independent review")
-                            : t("Direct publication")}
+                          {row.archived
+                            ? t("Archived", "已归档")
+                            : row.enabled
+                              ? t("Independent review")
+                              : t("Direct publication")}
                         </span>
                       )}
                       {kind === "categories" && (
@@ -595,6 +605,13 @@ function Records({
                 )}
               </div>
               <div className="actions wrap">
+                {kind === "namespaces" && administrator && lifecycle.value && (
+                  <TeamLifecycle
+                    source={source}
+                    name={row.name}
+                    changed={() => load()}
+                  />
+                )}
                 {kind === "groups" && listing !== "members" && (
                   <button
                     disabled={ui.busy}
@@ -722,6 +739,7 @@ function Records({
                   kind,
                 ) &&
                   !row.approval_pending &&
+                  !row.archived &&
                   (kind !== "users" ||
                     (canManageUsers &&
                       (administrator ||

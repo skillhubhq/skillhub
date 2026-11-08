@@ -34,6 +34,7 @@ type Group struct {
 	Name string
 }
 type Namespace struct {
+	Archived       bool
 	Name           string
 	ReviewRequired bool
 	Revision       uint64
@@ -212,10 +213,20 @@ func (s *Store) PutNamespace(ctx context.Context, actor Identity, key string, cm
 		return Namespace{}, ErrInvalid
 	}
 	authorize := func(tx *hubdb.Tx, actor Identity) error {
-		if cmd.ExpectedRevision == 0 {
-			return adminOnly(tx, actor)
+		if cmd.ExpectedRevision != 0 {
+			return requireRole(ctx, tx, actor, cmd.Name)
 		}
-		return requireRole(ctx, tx, actor, cmd.Name)
+		if err := adminOnly(tx, actor); err != nil {
+			return err
+		}
+		var unavailable bool
+		if err := tx.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM namespace_tombstones WHERE name=?) OR EXISTS(SELECT 1 FROM namespaces WHERE name=? AND archived=1)", cmd.Name, cmd.Name).Scan(&unavailable); err != nil {
+			return err
+		}
+		if unavailable {
+			return ErrConflict
+		}
+		return nil
 	}
 	return mutate(s, ctx, actor, "namespace.put", key, cmd, authorize, func(tx *hubdb.Tx, actor Identity) (Namespace, error) {
 		value := Namespace{Name: cmd.Name, ReviewRequired: cmd.ReviewRequired, Revision: cmd.ExpectedRevision + 1}
@@ -360,9 +371,9 @@ func (s *Store) listNamespaces(ctx context.Context, actor Identity, page Page, f
 	if err = authenticatedOnly(tx, user); err != nil {
 		return PageResult[Namespace]{}, err
 	}
-	return pageQuery(s, ctx, tx, page, scope(user.ID, "namespaces", forSubmission), `SELECT name,review_required,revision FROM namespaces n WHERE name>@after AND (@admin=1 OR EXISTS(SELECT 1 FROM namespace_grants g WHERE g.namespace=n.name AND (@submission=0 OR g.role IN (@maintainer,@namespace_admin)) AND ((g.kind=1 AND g.subject_id=@actor) OR (g.kind=2 AND EXISTS(SELECT 1 FROM group_members m WHERE m.group_id=g.subject_id AND m.user_id=@actor))))) ORDER BY name LIMIT @limit`, []any{sql.Named("admin", user.Administrator), sql.Named("actor", user.ID), sql.Named("submission", forSubmission), sql.Named("maintainer", taxonomy.NamespaceRole_NAMESPACE_ROLE_MAINTAINER), sql.Named("namespace_admin", taxonomy.NamespaceRole_NAMESPACE_ROLE_ADMIN)}, func(rows *sql.Rows) (Namespace, string, error) {
+	return pageQuery(s, ctx, tx, page, scope(user.ID, "namespaces", forSubmission), `SELECT name,review_required,revision,archived FROM namespaces n WHERE name>@after AND (n.archived=0 OR (@admin=1 AND @submission=0)) AND (@admin=1 OR EXISTS(SELECT 1 FROM namespace_grants g WHERE g.namespace=n.name AND (@submission=0 OR g.role IN (@maintainer,@namespace_admin)) AND ((g.kind=1 AND g.subject_id=@actor) OR (g.kind=2 AND EXISTS(SELECT 1 FROM group_members m WHERE m.group_id=g.subject_id AND m.user_id=@actor))))) ORDER BY name LIMIT @limit`, []any{sql.Named("admin", user.Administrator), sql.Named("actor", user.ID), sql.Named("submission", forSubmission), sql.Named("maintainer", taxonomy.NamespaceRole_NAMESPACE_ROLE_MAINTAINER), sql.Named("namespace_admin", taxonomy.NamespaceRole_NAMESPACE_ROLE_ADMIN)}, func(rows *sql.Rows) (Namespace, string, error) {
 		var v Namespace
-		err := rows.Scan(&v.Name, &v.ReviewRequired, &v.Revision)
+		err := rows.Scan(&v.Name, &v.ReviewRequired, &v.Revision, &v.Archived)
 		return v, v.Name, err
 	})
 }

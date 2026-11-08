@@ -100,3 +100,7 @@ CI 扫秘密和依赖，静态扫描只是证据，发布前审阅归档/依赖�
 运行 `go test -race ./internal/identityprovider ./internal/hubhttp ./internal/hub ./internal/serverconfig`，验证配置、OIDC 签名与字段、OAuth PKCE、state/cookie/重放隔离、稳定身份、按模式准入、禁用/待审状态保留、安全头像初始化、配额、举报处理和 结构初始化与来源字段升级保留。适配器测试使用受控 HTTP transport，OIDC 使用本地 TLS 服务和真实签名，不要求或宣称使用真实提供方凭据。
 
 `TestPostgresCommunityPolicyAndModeration` 沿用 PostgreSQL 隔离测试库，覆盖 15、16、18。原生夹具验证举报弹窗、共享 Go 方法、队列权限、处理结果与评论占位。全部数据可丢弃，不打开部署方当前 Hub 数据。
+
+## 团队生命周期
+
+`TestNamespaceLifecycle` 与 `TestPostgresNamespaceLifecycle` 验证管理员权限、修订号和确认名称、归档可见性、恢复、共享包保留、永久清理、共享身份保留、命名空间占位与幂等重试。`TestNamespaceCleanupFailureCanRetry` 模拟文件删除失败。结构升级测试覆盖版本 11 到 12 的身份保留。传输层及 CLI 回归拒绝未授权和未确认操作；原生 smoke 会打开共用弹窗、归档临时团队、检查输入名称门禁并完成清理。所有写入型验收仅使用可丢弃的隔离实例。

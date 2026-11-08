@@ -33,6 +33,15 @@ const (
 // reflection-formatted method names, remove the leading slash and convert the remaining slash to a
 // period.
 const (
+	// AdminServiceGetNamespaceLifecycleProcedure is the fully-qualified name of the AdminService's
+	// GetNamespaceLifecycle RPC.
+	AdminServiceGetNamespaceLifecycleProcedure = "/api.admin.v1.AdminService/GetNamespaceLifecycle"
+	// AdminServiceSetNamespaceArchivedProcedure is the fully-qualified name of the AdminService's
+	// SetNamespaceArchived RPC.
+	AdminServiceSetNamespaceArchivedProcedure = "/api.admin.v1.AdminService/SetNamespaceArchived"
+	// AdminServicePurgeNamespaceProcedure is the fully-qualified name of the AdminService's
+	// PurgeNamespace RPC.
+	AdminServicePurgeNamespaceProcedure = "/api.admin.v1.AdminService/PurgeNamespace"
 	// AdminServiceLookupNamespaceUsersProcedure is the fully-qualified name of the AdminService's
 	// LookupNamespaceUsers RPC.
 	AdminServiceLookupNamespaceUsersProcedure = "/api.admin.v1.AdminService/LookupNamespaceUsers"
@@ -87,6 +96,12 @@ const (
 
 // AdminServiceClient is a client for the api.admin.v1.AdminService service.
 type AdminServiceClient interface {
+	// GetNamespaceLifecycle 预览团队生命周期操作的影响，仅限 Hub 管理员。
+	GetNamespaceLifecycle(context.Context, *connect.Request[v1.GetNamespaceLifecycleRequest]) (*connect.Response[v1.GetNamespaceLifecycleResponse], error)
+	// SetNamespaceArchived 归档或恢复团队，保留内容与授权。
+	SetNamespaceArchived(context.Context, *connect.Request[v1.SetNamespaceArchivedRequest]) (*connect.Response[v1.SetNamespaceArchivedResponse], error)
+	// PurgeNamespace 永久清理已归档团队，保留审计和共享身份。
+	PurgeNamespace(context.Context, *connect.Request[v1.PurgeNamespaceRequest]) (*connect.Response[v1.PurgeNamespaceResponse], error)
 	// LookupNamespaceUsers 查找当前空间可授权的账号，仅返回最少身份字段。
 	LookupNamespaceUsers(context.Context, *connect.Request[v1.LookupNamespaceUsersRequest]) (*connect.Response[v1.LookupNamespaceUsersResponse], error)
 	// GetNamespaceAccess 返回当前主体的操作能力。
@@ -136,6 +151,24 @@ func NewAdminServiceClient(httpClient connect.HTTPClient, baseURL string, opts .
 	baseURL = strings.TrimRight(baseURL, "/")
 	adminServiceMethods := v1.File_api_admin_v1_admin_service_proto.Services().ByName("AdminService").Methods()
 	return &adminServiceClient{
+		getNamespaceLifecycle: connect.NewClient[v1.GetNamespaceLifecycleRequest, v1.GetNamespaceLifecycleResponse](
+			httpClient,
+			baseURL+AdminServiceGetNamespaceLifecycleProcedure,
+			connect.WithSchema(adminServiceMethods.ByName("GetNamespaceLifecycle")),
+			connect.WithClientOptions(opts...),
+		),
+		setNamespaceArchived: connect.NewClient[v1.SetNamespaceArchivedRequest, v1.SetNamespaceArchivedResponse](
+			httpClient,
+			baseURL+AdminServiceSetNamespaceArchivedProcedure,
+			connect.WithSchema(adminServiceMethods.ByName("SetNamespaceArchived")),
+			connect.WithClientOptions(opts...),
+		),
+		purgeNamespace: connect.NewClient[v1.PurgeNamespaceRequest, v1.PurgeNamespaceResponse](
+			httpClient,
+			baseURL+AdminServicePurgeNamespaceProcedure,
+			connect.WithSchema(adminServiceMethods.ByName("PurgeNamespace")),
+			connect.WithClientOptions(opts...),
+		),
 		lookupNamespaceUsers: connect.NewClient[v1.LookupNamespaceUsersRequest, v1.LookupNamespaceUsersResponse](
 			httpClient,
 			baseURL+AdminServiceLookupNamespaceUsersProcedure,
@@ -249,24 +282,42 @@ func NewAdminServiceClient(httpClient connect.HTTPClient, baseURL string, opts .
 
 // adminServiceClient implements AdminServiceClient.
 type adminServiceClient struct {
-	lookupNamespaceUsers *connect.Client[v1.LookupNamespaceUsersRequest, v1.LookupNamespaceUsersResponse]
-	getNamespaceAccess   *connect.Client[v1.GetNamespaceAccessRequest, v1.GetNamespaceAccessResponse]
-	resetUserPassword    *connect.Client[v1.ResetUserPasswordRequest, v1.ResetUserPasswordResponse]
-	setUserAdministrator *connect.Client[v1.SetUserAdministratorRequest, v1.SetUserAdministratorResponse]
-	createUser           *connect.Client[v1.CreateUserRequest, v1.CreateUserResponse]
-	setUserDisabled      *connect.Client[v1.SetUserDisabledRequest, v1.SetUserDisabledResponse]
-	listUsers            *connect.Client[v1.ListUsersRequest, v1.ListUsersResponse]
-	createGroup          *connect.Client[v1.CreateGroupRequest, v1.CreateGroupResponse]
-	setGroupMember       *connect.Client[v1.SetGroupMemberRequest, v1.SetGroupMemberResponse]
-	listGroups           *connect.Client[v1.ListGroupsRequest, v1.ListGroupsResponse]
-	listGroupMembers     *connect.Client[v1.ListGroupMembersRequest, v1.ListGroupMembersResponse]
-	putNamespace         *connect.Client[v1.PutNamespaceRequest, v1.PutNamespaceResponse]
-	setNamespaceGrant    *connect.Client[v1.SetNamespaceGrantRequest, v1.SetNamespaceGrantResponse]
-	listNamespaces       *connect.Client[v1.ListNamespacesRequest, v1.ListNamespacesResponse]
-	listNamespaceGrants  *connect.Client[v1.ListNamespaceGrantsRequest, v1.ListNamespaceGrantsResponse]
-	putCategory          *connect.Client[v1.PutCategoryRequest, v1.PutCategoryResponse]
-	listCategories       *connect.Client[v1.ListCategoriesRequest, v1.ListCategoriesResponse]
-	listAudit            *connect.Client[v1.ListAuditRequest, v1.ListAuditResponse]
+	getNamespaceLifecycle *connect.Client[v1.GetNamespaceLifecycleRequest, v1.GetNamespaceLifecycleResponse]
+	setNamespaceArchived  *connect.Client[v1.SetNamespaceArchivedRequest, v1.SetNamespaceArchivedResponse]
+	purgeNamespace        *connect.Client[v1.PurgeNamespaceRequest, v1.PurgeNamespaceResponse]
+	lookupNamespaceUsers  *connect.Client[v1.LookupNamespaceUsersRequest, v1.LookupNamespaceUsersResponse]
+	getNamespaceAccess    *connect.Client[v1.GetNamespaceAccessRequest, v1.GetNamespaceAccessResponse]
+	resetUserPassword     *connect.Client[v1.ResetUserPasswordRequest, v1.ResetUserPasswordResponse]
+	setUserAdministrator  *connect.Client[v1.SetUserAdministratorRequest, v1.SetUserAdministratorResponse]
+	createUser            *connect.Client[v1.CreateUserRequest, v1.CreateUserResponse]
+	setUserDisabled       *connect.Client[v1.SetUserDisabledRequest, v1.SetUserDisabledResponse]
+	listUsers             *connect.Client[v1.ListUsersRequest, v1.ListUsersResponse]
+	createGroup           *connect.Client[v1.CreateGroupRequest, v1.CreateGroupResponse]
+	setGroupMember        *connect.Client[v1.SetGroupMemberRequest, v1.SetGroupMemberResponse]
+	listGroups            *connect.Client[v1.ListGroupsRequest, v1.ListGroupsResponse]
+	listGroupMembers      *connect.Client[v1.ListGroupMembersRequest, v1.ListGroupMembersResponse]
+	putNamespace          *connect.Client[v1.PutNamespaceRequest, v1.PutNamespaceResponse]
+	setNamespaceGrant     *connect.Client[v1.SetNamespaceGrantRequest, v1.SetNamespaceGrantResponse]
+	listNamespaces        *connect.Client[v1.ListNamespacesRequest, v1.ListNamespacesResponse]
+	listNamespaceGrants   *connect.Client[v1.ListNamespaceGrantsRequest, v1.ListNamespaceGrantsResponse]
+	putCategory           *connect.Client[v1.PutCategoryRequest, v1.PutCategoryResponse]
+	listCategories        *connect.Client[v1.ListCategoriesRequest, v1.ListCategoriesResponse]
+	listAudit             *connect.Client[v1.ListAuditRequest, v1.ListAuditResponse]
+}
+
+// GetNamespaceLifecycle calls api.admin.v1.AdminService.GetNamespaceLifecycle.
+func (c *adminServiceClient) GetNamespaceLifecycle(ctx context.Context, req *connect.Request[v1.GetNamespaceLifecycleRequest]) (*connect.Response[v1.GetNamespaceLifecycleResponse], error) {
+	return c.getNamespaceLifecycle.CallUnary(ctx, req)
+}
+
+// SetNamespaceArchived calls api.admin.v1.AdminService.SetNamespaceArchived.
+func (c *adminServiceClient) SetNamespaceArchived(ctx context.Context, req *connect.Request[v1.SetNamespaceArchivedRequest]) (*connect.Response[v1.SetNamespaceArchivedResponse], error) {
+	return c.setNamespaceArchived.CallUnary(ctx, req)
+}
+
+// PurgeNamespace calls api.admin.v1.AdminService.PurgeNamespace.
+func (c *adminServiceClient) PurgeNamespace(ctx context.Context, req *connect.Request[v1.PurgeNamespaceRequest]) (*connect.Response[v1.PurgeNamespaceResponse], error) {
+	return c.purgeNamespace.CallUnary(ctx, req)
 }
 
 // LookupNamespaceUsers calls api.admin.v1.AdminService.LookupNamespaceUsers.
@@ -361,6 +412,12 @@ func (c *adminServiceClient) ListAudit(ctx context.Context, req *connect.Request
 
 // AdminServiceHandler is an implementation of the api.admin.v1.AdminService service.
 type AdminServiceHandler interface {
+	// GetNamespaceLifecycle 预览团队生命周期操作的影响，仅限 Hub 管理员。
+	GetNamespaceLifecycle(context.Context, *connect.Request[v1.GetNamespaceLifecycleRequest]) (*connect.Response[v1.GetNamespaceLifecycleResponse], error)
+	// SetNamespaceArchived 归档或恢复团队，保留内容与授权。
+	SetNamespaceArchived(context.Context, *connect.Request[v1.SetNamespaceArchivedRequest]) (*connect.Response[v1.SetNamespaceArchivedResponse], error)
+	// PurgeNamespace 永久清理已归档团队，保留审计和共享身份。
+	PurgeNamespace(context.Context, *connect.Request[v1.PurgeNamespaceRequest]) (*connect.Response[v1.PurgeNamespaceResponse], error)
 	// LookupNamespaceUsers 查找当前空间可授权的账号，仅返回最少身份字段。
 	LookupNamespaceUsers(context.Context, *connect.Request[v1.LookupNamespaceUsersRequest]) (*connect.Response[v1.LookupNamespaceUsersResponse], error)
 	// GetNamespaceAccess 返回当前主体的操作能力。
@@ -406,6 +463,24 @@ type AdminServiceHandler interface {
 // and JSON codecs. They also support gzip compression.
 func NewAdminServiceHandler(svc AdminServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
 	adminServiceMethods := v1.File_api_admin_v1_admin_service_proto.Services().ByName("AdminService").Methods()
+	adminServiceGetNamespaceLifecycleHandler := connect.NewUnaryHandler(
+		AdminServiceGetNamespaceLifecycleProcedure,
+		svc.GetNamespaceLifecycle,
+		connect.WithSchema(adminServiceMethods.ByName("GetNamespaceLifecycle")),
+		connect.WithHandlerOptions(opts...),
+	)
+	adminServiceSetNamespaceArchivedHandler := connect.NewUnaryHandler(
+		AdminServiceSetNamespaceArchivedProcedure,
+		svc.SetNamespaceArchived,
+		connect.WithSchema(adminServiceMethods.ByName("SetNamespaceArchived")),
+		connect.WithHandlerOptions(opts...),
+	)
+	adminServicePurgeNamespaceHandler := connect.NewUnaryHandler(
+		AdminServicePurgeNamespaceProcedure,
+		svc.PurgeNamespace,
+		connect.WithSchema(adminServiceMethods.ByName("PurgeNamespace")),
+		connect.WithHandlerOptions(opts...),
+	)
 	adminServiceLookupNamespaceUsersHandler := connect.NewUnaryHandler(
 		AdminServiceLookupNamespaceUsersProcedure,
 		svc.LookupNamespaceUsers,
@@ -516,6 +591,12 @@ func NewAdminServiceHandler(svc AdminServiceHandler, opts ...connect.HandlerOpti
 	)
 	return "/api.admin.v1.AdminService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
+		case AdminServiceGetNamespaceLifecycleProcedure:
+			adminServiceGetNamespaceLifecycleHandler.ServeHTTP(w, r)
+		case AdminServiceSetNamespaceArchivedProcedure:
+			adminServiceSetNamespaceArchivedHandler.ServeHTTP(w, r)
+		case AdminServicePurgeNamespaceProcedure:
+			adminServicePurgeNamespaceHandler.ServeHTTP(w, r)
 		case AdminServiceLookupNamespaceUsersProcedure:
 			adminServiceLookupNamespaceUsersHandler.ServeHTTP(w, r)
 		case AdminServiceGetNamespaceAccessProcedure:
@@ -560,6 +641,18 @@ func NewAdminServiceHandler(svc AdminServiceHandler, opts ...connect.HandlerOpti
 
 // UnimplementedAdminServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedAdminServiceHandler struct{}
+
+func (UnimplementedAdminServiceHandler) GetNamespaceLifecycle(context.Context, *connect.Request[v1.GetNamespaceLifecycleRequest]) (*connect.Response[v1.GetNamespaceLifecycleResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("api.admin.v1.AdminService.GetNamespaceLifecycle is not implemented"))
+}
+
+func (UnimplementedAdminServiceHandler) SetNamespaceArchived(context.Context, *connect.Request[v1.SetNamespaceArchivedRequest]) (*connect.Response[v1.SetNamespaceArchivedResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("api.admin.v1.AdminService.SetNamespaceArchived is not implemented"))
+}
+
+func (UnimplementedAdminServiceHandler) PurgeNamespace(context.Context, *connect.Request[v1.PurgeNamespaceRequest]) (*connect.Response[v1.PurgeNamespaceResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("api.admin.v1.AdminService.PurgeNamespace is not implemented"))
+}
 
 func (UnimplementedAdminServiceHandler) LookupNamespaceUsers(context.Context, *connect.Request[v1.LookupNamespaceUsersRequest]) (*connect.Response[v1.LookupNamespaceUsersResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("api.admin.v1.AdminService.LookupNamespaceUsers is not implemented"))

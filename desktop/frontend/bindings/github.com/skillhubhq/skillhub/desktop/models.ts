@@ -37,6 +37,7 @@ export interface AdminPage {
  * 管理列表是桌面表格投影，远端请求始终使用生成的 Connect 契约。
  */
 export interface AdminRow {
+    "archived": boolean;
     "platform_roles": registryv1$0.PlatformRole[] | null;
     "oidc_issuer": string;
     "oidc_subject": string;

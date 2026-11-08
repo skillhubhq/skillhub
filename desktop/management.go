@@ -13,6 +13,7 @@ import (
 
 // 管理列表是桌面表格投影，远端请求始终使用生成的 Connect 契约。
 type AdminRow struct {
+	Archived        bool                    `json:"archived"`
 	PlatformRoles   []taxonomy.PlatformRole `json:"platform_roles"`
 	OIDCIssuer      string                  `json:"oidc_issuer"`
 	OIDCSubject     string                  `json:"oidc_subject"`
@@ -80,7 +81,7 @@ func (s *DesktopService) AdminList(source, kind, filter, token string) (AdminPag
 		}
 		result.NextPage = r.Msg.GetPage().GetNextPageToken()
 		for _, row := range r.Msg.Namespaces {
-			result.Rows = append(result.Rows, AdminRow{ID: row.Name, Name: row.Name, Enabled: row.ReviewRequired, Revision: strconv.FormatUint(row.Revision, 10)})
+			result.Rows = append(result.Rows, AdminRow{ID: row.Name, Name: row.Name, Archived: row.Archived, Enabled: row.ReviewRequired, Revision: strconv.FormatUint(row.Revision, 10)})
 		}
 	case "grants":
 		r, e := remote.Admin.ListNamespaceGrants(s.ctx, connect.NewRequest(&adminv1.ListNamespaceGrantsRequest{Page: page, Namespace: filter}))

@@ -9,6 +9,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"errors"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"time"
@@ -19,7 +20,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-const currentSchema = 11
+const currentSchema = 12
 
 var (
 	ErrUnauthenticated = errors.New("authentication required")
@@ -92,6 +93,9 @@ func OpenDatabase(root string, config hubdb.Config) (*Store, error) {
 			return nil, err
 		}
 	}
+	if err = s.CollectNamespacePackages(context.Background()); err != nil {
+		slog.Warn("namespace package cleanup pending; retry after resolving storage access", "error", err)
+	}
 	s.dummyPassword, err = bcrypt.GenerateFromPassword([]byte(randomSecret()), bcrypt.DefaultCost)
 	if err != nil {
 		_ = db.Close()
@@ -125,7 +129,7 @@ func (s *Store) initializeContext(ctx context.Context) error {
 	if err = tx.QueryRowContext(ctx, "PRAGMA user_version").Scan(&version); err != nil {
 		return err
 	}
-	if version != 0 && version != 1 && version != 2 && version != 10 && version != currentSchema {
+	if version != 0 && version != 1 && version != 2 && version != 10 && version != 11 && version != currentSchema {
 		return errors.New("unsupported hub database schema")
 	}
 	if version == 0 {
@@ -152,15 +156,22 @@ CREATE INDEX community_reports_queue ON community_reports(resolved,sequence);`);
 			return err
 		}
 	}
+	if version != 0 && version < 12 {
+		if _, err = tx.ExecContext(ctx, `ALTER TABLE namespaces ADD COLUMN archived INTEGER NOT NULL DEFAULT 0;
+CREATE TABLE namespace_tombstones (name TEXT PRIMARY KEY, deleted_at INTEGER NOT NULL);
+CREATE TABLE package_cleanup (digest TEXT PRIMARY KEY);`); err != nil {
+			return err
+		}
+	}
 	// 拒绝结构不完整的数据库，不能用 CREATE IF NOT EXISTS 掩盖损坏。
-	for _, table := range []string{"instance", "users", "sessions", "devices", "audit", "groups", "group_members", "namespaces", "namespace_grants", "categories", "releases", "release_groups", "release_tags", "mutations", "profiles", "team_profiles", "comments", "reactions", "access_requests", "platform_roles", "release_scans", "review_notifications", "featured_skills", "evaluation_evidence", "personal_namespaces", "community_reports", "external_identities"} {
+	for _, table := range []string{"instance", "users", "sessions", "devices", "audit", "groups", "group_members", "namespaces", "namespace_grants", "categories", "releases", "release_groups", "release_tags", "mutations", "profiles", "team_profiles", "comments", "reactions", "access_requests", "platform_roles", "release_scans", "review_notifications", "featured_skills", "evaluation_evidence", "personal_namespaces", "community_reports", "external_identities", "namespace_tombstones", "package_cleanup"} {
 		rows, e := tx.QueryContext(ctx, "SELECT * FROM "+table+" LIMIT 0")
 		if e != nil {
 			return errors.New("incomplete hub database schema")
 		}
 		rows.Close()
 	}
-	columns, columnErr := tx.QueryContext(ctx, "SELECT provenance FROM releases LIMIT 0")
+	columns, columnErr := tx.QueryContext(ctx, "SELECT r.provenance,n.archived FROM releases r,namespaces n LIMIT 0")
 	if columnErr != nil {
 		return errors.New("incomplete hub database schema")
 	}
@@ -169,7 +180,7 @@ CREATE INDEX community_reports_queue ON community_reports(resolved,sequence);`);
 		return err
 	}
 
-	if _, err = tx.ExecContext(ctx, "PRAGMA user_version=11;"); err != nil {
+	if _, err = tx.ExecContext(ctx, "PRAGMA user_version=12;"); err != nil {
 		return err
 	}
 	return tx.Commit()

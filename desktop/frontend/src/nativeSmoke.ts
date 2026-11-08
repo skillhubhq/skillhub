@@ -719,7 +719,98 @@ export async function runNativeSmoke() {
       categories.rows?.some((r) => r.name === "native-smoke"),
       "native governance mutation and read succeeded",
     );
+    await API.AdminChange({
+      source: "public",
+      action: "namespace",
+      request_id: await API.NewRequestID(),
+      id: "",
+      name: "lifecycle-smoke",
+      title: "",
+      password: "",
+      namespace: "",
+      subject: "",
+      revision: "0",
+      enabled: true,
+      administrator: false,
+      subject_kind: Principal.PrincipalKind_PRINCIPAL_KIND_UNSPECIFIED,
+      role: Role.NamespaceRole_NAMESPACE_ROLE_UNSPECIFIED,
+    });
     location.hash = "management?source=public";
+    await clickManagementTab("Namespace");
+    await waitForUI(() =>
+      Array.from(document.querySelectorAll("article")).some(
+        (r) =>
+          r.textContent?.includes("lifecycle-smoke") &&
+          r.textContent?.includes("Team lifecycle"),
+      ),
+    );
+    const openLifecycle = () => {
+      const row = Array.from(document.querySelectorAll("article")).find((r) =>
+        r.textContent?.includes("lifecycle-smoke"),
+      )!;
+      (
+        Array.from(row.querySelectorAll("button")).find(
+          (b) => b.textContent === "Team lifecycle",
+        ) as HTMLButtonElement
+      ).click();
+    };
+    openLifecycle();
+    await waitForUI(() =>
+      Array.from(document.querySelectorAll("dialog[open] button")).some(
+        (b) => b.textContent === "Archive team",
+      ),
+    );
+    (
+      Array.from(document.querySelectorAll("dialog[open] button")).find(
+        (b) => b.textContent === "Archive team",
+      ) as HTMLButtonElement
+    ).click();
+    await waitForUI(
+      () =>
+        !document.querySelector("dialog[open]") &&
+        Array.from(document.querySelectorAll("article")).some(
+          (r) =>
+            r.textContent?.includes("lifecycle-smoke") &&
+            r.textContent?.includes("Archived"),
+        ),
+    );
+    openLifecycle();
+    await waitForUI(
+      () =>
+        !!document.querySelector("dialog[open] .team-lifecycle-danger input"),
+    );
+    const purgeButton = Array.from(
+      document.querySelectorAll("dialog[open] button"),
+    ).find(
+      (b) => b.textContent === "Permanently delete team",
+    ) as HTMLButtonElement;
+    check(
+      purgeButton.disabled,
+      "native team purge requires typed namespace confirmation",
+    );
+    const confirmInput = document.querySelector<HTMLInputElement>(
+      "dialog[open] .team-lifecycle-danger input",
+    )!;
+    Object.getOwnPropertyDescriptor(
+      HTMLInputElement.prototype,
+      "value",
+    )!.set!.call(confirmInput, "lifecycle-smoke");
+    confirmInput.dispatchEvent(new Event("input", { bubbles: true }));
+    await waitForUI(() => !purgeButton.disabled);
+    purgeButton.click();
+    await waitForUI(
+      () =>
+        !document.querySelector("dialog[open]") &&
+        !Array.from(document.querySelectorAll("article")).some((r) =>
+          r.textContent?.includes("lifecycle-smoke"),
+        ),
+    );
+    check(
+      !(await API.AdminList("public", "namespaces", "", "")).rows?.some(
+        (r) => r.name === "lifecycle-smoke",
+      ),
+      "native team archive and purge completed through shared product API",
+    );
     await clickManagementTab("Users");
     for (const [name, label, enabled] of [
       ["pending-approve", "Approve access", true],

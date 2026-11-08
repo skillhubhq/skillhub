@@ -69,6 +69,10 @@ export function CancelLogin(id: string): $CancellablePromise<void> {
     return $Call.ByID(443789976, id);
 }
 
+export function ChangeNamespaceLifecycle(source: string, name: string, action: string, revision: string, confirm: string, key: string): $CancellablePromise<client$0.NamespaceLifecycle> {
+    return $Call.ByID(3860099844, source, name, action, revision, confirm, key);
+}
+
 export function ChangePassword(source: string, current: string, password: string): $CancellablePromise<void> {
     return $Call.ByID(3273021792, source, current, password);
 }
@@ -266,6 +270,14 @@ export function MarkNotificationRead(source: string, id: string): $CancellablePr
 
 export function NamespaceAccess(source: string, $namespace: string): $CancellablePromise<hub$0.NamespaceAccess> {
     return $Call.ByID(3077843506, source, $namespace);
+}
+
+export function NamespaceLifecycle(source: string, name: string): $CancellablePromise<client$0.NamespaceLifecycle> {
+    return $Call.ByID(1123040460, source, name);
+}
+
+export function NamespaceLifecycleSupported(source: string): $CancellablePromise<boolean> {
+    return $Call.ByID(1281958706, source);
 }
 
 export function NewRequestID(): $CancellablePromise<string> {
