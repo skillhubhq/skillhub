@@ -59,4 +59,4 @@ Before reopening traffic, verify login, old-token rejection, non-admin audience 
 
 ## Schema contract
 
-The binary, database snapshot and protocol version must match. Initialization creates the complete schema atomically; startup and restore reject unsupported schema versions without modifying them. There are no automatic conversions from other schema versions. Retain a matching executable for every recovery snapshot.
+The binary, database snapshot and protocol version must match. Initialization creates the complete schema atomically; startup and restore reject unsupported schema versions without modifying them. The supported schema 14 → 15 upgrade is transactional and additive; other schema versions are rejected. Retain a matching executable for every recovery snapshot.
