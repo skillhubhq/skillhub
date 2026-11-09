@@ -1,3 +1,9 @@
+import { sessionExpiredEvent } from "./sessionEvents";
+import {
+  loadWorkspaceAccess,
+  noWorkspaceAccess,
+  canOpenWorkspacePage,
+} from "./workspaceAccess";
 import { flushPublicationDraft } from "./pendingDraft";
 import { scrollPageToTop } from "./pageScroll";
 import { OpenSkillLink } from "./OpenSkillLink";
@@ -188,27 +194,76 @@ export default function App() {
       scrollPageToTop();
     previousContext.current = { page, source: scrollContext };
   }, [page, scrollContext]);
+  const [sessionEpoch, setSessionEpoch] = useState(0);
+  const [expiredSource, setExpiredSource] = useState("");
   const session = useResource(
     async () =>
       activeSource
         ? { ...(await API.Identity(activeSource)), source: activeSource }
         : null,
-    [activeSource, revision],
+    [activeSource],
+    `${revision}:${sessionEpoch}`,
   );
   const [verifiedSource, setVerifiedSource] = useState("");
   useEffect(() => {
     if (!session.loading)
       setVerifiedSource(session.value?.id ? session.value.source : "");
   }, [session.loading, session.value]);
-  const access = session.loading
-    ? verifiedSource === activeSource && activeSource
-      ? "member"
-      : "checking"
-    : session.value?.id && session.value.source === activeSource
-      ? "member"
-      : session.error && !needsSignIn(session.error)
-        ? "unavailable"
-        : "guest";
+  const access =
+    expiredSource === activeSource && activeSource
+      ? "guest"
+      : session.loading
+        ? verifiedSource === activeSource && activeSource
+          ? "member"
+          : "checking"
+        : session.value?.id && session.value.source === activeSource
+          ? "member"
+          : session.error && !needsSignIn(session.error)
+            ? "unavailable"
+            : "guest";
+  useEffect(() => {
+    const expire = (event: Event) => {
+      if ((event as CustomEvent<string>).detail === activeSource) {
+        setExpiredSource(activeSource);
+        session.setValue(null);
+        setVerifiedSource("");
+      }
+    };
+    const refreshSession = () => {
+      if (document.visibilityState === "visible") {
+        setExpiredSource("");
+        setSessionEpoch((value) => value + 1);
+      }
+    };
+    window.addEventListener(sessionExpiredEvent, expire);
+    window.addEventListener("focus", refreshSession);
+    document.addEventListener("visibilitychange", refreshSession);
+    return () => {
+      window.removeEventListener(sessionExpiredEvent, expire);
+      window.removeEventListener("focus", refreshSession);
+      document.removeEventListener("visibilitychange", refreshSession);
+    };
+  }, [activeSource]);
+  const workspace = useResource(
+    () =>
+      access === "member" && session.value
+        ? loadWorkspaceAccess(API, activeSource, session.value.administrator)
+        : Promise.resolve(noWorkspaceAccess),
+    [activeSource, access, session.value?.id, session.value?.administrator],
+    `${revision}:${sessionEpoch}`,
+  );
+  const workspaceAccess =
+    access === "member"
+      ? (workspace.value ?? noWorkspaceAccess)
+      : noWorkspaceAccess;
+  const workspacePage = [
+    "publish",
+    "submissions",
+    "review",
+    "management",
+  ].includes(page);
+  const workspaceBlocked =
+    workspacePage && !canOpenWorkspacePage(workspaceAccess, page);
   const aggregateSearch =
     page === "discover" &&
     !isWeb &&
@@ -293,9 +348,14 @@ export default function App() {
     sources,
     activeSource,
     access,
+    workspaceAccess,
+    accountID: access === "member" ? session.value?.id : undefined,
     run,
     changed,
-    refresh: () => setRevision((value) => value + 1),
+    refresh: () => {
+      setExpiredSource("");
+      setRevision((value) => value + 1);
+    },
     navigate: (next) => {
       const change = () => {
         const [nextPage, query = ""] = next.split("?");
@@ -340,7 +400,10 @@ export default function App() {
         {!isWeb && <OpenSkillLink />}
         <Navigation page={page} />
         <main className={`page-${page}`}>
-          <header className="page-header" hidden={accessBlocked}>
+          <header
+            className="page-header"
+            hidden={accessBlocked || workspaceBlocked}
+          >
             <div className={page === "discover" ? "discovery-page-label" : ""}>
               <h1>
                 {page === "discover"
@@ -397,7 +460,9 @@ export default function App() {
               {t("Working…")}
             </div>
           )}
-          <section key={`${route}/${remotePage ? activeSource : "local"}`}>
+          <section
+            key={`${route}/${remotePage ? `${activeSource}/${ui.accountID ?? "guest"}` : "local"}`}
+          >
             <fieldset>
               {accessBlocked ? (
                 access === "checking" ? (
@@ -412,6 +477,17 @@ export default function App() {
                         : session.error
                     }
                     retry={session.reload}
+                  />
+                )
+              ) : workspaceBlocked ? (
+                workspace.loading ? (
+                  <p role="status">
+                    {t("Checking access…", "正在确认访问权限…")}
+                  </p>
+                ) : (
+                  <AccessState
+                    error={workspace.error || "permission denied"}
+                    retry={workspace.reload}
                   />
                 )
               ) : remotePage &&

@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+import { notifySessionExpired } from "./sessionEvents";
 import { signInURL } from "./auth";
 import { isWeb } from "./platform";
 import { t } from "./i18n";
@@ -17,6 +19,9 @@ export function AccessState({
 }) {
   const ui = useUI();
   const signIn = needsSignIn(error);
+  useEffect(() => {
+    if (signIn && ui.access === "member") notifySessionExpired(ui.activeSource);
+  }, [signIn, ui.access, ui.activeSource]);
   const denied = /permission.denied|forbidden/i.test(error);
   return (
     <section
@@ -34,8 +39,8 @@ export function AccessState({
       <p>
         {signIn
           ? t(
-              "Use the account provided by your organization to browse and share skills.",
-              "使用组织提供的账号，浏览和分享团队技能。",
+              "Sign in to browse the skills available to you.",
+              "登录后浏览你有权访问的技能。",
             )
           : denied
             ? t(
@@ -75,14 +80,6 @@ export function AccessState({
           </button>
         )}
       </div>
-      {signIn && (
-        <small>
-          {t(
-            "Accounts are managed by your organization. Contact your administrator if you need access.",
-            "账号由组织管理。如需访问，请联系管理员。",
-          )}
-        </small>
-      )}
     </section>
   );
 }

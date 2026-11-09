@@ -1,3 +1,4 @@
+import { noWorkspaceAccess } from "./workspaceAccess";
 import { connectionName } from "./ConnectionPreferences";
 import { OfficialBadge } from "./official";
 import { GitHubStar } from "./GitHubStar";
@@ -19,6 +20,12 @@ const library = ["installed", "projects", "configuration"];
 export function Navigation({ page }: { page: string }) {
   const language = useLanguage();
   const ui = useUI();
+  const permissions = ui.workspaceAccess ?? noWorkspaceAccess;
+  const studioPage = permissions.publish
+    ? "submissions"
+    : permissions.review
+      ? "review"
+      : "management";
   const privateGate =
     isWeb &&
     !!ui.sources.find((s) => s.alias === ui.activeSource)?.private &&
@@ -33,7 +40,7 @@ export function Navigation({ page }: { page: string }) {
           : library.includes(page)
             ? "library"
             : "settings";
-  const links =
+  const allLinks =
     group === "downloads"
       ? []
       : group === "community"
@@ -58,6 +65,15 @@ export function Navigation({ page }: { page: string }) {
                 ["settings", t("Preferences", "偏好设置")],
                 ...(!isWeb ? [["sources", t("Connections")]] : []),
               ];
+  const links = allLinks.filter(([id]) =>
+    id === "submissions"
+      ? permissions.publish
+      : id === "review"
+        ? permissions.review
+        : id === "management"
+          ? permissions.manage
+          : true,
+  );
   const remote = group === "community" || group === "studio";
   const siteName =
     ui.sources.find((s) => s.alias === ui.activeSource)?.display_name ||
@@ -112,14 +128,16 @@ export function Navigation({ page }: { page: string }) {
                 {t("My library", "本地技能")}
               </button>
             )}
-            {
+            {(permissions.publish ||
+              permissions.review ||
+              permissions.manage) && (
               <button
                 aria-current={group === "studio" ? "page" : undefined}
-                onClick={() => ui.navigate("submissions")}
+                onClick={() => ui.navigate(studioPage)}
               >
                 {t("Studio", "创作")}
               </button>
-            }
+            )}
             {isWeb && (
               <button
                 aria-current={page === "downloads" ? "page" : undefined}
@@ -152,13 +170,16 @@ export function Navigation({ page }: { page: string }) {
               <Icon name="management" />
             </button>
             {ui.access === "member" && ui.activeSource && (
-              <ReviewInbox key={ui.activeSource} source={ui.activeSource} />
+              <ReviewInbox
+                key={`${ui.activeSource}/${ui.accountID}`}
+                source={ui.activeSource}
+              />
             )}
             <WebAccount />
           </>
         }
       />
-      {links.length > 1 && !privateGate && (
+      {links.length > 0 && !privateGate && (
         <div className="context-navigation">
           <nav aria-label={t("Section navigation", "区域导航")}>
             {links.map(([id, label]) => (
@@ -173,7 +194,7 @@ export function Navigation({ page }: { page: string }) {
           </nav>
           <div className="context-actions">
             {remote && !isWeb && <HubContext page={page} />}
-            {remote && page !== "publish" && (
+            {remote && permissions.publish && page !== "publish" && (
               <button
                 className="publish-shortcut"
                 aria-current={page === "publish" ? "page" : undefined}
