@@ -16,12 +16,13 @@ export function WebAccount() {
     document.addEventListener("pointerdown", dismiss);
     return () => document.removeEventListener("pointerdown", dismiss);
   }, []);
+  const signedIn = ui.access === "member";
   const profile = useResource(
     () =>
-      ui.activeSource
+      ui.activeSource && signedIn
         ? API.CommunityGetProfile(ui.activeSource, "")
         : Promise.reject(new Error("No source")),
-    [ui.activeSource, ui.revision],
+    [ui.activeSource, signedIn, ui.accountID, ui.revision],
   );
   function go(event: React.MouseEvent<HTMLButtonElement>, page: string) {
     event.currentTarget.closest("details")?.removeAttribute("open");

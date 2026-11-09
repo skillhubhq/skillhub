@@ -14,6 +14,8 @@ const lifecycleView = (v?: LifecycleWire) => {
 import { provenanceInfo, provenanceWire } from "./provenance";
 import { communityWeb } from "./community-web";
 import { t } from "./i18n";
+import { Code, ConnectError } from "@connectrpc/connect";
+import { notifySessionExpired } from "./sessionEvents";
 import { createConnectTransport } from "@connectrpc/connect-web";
 import {
   createHubClients,
@@ -42,7 +44,16 @@ const clients = createHubClients(
     interceptors: [
       (next) => async (request) => {
         request.header.set("X-SkillHub-Web", "1");
-        return next(request);
+        try {
+          return await next(request);
+        } catch (error) {
+          if (
+            ConnectError.from(error).code === Code.Unauthenticated &&
+            request.method.name !== "GetIdentity"
+          )
+            notifySessionExpired("hub");
+          throw error;
+        }
       },
     ],
     fetch: (input, init) =>

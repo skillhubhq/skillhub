@@ -11,13 +11,16 @@ export function ReviewInbox({ source }: { source: string }) {
   const [open, setOpen] = useState(false);
   const ui = useUI();
   const tasks = useResource(
-    () => API.ReviewTasks(source, ""),
-    [source],
+    () =>
+      ui.workspaceAccess?.review
+        ? API.ReviewTasks(source, "")
+        : Promise.resolve(null),
+    [source, ui.workspaceAccess?.review],
     ui.revision,
   );
   const notices = useResource(
     () => API.Notifications(source, ""),
-    [source],
+    [source, ui.workspaceAccess?.review],
     ui.revision,
   );
   const count = notices.value?.unread ?? 0;
@@ -67,7 +70,9 @@ export function ReviewInbox({ source }: { source: string }) {
       {open && (
         <InboxDialog
           source={source}
-          initialTab={count ? "outcomes" : "tasks"}
+          initialTab={
+            count || !ui.workspaceAccess?.review ? "outcomes" : "tasks"
+          }
           close={() => {
             setOpen(false);
             tasks.reload();
@@ -105,12 +110,14 @@ function InboxDialog({
             role="group"
             aria-label={t("Inbox views", "通知分类")}
           >
-            <button
-              aria-pressed={tab === "tasks"}
-              onClick={() => setTab("tasks")}
-            >
-              {t("Needs your review", "待你审核")}
-            </button>
+            {ui.workspaceAccess?.review && (
+              <button
+                aria-pressed={tab === "tasks"}
+                onClick={() => setTab("tasks")}
+              >
+                {t("Needs your review", "待你审核")}
+              </button>
+            )}
             <button
               aria-pressed={tab === "outcomes"}
               onClick={() => setTab("outcomes")}
@@ -121,9 +128,11 @@ function InboxDialog({
         </div>
       }
     >
-      <div className="inbox-panel" hidden={tab !== "tasks"}>
-        <ReviewTaskList source={source} close={close} />
-      </div>
+      {ui.workspaceAccess?.review && (
+        <div className="inbox-panel" hidden={tab !== "tasks"}>
+          <ReviewTaskList source={source} close={close} />
+        </div>
+      )}
       <div className="inbox-panel" hidden={tab !== "outcomes"}>
         <ReviewOutcomes source={source} close={close} />
       </div>
@@ -181,11 +190,11 @@ function ReviewOutcomes({
       ) : !inbox.value.items?.length ? (
         <div className="inbox-empty">
           <Icon name="inbox" />
-          <strong>{t("No updates yet.", "暂无审核更新。")}</strong>
+          <strong>{t("No updates yet.", "暂无动态。")}</strong>
           <p>
             {t(
-              "Decisions on your submissions will appear here.",
-              "你的提交有审核结果后，会显示在这里。",
+              "Replies and updates on your skills will appear here.",
+              "与你相关的回复和技能动态会显示在这里。",
             )}
           </p>
         </div>

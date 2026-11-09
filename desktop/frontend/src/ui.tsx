@@ -27,7 +27,10 @@ import type {
 } from "../bindings/github.com/skillhubhq/skillhub/internal/client/models";
 export { API };
 export type { Source };
+import type { WorkspaceAccess } from "./workspaceAccess";
 export type UI = {
+  workspaceAccess?: WorkspaceAccess;
+  accountID?: string;
   busy: boolean;
   error: string;
   revision: number;

@@ -1,3 +1,4 @@
+import { notifySessionExpired } from "./sessionEvents";
 import { pageScroller } from "./pageScroll";
 import { runResourceSmoke } from "./resourceSmoke";
 import { runModalSmoke } from "./modalSmoke";
@@ -30,7 +31,12 @@ export async function runNativeSmoke() {
   };
   try {
     const deadline = Date.now() + 15000;
-    while (!document.querySelector("nav button[aria-current=page]")) {
+    while (
+      !document.querySelector("nav button[aria-current=page]") ||
+      ![...document.querySelectorAll(".primary-navigation button")].some(
+        (button) => button.textContent === "Studio",
+      )
+    ) {
       if (Date.now() > deadline)
         throw new Error("native React window did not render");
       await new Promise((resolve) => setTimeout(resolve, 50));
@@ -1776,43 +1782,18 @@ export async function runNativeSmoke() {
       "local library keeps the notification entry",
     );
     location.hash = "management?source=limited";
-    await clickManagementTab("Role grants");
-    await waitForUI(() =>
-      Array.from(document.querySelectorAll("button")).some(
-        (b) => b.textContent === "Add role grant" && !b.disabled,
+    await waitForUI(() => !!document.querySelector(".access-state"));
+    check(
+      document.querySelector(".access-state h2")?.textContent ===
+        "You don’t have access" &&
+        !document.querySelector(".admin-browser,.editor"),
+      "direct management links deny users without management duties",
+    );
+    check(
+      ![...document.querySelectorAll(".context-navigation button")].some(
+        (button) => button.textContent === "Hub settings",
       ),
-    );
-    (
-      Array.from(document.querySelectorAll("button")).find(
-        (b) => b.textContent === "Add role grant" && !b.disabled,
-      ) as HTMLButtonElement
-    ).click();
-    await waitForUI(
-      () => !!document.querySelector(".editor input[role=combobox]"),
-    );
-    document
-      .querySelector<HTMLInputElement>(".editor input[role=combobox]")!
-      .focus();
-    await waitForUI(() => !!document.querySelector(".editor [role=option]"));
-    (
-      document.querySelector(".editor [role=option]") as HTMLButtonElement
-    ).click();
-    await waitForUI(
-      () =>
-        document
-          .querySelector(".grant-access-status")
-          ?.textContent?.includes("Only namespace or Hub administrators") ??
-        false,
-    );
-    check(
-      document.querySelectorAll<HTMLInputElement>(
-        ".editor input[role=combobox]",
-      )[1]?.disabled,
-      "non-admin grant editor blocks user lookup before directory access",
-    );
-    check(
-      !document.querySelector(".editor .actions button:not(:disabled)"),
-      "namespace grant form explains denied capability and prevents submission",
+      "reviewers cannot navigate to Hub administration",
     );
     location.hash = "downloads";
     await waitForUI(() => !!document.querySelector(".downloads-page"));
@@ -2038,6 +2019,46 @@ export async function runNativeSmoke() {
         );
       }
     }
+    location.hash = "discover?source=company";
+    await waitForUI(
+      () =>
+        !!document.querySelector(".account-menu .avatar") &&
+        !!document.querySelector(".discovery-search"),
+    );
+    notifySessionExpired("visitor");
+    await new Promise(requestAnimationFrame);
+    check(
+      !!document.querySelector(".account-menu .avatar"),
+      "another Hub authentication failure preserves the active account",
+    );
+    notifySessionExpired("company");
+    await waitForUI(
+      () =>
+        !!document.querySelector(".access-state") &&
+        !document.querySelector(".account-menu .avatar"),
+    );
+    check(
+      !document.querySelector(
+        ".utility-inbox,.publish-shortcut,.discovery-search,.source-results",
+      ),
+      "expired session clears account, notifications, privileged actions and private content together",
+    );
+    check(
+      ![...document.querySelectorAll(".primary-navigation button")].some(
+        (button) => button.textContent === "Studio",
+      ),
+      "expired session removes Studio navigation",
+    );
+    window.dispatchEvent(new Event("focus"));
+    await waitForUI(
+      () =>
+        !!document.querySelector(".account-menu .avatar") &&
+        !!document.querySelector(".discovery-search"),
+    );
+    check(
+      !document.querySelector(".access-state"),
+      "focus revalidates the session and restores the community",
+    );
   } catch (failure) {
     error = failure instanceof Error ? failure.message : String(failure);
   }
