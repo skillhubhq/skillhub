@@ -684,6 +684,409 @@ func (*ChangePasswordResponse) Descriptor() ([]byte, []int) {
 	return file_api_auth_v1_auth_service_proto_rawDescGZIP(), []int{12}
 }
 
+// AccessToken 描述当前操作的数据。
+type AccessToken struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 令牌标识。
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// 用途名称。
+	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	// read 或 publish。
+	Scope string `protobuf:"bytes,3,opt,name=scope,proto3" json:"scope,omitempty"`
+	// 发布权限限定的空间。
+	Namespace string `protobuf:"bytes,4,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	// UTC 到期秒数。
+	ExpiresAt int64 `protobuf:"varint,5,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
+	// UTC 创建秒数。
+	CreatedAt int64 `protobuf:"varint,6,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	// UTC 最近使用秒数。
+	LastUsedAt int64 `protobuf:"varint,7,opt,name=last_used_at,json=lastUsedAt,proto3" json:"last_used_at,omitempty"`
+	// 是否已撤销。
+	Revoked       bool `protobuf:"varint,8,opt,name=revoked,proto3" json:"revoked,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AccessToken) Reset() {
+	*x = AccessToken{}
+	mi := &file_api_auth_v1_auth_service_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AccessToken) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AccessToken) ProtoMessage() {}
+
+func (x *AccessToken) ProtoReflect() protoreflect.Message {
+	mi := &file_api_auth_v1_auth_service_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AccessToken.ProtoReflect.Descriptor instead.
+func (*AccessToken) Descriptor() ([]byte, []int) {
+	return file_api_auth_v1_auth_service_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *AccessToken) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *AccessToken) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *AccessToken) GetScope() string {
+	if x != nil {
+		return x.Scope
+	}
+	return ""
+}
+
+func (x *AccessToken) GetNamespace() string {
+	if x != nil {
+		return x.Namespace
+	}
+	return ""
+}
+
+func (x *AccessToken) GetExpiresAt() int64 {
+	if x != nil {
+		return x.ExpiresAt
+	}
+	return 0
+}
+
+func (x *AccessToken) GetCreatedAt() int64 {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return 0
+}
+
+func (x *AccessToken) GetLastUsedAt() int64 {
+	if x != nil {
+		return x.LastUsedAt
+	}
+	return 0
+}
+
+func (x *AccessToken) GetRevoked() bool {
+	if x != nil {
+		return x.Revoked
+	}
+	return false
+}
+
+// CreateAccessTokenRequest 描述当前操作的数据。
+type CreateAccessTokenRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 用途名称。
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// read 或 publish。
+	Scope string `protobuf:"bytes,2,opt,name=scope,proto3" json:"scope,omitempty"`
+	// 发布空间。
+	Namespace string `protobuf:"bytes,3,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	// 有效天数，范围一到九十。
+	Days          uint32 `protobuf:"varint,4,opt,name=days,proto3" json:"days,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateAccessTokenRequest) Reset() {
+	*x = CreateAccessTokenRequest{}
+	mi := &file_api_auth_v1_auth_service_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateAccessTokenRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateAccessTokenRequest) ProtoMessage() {}
+
+func (x *CreateAccessTokenRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_auth_v1_auth_service_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateAccessTokenRequest.ProtoReflect.Descriptor instead.
+func (*CreateAccessTokenRequest) Descriptor() ([]byte, []int) {
+	return file_api_auth_v1_auth_service_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *CreateAccessTokenRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *CreateAccessTokenRequest) GetScope() string {
+	if x != nil {
+		return x.Scope
+	}
+	return ""
+}
+
+func (x *CreateAccessTokenRequest) GetNamespace() string {
+	if x != nil {
+		return x.Namespace
+	}
+	return ""
+}
+
+func (x *CreateAccessTokenRequest) GetDays() uint32 {
+	if x != nil {
+		return x.Days
+	}
+	return 0
+}
+
+// CreateAccessTokenResponse 描述当前操作的数据。
+type CreateAccessTokenResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 令牌元数据。
+	Token *AccessToken `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
+	// 本次响应后不再可读取的凭据。
+	Secret        string `protobuf:"bytes,2,opt,name=secret,proto3" json:"secret,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateAccessTokenResponse) Reset() {
+	*x = CreateAccessTokenResponse{}
+	mi := &file_api_auth_v1_auth_service_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateAccessTokenResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateAccessTokenResponse) ProtoMessage() {}
+
+func (x *CreateAccessTokenResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_api_auth_v1_auth_service_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateAccessTokenResponse.ProtoReflect.Descriptor instead.
+func (*CreateAccessTokenResponse) Descriptor() ([]byte, []int) {
+	return file_api_auth_v1_auth_service_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *CreateAccessTokenResponse) GetToken() *AccessToken {
+	if x != nil {
+		return x.Token
+	}
+	return nil
+}
+
+func (x *CreateAccessTokenResponse) GetSecret() string {
+	if x != nil {
+		return x.Secret
+	}
+	return ""
+}
+
+// ListAccessTokensRequest 描述当前操作的数据。
+type ListAccessTokensRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListAccessTokensRequest) Reset() {
+	*x = ListAccessTokensRequest{}
+	mi := &file_api_auth_v1_auth_service_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListAccessTokensRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListAccessTokensRequest) ProtoMessage() {}
+
+func (x *ListAccessTokensRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_auth_v1_auth_service_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListAccessTokensRequest.ProtoReflect.Descriptor instead.
+func (*ListAccessTokensRequest) Descriptor() ([]byte, []int) {
+	return file_api_auth_v1_auth_service_proto_rawDescGZIP(), []int{16}
+}
+
+// ListAccessTokensResponse 描述当前操作的数据。
+type ListAccessTokensResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 最多一百个令牌，未撤销且到期时间较晚的优先。
+	Tokens        []*AccessToken `protobuf:"bytes,1,rep,name=tokens,proto3" json:"tokens,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListAccessTokensResponse) Reset() {
+	*x = ListAccessTokensResponse{}
+	mi := &file_api_auth_v1_auth_service_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListAccessTokensResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListAccessTokensResponse) ProtoMessage() {}
+
+func (x *ListAccessTokensResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_api_auth_v1_auth_service_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListAccessTokensResponse.ProtoReflect.Descriptor instead.
+func (*ListAccessTokensResponse) Descriptor() ([]byte, []int) {
+	return file_api_auth_v1_auth_service_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *ListAccessTokensResponse) GetTokens() []*AccessToken {
+	if x != nil {
+		return x.Tokens
+	}
+	return nil
+}
+
+// RevokeAccessTokenRequest 描述当前操作的数据。
+type RevokeAccessTokenRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 本人令牌标识。
+	Id            string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RevokeAccessTokenRequest) Reset() {
+	*x = RevokeAccessTokenRequest{}
+	mi := &file_api_auth_v1_auth_service_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RevokeAccessTokenRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RevokeAccessTokenRequest) ProtoMessage() {}
+
+func (x *RevokeAccessTokenRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_auth_v1_auth_service_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RevokeAccessTokenRequest.ProtoReflect.Descriptor instead.
+func (*RevokeAccessTokenRequest) Descriptor() ([]byte, []int) {
+	return file_api_auth_v1_auth_service_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *RevokeAccessTokenRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+// RevokeAccessTokenResponse 描述当前操作的数据。
+type RevokeAccessTokenResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RevokeAccessTokenResponse) Reset() {
+	*x = RevokeAccessTokenResponse{}
+	mi := &file_api_auth_v1_auth_service_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RevokeAccessTokenResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RevokeAccessTokenResponse) ProtoMessage() {}
+
+func (x *RevokeAccessTokenResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_api_auth_v1_auth_service_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RevokeAccessTokenResponse.ProtoReflect.Descriptor instead.
+func (*RevokeAccessTokenResponse) Descriptor() ([]byte, []int) {
+	return file_api_auth_v1_auth_service_proto_rawDescGZIP(), []int{19}
+}
+
 var File_api_auth_v1_auth_service_proto protoreflect.FileDescriptor
 
 const file_api_auth_v1_auth_service_proto_rawDesc = "" +
@@ -728,8 +1131,37 @@ const file_api_auth_v1_auth_service_proto_rawDesc = "" +
 	"\x15ChangePasswordRequest\x124\n" +
 	"\x10current_password\x18\x01 \x01(\tB\t\xbaH\x06r\x04 \x01(HR\x0fcurrentPassword\x12,\n" +
 	"\fnew_password\x18\x02 \x01(\tB\t\xbaH\x06r\x04 \f(HR\vnewPassword\"\x18\n" +
-	"\x16ChangePasswordResponse2\x88\x04\n" +
-	"\vAuthService\x12Y\n" +
+	"\x16ChangePasswordResponse\"\xdf\x01\n" +
+	"\vAccessToken\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x14\n" +
+	"\x05scope\x18\x03 \x01(\tR\x05scope\x12\x1c\n" +
+	"\tnamespace\x18\x04 \x01(\tR\tnamespace\x12\x1d\n" +
+	"\n" +
+	"expires_at\x18\x05 \x01(\x03R\texpiresAt\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\x06 \x01(\x03R\tcreatedAt\x12 \n" +
+	"\flast_used_at\x18\a \x01(\x03R\n" +
+	"lastUsedAt\x12\x18\n" +
+	"\arevoked\x18\b \x01(\bR\arevoked\"v\n" +
+	"\x18CreateAccessTokenRequest\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x14\n" +
+	"\x05scope\x18\x02 \x01(\tR\x05scope\x12\x1c\n" +
+	"\tnamespace\x18\x03 \x01(\tR\tnamespace\x12\x12\n" +
+	"\x04days\x18\x04 \x01(\rR\x04days\"c\n" +
+	"\x19CreateAccessTokenResponse\x12.\n" +
+	"\x05token\x18\x01 \x01(\v2\x18.api.auth.v1.AccessTokenR\x05token\x12\x16\n" +
+	"\x06secret\x18\x02 \x01(\tR\x06secret\"\x19\n" +
+	"\x17ListAccessTokensRequest\"L\n" +
+	"\x18ListAccessTokensResponse\x120\n" +
+	"\x06tokens\x18\x01 \x03(\v2\x18.api.auth.v1.AccessTokenR\x06tokens\"*\n" +
+	"\x18RevokeAccessTokenRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"\x1b\n" +
+	"\x19RevokeAccessTokenResponse2\xb1\x06\n" +
+	"\vAuthService\x12b\n" +
+	"\x11CreateAccessToken\x12%.api.auth.v1.CreateAccessTokenRequest\x1a&.api.auth.v1.CreateAccessTokenResponse\x12_\n" +
+	"\x10ListAccessTokens\x12$.api.auth.v1.ListAccessTokensRequest\x1a%.api.auth.v1.ListAccessTokensResponse\x12b\n" +
+	"\x11RevokeAccessToken\x12%.api.auth.v1.RevokeAccessTokenRequest\x1a&.api.auth.v1.RevokeAccessTokenResponse\x12Y\n" +
 	"\x0eChangePassword\x12\".api.auth.v1.ChangePasswordRequest\x1a#.api.auth.v1.ChangePasswordResponse\x12>\n" +
 	"\x05Login\x12\x19.api.auth.v1.LoginRequest\x1a\x1a.api.auth.v1.LoginResponse\x12P\n" +
 	"\vGetIdentity\x12\x1f.api.auth.v1.GetIdentityRequest\x1a .api.auth.v1.GetIdentityResponse\x12A\n" +
@@ -750,7 +1182,7 @@ func file_api_auth_v1_auth_service_proto_rawDescGZIP() []byte {
 	return file_api_auth_v1_auth_service_proto_rawDescData
 }
 
-var file_api_auth_v1_auth_service_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
+var file_api_auth_v1_auth_service_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
 var file_api_auth_v1_auth_service_proto_goTypes = []any{
 	(*Identity)(nil),                    // 0: api.auth.v1.Identity
 	(*LoginRequest)(nil),                // 1: api.auth.v1.LoginRequest
@@ -765,31 +1197,46 @@ var file_api_auth_v1_auth_service_proto_goTypes = []any{
 	(*CompleteDeviceLoginResponse)(nil), // 10: api.auth.v1.CompleteDeviceLoginResponse
 	(*ChangePasswordRequest)(nil),       // 11: api.auth.v1.ChangePasswordRequest
 	(*ChangePasswordResponse)(nil),      // 12: api.auth.v1.ChangePasswordResponse
-	(*timestamppb.Timestamp)(nil),       // 13: google.protobuf.Timestamp
+	(*AccessToken)(nil),                 // 13: api.auth.v1.AccessToken
+	(*CreateAccessTokenRequest)(nil),    // 14: api.auth.v1.CreateAccessTokenRequest
+	(*CreateAccessTokenResponse)(nil),   // 15: api.auth.v1.CreateAccessTokenResponse
+	(*ListAccessTokensRequest)(nil),     // 16: api.auth.v1.ListAccessTokensRequest
+	(*ListAccessTokensResponse)(nil),    // 17: api.auth.v1.ListAccessTokensResponse
+	(*RevokeAccessTokenRequest)(nil),    // 18: api.auth.v1.RevokeAccessTokenRequest
+	(*RevokeAccessTokenResponse)(nil),   // 19: api.auth.v1.RevokeAccessTokenResponse
+	(*timestamppb.Timestamp)(nil),       // 20: google.protobuf.Timestamp
 }
 var file_api_auth_v1_auth_service_proto_depIdxs = []int32{
 	0,  // 0: api.auth.v1.LoginResponse.identity:type_name -> api.auth.v1.Identity
-	13, // 1: api.auth.v1.LoginResponse.expires_at:type_name -> google.protobuf.Timestamp
+	20, // 1: api.auth.v1.LoginResponse.expires_at:type_name -> google.protobuf.Timestamp
 	0,  // 2: api.auth.v1.GetIdentityResponse.identity:type_name -> api.auth.v1.Identity
-	13, // 3: api.auth.v1.StartDeviceLoginResponse.expires_at:type_name -> google.protobuf.Timestamp
+	20, // 3: api.auth.v1.StartDeviceLoginResponse.expires_at:type_name -> google.protobuf.Timestamp
 	2,  // 4: api.auth.v1.CompleteDeviceLoginResponse.login:type_name -> api.auth.v1.LoginResponse
-	11, // 5: api.auth.v1.AuthService.ChangePassword:input_type -> api.auth.v1.ChangePasswordRequest
-	1,  // 6: api.auth.v1.AuthService.Login:input_type -> api.auth.v1.LoginRequest
-	3,  // 7: api.auth.v1.AuthService.GetIdentity:input_type -> api.auth.v1.GetIdentityRequest
-	5,  // 8: api.auth.v1.AuthService.Logout:input_type -> api.auth.v1.LogoutRequest
-	7,  // 9: api.auth.v1.AuthService.StartDeviceLogin:input_type -> api.auth.v1.StartDeviceLoginRequest
-	9,  // 10: api.auth.v1.AuthService.CompleteDeviceLogin:input_type -> api.auth.v1.CompleteDeviceLoginRequest
-	12, // 11: api.auth.v1.AuthService.ChangePassword:output_type -> api.auth.v1.ChangePasswordResponse
-	2,  // 12: api.auth.v1.AuthService.Login:output_type -> api.auth.v1.LoginResponse
-	4,  // 13: api.auth.v1.AuthService.GetIdentity:output_type -> api.auth.v1.GetIdentityResponse
-	6,  // 14: api.auth.v1.AuthService.Logout:output_type -> api.auth.v1.LogoutResponse
-	8,  // 15: api.auth.v1.AuthService.StartDeviceLogin:output_type -> api.auth.v1.StartDeviceLoginResponse
-	10, // 16: api.auth.v1.AuthService.CompleteDeviceLogin:output_type -> api.auth.v1.CompleteDeviceLoginResponse
-	11, // [11:17] is the sub-list for method output_type
-	5,  // [5:11] is the sub-list for method input_type
-	5,  // [5:5] is the sub-list for extension type_name
-	5,  // [5:5] is the sub-list for extension extendee
-	0,  // [0:5] is the sub-list for field type_name
+	13, // 5: api.auth.v1.CreateAccessTokenResponse.token:type_name -> api.auth.v1.AccessToken
+	13, // 6: api.auth.v1.ListAccessTokensResponse.tokens:type_name -> api.auth.v1.AccessToken
+	14, // 7: api.auth.v1.AuthService.CreateAccessToken:input_type -> api.auth.v1.CreateAccessTokenRequest
+	16, // 8: api.auth.v1.AuthService.ListAccessTokens:input_type -> api.auth.v1.ListAccessTokensRequest
+	18, // 9: api.auth.v1.AuthService.RevokeAccessToken:input_type -> api.auth.v1.RevokeAccessTokenRequest
+	11, // 10: api.auth.v1.AuthService.ChangePassword:input_type -> api.auth.v1.ChangePasswordRequest
+	1,  // 11: api.auth.v1.AuthService.Login:input_type -> api.auth.v1.LoginRequest
+	3,  // 12: api.auth.v1.AuthService.GetIdentity:input_type -> api.auth.v1.GetIdentityRequest
+	5,  // 13: api.auth.v1.AuthService.Logout:input_type -> api.auth.v1.LogoutRequest
+	7,  // 14: api.auth.v1.AuthService.StartDeviceLogin:input_type -> api.auth.v1.StartDeviceLoginRequest
+	9,  // 15: api.auth.v1.AuthService.CompleteDeviceLogin:input_type -> api.auth.v1.CompleteDeviceLoginRequest
+	15, // 16: api.auth.v1.AuthService.CreateAccessToken:output_type -> api.auth.v1.CreateAccessTokenResponse
+	17, // 17: api.auth.v1.AuthService.ListAccessTokens:output_type -> api.auth.v1.ListAccessTokensResponse
+	19, // 18: api.auth.v1.AuthService.RevokeAccessToken:output_type -> api.auth.v1.RevokeAccessTokenResponse
+	12, // 19: api.auth.v1.AuthService.ChangePassword:output_type -> api.auth.v1.ChangePasswordResponse
+	2,  // 20: api.auth.v1.AuthService.Login:output_type -> api.auth.v1.LoginResponse
+	4,  // 21: api.auth.v1.AuthService.GetIdentity:output_type -> api.auth.v1.GetIdentityResponse
+	6,  // 22: api.auth.v1.AuthService.Logout:output_type -> api.auth.v1.LogoutResponse
+	8,  // 23: api.auth.v1.AuthService.StartDeviceLogin:output_type -> api.auth.v1.StartDeviceLoginResponse
+	10, // 24: api.auth.v1.AuthService.CompleteDeviceLogin:output_type -> api.auth.v1.CompleteDeviceLoginResponse
+	16, // [16:25] is the sub-list for method output_type
+	7,  // [7:16] is the sub-list for method input_type
+	7,  // [7:7] is the sub-list for extension type_name
+	7,  // [7:7] is the sub-list for extension extendee
+	0,  // [0:7] is the sub-list for field type_name
 }
 
 func init() { file_api_auth_v1_auth_service_proto_init() }
@@ -803,7 +1250,7 @@ func file_api_auth_v1_auth_service_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_auth_v1_auth_service_proto_rawDesc), len(file_api_auth_v1_auth_service_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   13,
+			NumMessages:   20,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

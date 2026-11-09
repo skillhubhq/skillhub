@@ -33,6 +33,15 @@ const (
 // reflection-formatted method names, remove the leading slash and convert the remaining slash to a
 // period.
 const (
+	// AuthServiceCreateAccessTokenProcedure is the fully-qualified name of the AuthService's
+	// CreateAccessToken RPC.
+	AuthServiceCreateAccessTokenProcedure = "/api.auth.v1.AuthService/CreateAccessToken"
+	// AuthServiceListAccessTokensProcedure is the fully-qualified name of the AuthService's
+	// ListAccessTokens RPC.
+	AuthServiceListAccessTokensProcedure = "/api.auth.v1.AuthService/ListAccessTokens"
+	// AuthServiceRevokeAccessTokenProcedure is the fully-qualified name of the AuthService's
+	// RevokeAccessToken RPC.
+	AuthServiceRevokeAccessTokenProcedure = "/api.auth.v1.AuthService/RevokeAccessToken"
 	// AuthServiceChangePasswordProcedure is the fully-qualified name of the AuthService's
 	// ChangePassword RPC.
 	AuthServiceChangePasswordProcedure = "/api.auth.v1.AuthService/ChangePassword"
@@ -52,6 +61,12 @@ const (
 
 // AuthServiceClient is a client for the api.auth.v1.AuthService service.
 type AuthServiceClient interface {
+	// 创建只展示一次的自动化令牌。
+	CreateAccessToken(context.Context, *connect.Request[v1.CreateAccessTokenRequest]) (*connect.Response[v1.CreateAccessTokenResponse], error)
+	// 读取本人令牌元数据。
+	ListAccessTokens(context.Context, *connect.Request[v1.ListAccessTokensRequest]) (*connect.Response[v1.ListAccessTokensResponse], error)
+	// 立即撤销本人的自动化令牌。
+	RevokeAccessToken(context.Context, *connect.Request[v1.RevokeAccessTokenRequest]) (*connect.Response[v1.RevokeAccessTokenResponse], error)
 	// ChangePassword 校验旧密码后更改本地密码并撤销全部会话。
 	ChangePassword(context.Context, *connect.Request[v1.ChangePasswordRequest]) (*connect.Response[v1.ChangePasswordResponse], error)
 	// Login 使用本地账号获取可撤销凭据。
@@ -77,6 +92,24 @@ func NewAuthServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 	baseURL = strings.TrimRight(baseURL, "/")
 	authServiceMethods := v1.File_api_auth_v1_auth_service_proto.Services().ByName("AuthService").Methods()
 	return &authServiceClient{
+		createAccessToken: connect.NewClient[v1.CreateAccessTokenRequest, v1.CreateAccessTokenResponse](
+			httpClient,
+			baseURL+AuthServiceCreateAccessTokenProcedure,
+			connect.WithSchema(authServiceMethods.ByName("CreateAccessToken")),
+			connect.WithClientOptions(opts...),
+		),
+		listAccessTokens: connect.NewClient[v1.ListAccessTokensRequest, v1.ListAccessTokensResponse](
+			httpClient,
+			baseURL+AuthServiceListAccessTokensProcedure,
+			connect.WithSchema(authServiceMethods.ByName("ListAccessTokens")),
+			connect.WithClientOptions(opts...),
+		),
+		revokeAccessToken: connect.NewClient[v1.RevokeAccessTokenRequest, v1.RevokeAccessTokenResponse](
+			httpClient,
+			baseURL+AuthServiceRevokeAccessTokenProcedure,
+			connect.WithSchema(authServiceMethods.ByName("RevokeAccessToken")),
+			connect.WithClientOptions(opts...),
+		),
 		changePassword: connect.NewClient[v1.ChangePasswordRequest, v1.ChangePasswordResponse](
 			httpClient,
 			baseURL+AuthServiceChangePasswordProcedure,
@@ -118,12 +151,30 @@ func NewAuthServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 
 // authServiceClient implements AuthServiceClient.
 type authServiceClient struct {
+	createAccessToken   *connect.Client[v1.CreateAccessTokenRequest, v1.CreateAccessTokenResponse]
+	listAccessTokens    *connect.Client[v1.ListAccessTokensRequest, v1.ListAccessTokensResponse]
+	revokeAccessToken   *connect.Client[v1.RevokeAccessTokenRequest, v1.RevokeAccessTokenResponse]
 	changePassword      *connect.Client[v1.ChangePasswordRequest, v1.ChangePasswordResponse]
 	login               *connect.Client[v1.LoginRequest, v1.LoginResponse]
 	getIdentity         *connect.Client[v1.GetIdentityRequest, v1.GetIdentityResponse]
 	logout              *connect.Client[v1.LogoutRequest, v1.LogoutResponse]
 	startDeviceLogin    *connect.Client[v1.StartDeviceLoginRequest, v1.StartDeviceLoginResponse]
 	completeDeviceLogin *connect.Client[v1.CompleteDeviceLoginRequest, v1.CompleteDeviceLoginResponse]
+}
+
+// CreateAccessToken calls api.auth.v1.AuthService.CreateAccessToken.
+func (c *authServiceClient) CreateAccessToken(ctx context.Context, req *connect.Request[v1.CreateAccessTokenRequest]) (*connect.Response[v1.CreateAccessTokenResponse], error) {
+	return c.createAccessToken.CallUnary(ctx, req)
+}
+
+// ListAccessTokens calls api.auth.v1.AuthService.ListAccessTokens.
+func (c *authServiceClient) ListAccessTokens(ctx context.Context, req *connect.Request[v1.ListAccessTokensRequest]) (*connect.Response[v1.ListAccessTokensResponse], error) {
+	return c.listAccessTokens.CallUnary(ctx, req)
+}
+
+// RevokeAccessToken calls api.auth.v1.AuthService.RevokeAccessToken.
+func (c *authServiceClient) RevokeAccessToken(ctx context.Context, req *connect.Request[v1.RevokeAccessTokenRequest]) (*connect.Response[v1.RevokeAccessTokenResponse], error) {
+	return c.revokeAccessToken.CallUnary(ctx, req)
 }
 
 // ChangePassword calls api.auth.v1.AuthService.ChangePassword.
@@ -158,6 +209,12 @@ func (c *authServiceClient) CompleteDeviceLogin(ctx context.Context, req *connec
 
 // AuthServiceHandler is an implementation of the api.auth.v1.AuthService service.
 type AuthServiceHandler interface {
+	// 创建只展示一次的自动化令牌。
+	CreateAccessToken(context.Context, *connect.Request[v1.CreateAccessTokenRequest]) (*connect.Response[v1.CreateAccessTokenResponse], error)
+	// 读取本人令牌元数据。
+	ListAccessTokens(context.Context, *connect.Request[v1.ListAccessTokensRequest]) (*connect.Response[v1.ListAccessTokensResponse], error)
+	// 立即撤销本人的自动化令牌。
+	RevokeAccessToken(context.Context, *connect.Request[v1.RevokeAccessTokenRequest]) (*connect.Response[v1.RevokeAccessTokenResponse], error)
 	// ChangePassword 校验旧密码后更改本地密码并撤销全部会话。
 	ChangePassword(context.Context, *connect.Request[v1.ChangePasswordRequest]) (*connect.Response[v1.ChangePasswordResponse], error)
 	// Login 使用本地账号获取可撤销凭据。
@@ -179,6 +236,24 @@ type AuthServiceHandler interface {
 // and JSON codecs. They also support gzip compression.
 func NewAuthServiceHandler(svc AuthServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
 	authServiceMethods := v1.File_api_auth_v1_auth_service_proto.Services().ByName("AuthService").Methods()
+	authServiceCreateAccessTokenHandler := connect.NewUnaryHandler(
+		AuthServiceCreateAccessTokenProcedure,
+		svc.CreateAccessToken,
+		connect.WithSchema(authServiceMethods.ByName("CreateAccessToken")),
+		connect.WithHandlerOptions(opts...),
+	)
+	authServiceListAccessTokensHandler := connect.NewUnaryHandler(
+		AuthServiceListAccessTokensProcedure,
+		svc.ListAccessTokens,
+		connect.WithSchema(authServiceMethods.ByName("ListAccessTokens")),
+		connect.WithHandlerOptions(opts...),
+	)
+	authServiceRevokeAccessTokenHandler := connect.NewUnaryHandler(
+		AuthServiceRevokeAccessTokenProcedure,
+		svc.RevokeAccessToken,
+		connect.WithSchema(authServiceMethods.ByName("RevokeAccessToken")),
+		connect.WithHandlerOptions(opts...),
+	)
 	authServiceChangePasswordHandler := connect.NewUnaryHandler(
 		AuthServiceChangePasswordProcedure,
 		svc.ChangePassword,
@@ -217,6 +292,12 @@ func NewAuthServiceHandler(svc AuthServiceHandler, opts ...connect.HandlerOption
 	)
 	return "/api.auth.v1.AuthService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
+		case AuthServiceCreateAccessTokenProcedure:
+			authServiceCreateAccessTokenHandler.ServeHTTP(w, r)
+		case AuthServiceListAccessTokensProcedure:
+			authServiceListAccessTokensHandler.ServeHTTP(w, r)
+		case AuthServiceRevokeAccessTokenProcedure:
+			authServiceRevokeAccessTokenHandler.ServeHTTP(w, r)
 		case AuthServiceChangePasswordProcedure:
 			authServiceChangePasswordHandler.ServeHTTP(w, r)
 		case AuthServiceLoginProcedure:
@@ -237,6 +318,18 @@ func NewAuthServiceHandler(svc AuthServiceHandler, opts ...connect.HandlerOption
 
 // UnimplementedAuthServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedAuthServiceHandler struct{}
+
+func (UnimplementedAuthServiceHandler) CreateAccessToken(context.Context, *connect.Request[v1.CreateAccessTokenRequest]) (*connect.Response[v1.CreateAccessTokenResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("api.auth.v1.AuthService.CreateAccessToken is not implemented"))
+}
+
+func (UnimplementedAuthServiceHandler) ListAccessTokens(context.Context, *connect.Request[v1.ListAccessTokensRequest]) (*connect.Response[v1.ListAccessTokensResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("api.auth.v1.AuthService.ListAccessTokens is not implemented"))
+}
+
+func (UnimplementedAuthServiceHandler) RevokeAccessToken(context.Context, *connect.Request[v1.RevokeAccessTokenRequest]) (*connect.Response[v1.RevokeAccessTokenResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("api.auth.v1.AuthService.RevokeAccessToken is not implemented"))
+}
 
 func (UnimplementedAuthServiceHandler) ChangePassword(context.Context, *connect.Request[v1.ChangePasswordRequest]) (*connect.Response[v1.ChangePasswordResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("api.auth.v1.AuthService.ChangePassword is not implemented"))

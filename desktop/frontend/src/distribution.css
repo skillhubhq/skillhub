@@ -1,0 +1,33 @@
+.version-file {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px;
+  min-width: 0;
+}
+.version-file summary {
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.version-file summary span {
+  float: right;
+  margin-left: 12px;
+}
+.version-unified {
+  overflow: auto;
+  max-height: 46vh;
+  font-size: 0.8125rem;
+  line-height: 1.65;
+  padding: 0.75rem;
+}
+.version-unified > span {
+  display: block;
+  min-width: max-content;
+  white-space: pre;
+  min-height: 1.65em;
+}
+.diff-added {
+  background: color-mix(in srgb, #218653 16%, transparent);
+}
+.diff-removed {
+  background: color-mix(in srgb, #d14545 14%, transparent);
+}

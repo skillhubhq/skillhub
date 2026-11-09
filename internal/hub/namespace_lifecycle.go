@@ -94,7 +94,7 @@ func (s *Store) PurgeNamespace(ctx context.Context, actor Identity, key string, 
 				return v, err
 			}
 		}
-		for _, table := range []string{"releases", "reactions", "skills", "featured_skills", "namespace_grants", "team_profiles", "personal_namespaces"} {
+		for _, table := range []string{"releases", "reactions", "subscriptions", "skills", "featured_skills", "namespace_grants", "team_profiles", "personal_namespaces"} {
 			if _, err = tx.ExecContext(ctx, "DELETE FROM "+table+" WHERE namespace=?", cmd.Name); err != nil {
 				return v, err
 			}

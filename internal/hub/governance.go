@@ -241,7 +241,7 @@ func (s *Store) ListNotifications(ctx context.Context, actor Identity, page Page
 	if err = authenticatedOnly(tx, u); err != nil {
 		return PageResult[ReviewNotification]{}, err
 	}
-	visible := `r.cleaned=0 AND ((n.kind='review' AND ` + manageableSQL + `) OR (n.kind='reply' AND ` + readableSQL + `))`
+	visible := `r.cleaned=0 AND ((n.kind='review' AND ` + manageableSQL + `) OR (n.kind IN ('reply','update') AND ` + readableSQL + `))`
 	return pageQuery(s, ctx, tx, page, scope(u.ID, "notifications", nil), `SELECT n.sequence,CASE WHEN `+visible+` THEN n.release_id ELSE '' END,CASE WHEN `+visible+` THEN r.namespace||'/'||r.name||'@'||r.version ELSE '' END,n.approved,n.is_read,n.created_at,n.kind,CASE WHEN `+visible+` THEN n.comment_id ELSE '' END,NOT (`+visible+`) FROM review_notifications n JOIN releases r ON r.id=n.release_id WHERE n.recipient=@actor AND (@after='' OR n.sequence<CAST(COALESCE(NULLIF(@after,''),'0') AS INTEGER)) ORDER BY n.sequence DESC LIMIT @limit`, principalArgs(u), func(rows *sql.Rows) (ReviewNotification, string, error) {
 		var n ReviewNotification
 		var seq, at int64

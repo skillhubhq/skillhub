@@ -2843,6 +2843,382 @@ func (*RemoveBookmarkResponse) Descriptor() ([]byte, []int) {
 	return file_api_community_v1_community_service_proto_rawDescGZIP(), []int{44}
 }
 
+// GetSubscriptionRequest 描述当前操作的数据。
+type GetSubscriptionRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 命名空间。
+	Namespace string `protobuf:"bytes,1,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	// 稳定名称。
+	Name          string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetSubscriptionRequest) Reset() {
+	*x = GetSubscriptionRequest{}
+	mi := &file_api_community_v1_community_service_proto_msgTypes[45]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetSubscriptionRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetSubscriptionRequest) ProtoMessage() {}
+
+func (x *GetSubscriptionRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_community_v1_community_service_proto_msgTypes[45]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetSubscriptionRequest.ProtoReflect.Descriptor instead.
+func (*GetSubscriptionRequest) Descriptor() ([]byte, []int) {
+	return file_api_community_v1_community_service_proto_rawDescGZIP(), []int{45}
+}
+
+func (x *GetSubscriptionRequest) GetNamespace() string {
+	if x != nil {
+		return x.Namespace
+	}
+	return ""
+}
+
+func (x *GetSubscriptionRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+// GetSubscriptionResponse 描述当前操作的数据。
+type GetSubscriptionResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 是否已订阅。
+	Subscribed    bool `protobuf:"varint,1,opt,name=subscribed,proto3" json:"subscribed,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetSubscriptionResponse) Reset() {
+	*x = GetSubscriptionResponse{}
+	mi := &file_api_community_v1_community_service_proto_msgTypes[46]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetSubscriptionResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetSubscriptionResponse) ProtoMessage() {}
+
+func (x *GetSubscriptionResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_api_community_v1_community_service_proto_msgTypes[46]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetSubscriptionResponse.ProtoReflect.Descriptor instead.
+func (*GetSubscriptionResponse) Descriptor() ([]byte, []int) {
+	return file_api_community_v1_community_service_proto_rawDescGZIP(), []int{46}
+}
+
+func (x *GetSubscriptionResponse) GetSubscribed() bool {
+	if x != nil {
+		return x.Subscribed
+	}
+	return false
+}
+
+// SetSubscriptionRequest 描述当前操作的数据。
+type SetSubscriptionRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 幂等请求。
+	Mutation *v12.Mutation `protobuf:"bytes,1,opt,name=mutation,proto3" json:"mutation,omitempty"`
+	// 命名空间。
+	Namespace string `protobuf:"bytes,2,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	// 稳定名称。
+	Name string `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	// 期望状态。
+	Subscribed    bool `protobuf:"varint,4,opt,name=subscribed,proto3" json:"subscribed,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetSubscriptionRequest) Reset() {
+	*x = SetSubscriptionRequest{}
+	mi := &file_api_community_v1_community_service_proto_msgTypes[47]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetSubscriptionRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetSubscriptionRequest) ProtoMessage() {}
+
+func (x *SetSubscriptionRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_community_v1_community_service_proto_msgTypes[47]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetSubscriptionRequest.ProtoReflect.Descriptor instead.
+func (*SetSubscriptionRequest) Descriptor() ([]byte, []int) {
+	return file_api_community_v1_community_service_proto_rawDescGZIP(), []int{47}
+}
+
+func (x *SetSubscriptionRequest) GetMutation() *v12.Mutation {
+	if x != nil {
+		return x.Mutation
+	}
+	return nil
+}
+
+func (x *SetSubscriptionRequest) GetNamespace() string {
+	if x != nil {
+		return x.Namespace
+	}
+	return ""
+}
+
+func (x *SetSubscriptionRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *SetSubscriptionRequest) GetSubscribed() bool {
+	if x != nil {
+		return x.Subscribed
+	}
+	return false
+}
+
+// SetSubscriptionResponse 描述当前操作的数据。
+type SetSubscriptionResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetSubscriptionResponse) Reset() {
+	*x = SetSubscriptionResponse{}
+	mi := &file_api_community_v1_community_service_proto_msgTypes[48]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetSubscriptionResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetSubscriptionResponse) ProtoMessage() {}
+
+func (x *SetSubscriptionResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_api_community_v1_community_service_proto_msgTypes[48]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetSubscriptionResponse.ProtoReflect.Descriptor instead.
+func (*SetSubscriptionResponse) Descriptor() ([]byte, []int) {
+	return file_api_community_v1_community_service_proto_rawDescGZIP(), []int{48}
+}
+
+// Subscription 描述当前操作的数据。
+type Subscription struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 命名空间。
+	Namespace string `protobuf:"bytes,1,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	// 稳定名称。
+	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	// 当前可访问。
+	Available     bool `protobuf:"varint,3,opt,name=available,proto3" json:"available,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Subscription) Reset() {
+	*x = Subscription{}
+	mi := &file_api_community_v1_community_service_proto_msgTypes[49]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Subscription) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Subscription) ProtoMessage() {}
+
+func (x *Subscription) ProtoReflect() protoreflect.Message {
+	mi := &file_api_community_v1_community_service_proto_msgTypes[49]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Subscription.ProtoReflect.Descriptor instead.
+func (*Subscription) Descriptor() ([]byte, []int) {
+	return file_api_community_v1_community_service_proto_rawDescGZIP(), []int{49}
+}
+
+func (x *Subscription) GetNamespace() string {
+	if x != nil {
+		return x.Namespace
+	}
+	return ""
+}
+
+func (x *Subscription) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *Subscription) GetAvailable() bool {
+	if x != nil {
+		return x.Available
+	}
+	return false
+}
+
+// ListSubscriptionsRequest 描述当前操作的数据。
+type ListSubscriptionsRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 分页参数。
+	Page          *v12.PageRequest `protobuf:"bytes,1,opt,name=page,proto3" json:"page,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListSubscriptionsRequest) Reset() {
+	*x = ListSubscriptionsRequest{}
+	mi := &file_api_community_v1_community_service_proto_msgTypes[50]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListSubscriptionsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListSubscriptionsRequest) ProtoMessage() {}
+
+func (x *ListSubscriptionsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_community_v1_community_service_proto_msgTypes[50]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListSubscriptionsRequest.ProtoReflect.Descriptor instead.
+func (*ListSubscriptionsRequest) Descriptor() ([]byte, []int) {
+	return file_api_community_v1_community_service_proto_rawDescGZIP(), []int{50}
+}
+
+func (x *ListSubscriptionsRequest) GetPage() *v12.PageRequest {
+	if x != nil {
+		return x.Page
+	}
+	return nil
+}
+
+// ListSubscriptionsResponse 描述当前操作的数据。
+type ListSubscriptionsResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 订阅集合。
+	Subscriptions []*Subscription `protobuf:"bytes,1,rep,name=subscriptions,proto3" json:"subscriptions,omitempty"`
+	// 后续页。
+	Page          *v12.PageResult `protobuf:"bytes,2,opt,name=page,proto3" json:"page,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListSubscriptionsResponse) Reset() {
+	*x = ListSubscriptionsResponse{}
+	mi := &file_api_community_v1_community_service_proto_msgTypes[51]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListSubscriptionsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListSubscriptionsResponse) ProtoMessage() {}
+
+func (x *ListSubscriptionsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_api_community_v1_community_service_proto_msgTypes[51]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListSubscriptionsResponse.ProtoReflect.Descriptor instead.
+func (*ListSubscriptionsResponse) Descriptor() ([]byte, []int) {
+	return file_api_community_v1_community_service_proto_rawDescGZIP(), []int{51}
+}
+
+func (x *ListSubscriptionsResponse) GetSubscriptions() []*Subscription {
+	if x != nil {
+		return x.Subscriptions
+	}
+	return nil
+}
+
+func (x *ListSubscriptionsResponse) GetPage() *v12.PageResult {
+	if x != nil {
+		return x.Page
+	}
+	return nil
+}
+
 var File_api_community_v1_community_service_proto protoreflect.FileDescriptor
 
 const file_api_community_v1_community_service_proto_rawDesc = "" +
@@ -3057,8 +3433,35 @@ const file_api_community_v1_community_service_proto_rawDesc = "" +
 	"\bmutation\x18\x01 \x01(\v2\x17.api.common.v1.MutationR\bmutation\x12\x1c\n" +
 	"\tnamespace\x18\x02 \x01(\tR\tnamespace\x12\x12\n" +
 	"\x04name\x18\x03 \x01(\tR\x04name\"\x18\n" +
-	"\x16RemoveBookmarkResponse2\xa8\x0e\n" +
-	"\x10CommunityService\x12c\n" +
+	"\x16RemoveBookmarkResponse\"J\n" +
+	"\x16GetSubscriptionRequest\x12\x1c\n" +
+	"\tnamespace\x18\x01 \x01(\tR\tnamespace\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\"9\n" +
+	"\x17GetSubscriptionResponse\x12\x1e\n" +
+	"\n" +
+	"subscribed\x18\x01 \x01(\bR\n" +
+	"subscribed\"\x9f\x01\n" +
+	"\x16SetSubscriptionRequest\x123\n" +
+	"\bmutation\x18\x01 \x01(\v2\x17.api.common.v1.MutationR\bmutation\x12\x1c\n" +
+	"\tnamespace\x18\x02 \x01(\tR\tnamespace\x12\x12\n" +
+	"\x04name\x18\x03 \x01(\tR\x04name\x12\x1e\n" +
+	"\n" +
+	"subscribed\x18\x04 \x01(\bR\n" +
+	"subscribed\"\x19\n" +
+	"\x17SetSubscriptionResponse\"^\n" +
+	"\fSubscription\x12\x1c\n" +
+	"\tnamespace\x18\x01 \x01(\tR\tnamespace\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1c\n" +
+	"\tavailable\x18\x03 \x01(\bR\tavailable\"J\n" +
+	"\x18ListSubscriptionsRequest\x12.\n" +
+	"\x04page\x18\x01 \x01(\v2\x1a.api.common.v1.PageRequestR\x04page\"\x90\x01\n" +
+	"\x19ListSubscriptionsResponse\x12D\n" +
+	"\rsubscriptions\x18\x01 \x03(\v2\x1e.api.community.v1.SubscriptionR\rsubscriptions\x12-\n" +
+	"\x04page\x18\x02 \x01(\v2\x19.api.common.v1.PageResultR\x04page2\xe6\x10\n" +
+	"\x10CommunityService\x12f\n" +
+	"\x0fGetSubscription\x12(.api.community.v1.GetSubscriptionRequest\x1a).api.community.v1.GetSubscriptionResponse\x12f\n" +
+	"\x0fSetSubscription\x12(.api.community.v1.SetSubscriptionRequest\x1a).api.community.v1.SetSubscriptionResponse\x12l\n" +
+	"\x11ListSubscriptions\x12*.api.community.v1.ListSubscriptionsRequest\x1a+.api.community.v1.ListSubscriptionsResponse\x12c\n" +
 	"\x0eRemoveBookmark\x12'.api.community.v1.RemoveBookmarkRequest\x1a(.api.community.v1.RemoveBookmarkResponse\x12i\n" +
 	"\x10GetParticipation\x12).api.community.v1.GetParticipationRequest\x1a*.api.community.v1.GetParticipationResponse\x12`\n" +
 	"\rReportContent\x12&.api.community.v1.ReportContentRequest\x1a'.api.community.v1.ReportContentResponse\x12Z\n" +
@@ -3094,7 +3497,7 @@ func file_api_community_v1_community_service_proto_rawDescGZIP() []byte {
 	return file_api_community_v1_community_service_proto_rawDescData
 }
 
-var file_api_community_v1_community_service_proto_msgTypes = make([]protoimpl.MessageInfo, 45)
+var file_api_community_v1_community_service_proto_msgTypes = make([]protoimpl.MessageInfo, 52)
 var file_api_community_v1_community_service_proto_goTypes = []any{
 	(*Profile)(nil),                   // 0: api.community.v1.Profile
 	(*Team)(nil),                      // 1: api.community.v1.Team
@@ -3141,104 +3544,121 @@ var file_api_community_v1_community_service_proto_goTypes = []any{
 	(*ResolveReportResponse)(nil),     // 42: api.community.v1.ResolveReportResponse
 	(*RemoveBookmarkRequest)(nil),     // 43: api.community.v1.RemoveBookmarkRequest
 	(*RemoveBookmarkResponse)(nil),    // 44: api.community.v1.RemoveBookmarkResponse
-	(v1.NamespaceRole)(0),             // 45: common.registry.v1.NamespaceRole
-	(v1.SkillIcon)(0),                 // 46: common.registry.v1.SkillIcon
-	(*v11.Provenance)(nil),            // 47: api.catalog.v1.Provenance
-	(*timestamppb.Timestamp)(nil),     // 48: google.protobuf.Timestamp
-	(*v12.Mutation)(nil),              // 49: api.common.v1.Mutation
-	(*v12.PageRequest)(nil),           // 50: api.common.v1.PageRequest
-	(*v12.PageResult)(nil),            // 51: api.common.v1.PageResult
-	(v1.ReportResolution)(0),          // 52: common.registry.v1.ReportResolution
+	(*GetSubscriptionRequest)(nil),    // 45: api.community.v1.GetSubscriptionRequest
+	(*GetSubscriptionResponse)(nil),   // 46: api.community.v1.GetSubscriptionResponse
+	(*SetSubscriptionRequest)(nil),    // 47: api.community.v1.SetSubscriptionRequest
+	(*SetSubscriptionResponse)(nil),   // 48: api.community.v1.SetSubscriptionResponse
+	(*Subscription)(nil),              // 49: api.community.v1.Subscription
+	(*ListSubscriptionsRequest)(nil),  // 50: api.community.v1.ListSubscriptionsRequest
+	(*ListSubscriptionsResponse)(nil), // 51: api.community.v1.ListSubscriptionsResponse
+	(v1.NamespaceRole)(0),             // 52: common.registry.v1.NamespaceRole
+	(v1.SkillIcon)(0),                 // 53: common.registry.v1.SkillIcon
+	(*v11.Provenance)(nil),            // 54: api.catalog.v1.Provenance
+	(*timestamppb.Timestamp)(nil),     // 55: google.protobuf.Timestamp
+	(*v12.Mutation)(nil),              // 56: api.common.v1.Mutation
+	(*v12.PageRequest)(nil),           // 57: api.common.v1.PageRequest
+	(*v12.PageResult)(nil),            // 58: api.common.v1.PageResult
+	(v1.ReportResolution)(0),          // 59: common.registry.v1.ReportResolution
 }
 var file_api_community_v1_community_service_proto_depIdxs = []int32{
 	0,  // 0: api.community.v1.Member.profile:type_name -> api.community.v1.Profile
-	45, // 1: api.community.v1.Member.roles:type_name -> common.registry.v1.NamespaceRole
+	52, // 1: api.community.v1.Member.roles:type_name -> common.registry.v1.NamespaceRole
 	0,  // 2: api.community.v1.Contribution.author:type_name -> api.community.v1.Profile
-	46, // 3: api.community.v1.Contribution.icon:type_name -> common.registry.v1.SkillIcon
-	47, // 4: api.community.v1.Contribution.provenance:type_name -> api.catalog.v1.Provenance
+	53, // 3: api.community.v1.Contribution.icon:type_name -> common.registry.v1.SkillIcon
+	54, // 4: api.community.v1.Contribution.provenance:type_name -> api.catalog.v1.Provenance
 	0,  // 5: api.community.v1.Comment.author:type_name -> api.community.v1.Profile
-	48, // 6: api.community.v1.Comment.created_at:type_name -> google.protobuf.Timestamp
+	55, // 6: api.community.v1.Comment.created_at:type_name -> google.protobuf.Timestamp
 	0,  // 7: api.community.v1.GetProfileResponse.profile:type_name -> api.community.v1.Profile
-	49, // 8: api.community.v1.UpdateProfileRequest.mutation:type_name -> api.common.v1.Mutation
+	56, // 8: api.community.v1.UpdateProfileRequest.mutation:type_name -> api.common.v1.Mutation
 	0,  // 9: api.community.v1.UpdateProfileResponse.profile:type_name -> api.community.v1.Profile
 	1,  // 10: api.community.v1.GetTeamResponse.team:type_name -> api.community.v1.Team
-	49, // 11: api.community.v1.UpdateTeamRequest.mutation:type_name -> api.common.v1.Mutation
+	56, // 11: api.community.v1.UpdateTeamRequest.mutation:type_name -> api.common.v1.Mutation
 	1,  // 12: api.community.v1.UpdateTeamResponse.team:type_name -> api.community.v1.Team
-	50, // 13: api.community.v1.ListTeamsRequest.page:type_name -> api.common.v1.PageRequest
+	57, // 13: api.community.v1.ListTeamsRequest.page:type_name -> api.common.v1.PageRequest
 	1,  // 14: api.community.v1.ListTeamsResponse.teams:type_name -> api.community.v1.Team
-	51, // 15: api.community.v1.ListTeamsResponse.page:type_name -> api.common.v1.PageResult
-	50, // 16: api.community.v1.ListMembersRequest.page:type_name -> api.common.v1.PageRequest
+	58, // 15: api.community.v1.ListTeamsResponse.page:type_name -> api.common.v1.PageResult
+	57, // 16: api.community.v1.ListMembersRequest.page:type_name -> api.common.v1.PageRequest
 	2,  // 17: api.community.v1.ListMembersResponse.members:type_name -> api.community.v1.Member
-	51, // 18: api.community.v1.ListMembersResponse.page:type_name -> api.common.v1.PageResult
-	50, // 19: api.community.v1.ListContributionsRequest.page:type_name -> api.common.v1.PageRequest
+	58, // 18: api.community.v1.ListMembersResponse.page:type_name -> api.common.v1.PageResult
+	57, // 19: api.community.v1.ListContributionsRequest.page:type_name -> api.common.v1.PageRequest
 	3,  // 20: api.community.v1.ListContributionsResponse.contributions:type_name -> api.community.v1.Contribution
-	51, // 21: api.community.v1.ListContributionsResponse.page:type_name -> api.common.v1.PageResult
+	58, // 21: api.community.v1.ListContributionsResponse.page:type_name -> api.common.v1.PageResult
 	5,  // 22: api.community.v1.GetDiscussionResponse.discussion:type_name -> api.community.v1.Discussion
-	50, // 23: api.community.v1.ListCommentsRequest.page:type_name -> api.common.v1.PageRequest
+	57, // 23: api.community.v1.ListCommentsRequest.page:type_name -> api.common.v1.PageRequest
 	4,  // 24: api.community.v1.ListCommentsResponse.comments:type_name -> api.community.v1.Comment
-	51, // 25: api.community.v1.ListCommentsResponse.page:type_name -> api.common.v1.PageResult
-	49, // 26: api.community.v1.CreateCommentRequest.mutation:type_name -> api.common.v1.Mutation
+	58, // 25: api.community.v1.ListCommentsResponse.page:type_name -> api.common.v1.PageResult
+	56, // 26: api.community.v1.CreateCommentRequest.mutation:type_name -> api.common.v1.Mutation
 	4,  // 27: api.community.v1.CreateCommentResponse.comment:type_name -> api.community.v1.Comment
-	49, // 28: api.community.v1.DeleteCommentRequest.mutation:type_name -> api.common.v1.Mutation
-	49, // 29: api.community.v1.SetReactionRequest.mutation:type_name -> api.common.v1.Mutation
+	56, // 28: api.community.v1.DeleteCommentRequest.mutation:type_name -> api.common.v1.Mutation
+	56, // 29: api.community.v1.SetReactionRequest.mutation:type_name -> api.common.v1.Mutation
 	5,  // 30: api.community.v1.SetReactionResponse.discussion:type_name -> api.community.v1.Discussion
-	50, // 31: api.community.v1.ListBookmarksRequest.page:type_name -> api.common.v1.PageRequest
+	57, // 31: api.community.v1.ListBookmarksRequest.page:type_name -> api.common.v1.PageRequest
 	3,  // 32: api.community.v1.ListBookmarksResponse.contributions:type_name -> api.community.v1.Contribution
-	51, // 33: api.community.v1.ListBookmarksResponse.page:type_name -> api.common.v1.PageResult
-	49, // 34: api.community.v1.UpdateAvatarRequest.mutation:type_name -> api.common.v1.Mutation
+	58, // 33: api.community.v1.ListBookmarksResponse.page:type_name -> api.common.v1.PageResult
+	56, // 34: api.community.v1.UpdateAvatarRequest.mutation:type_name -> api.common.v1.Mutation
 	0,  // 35: api.community.v1.UpdateAvatarResponse.profile:type_name -> api.community.v1.Profile
-	49, // 36: api.community.v1.ReportContentRequest.mutation:type_name -> api.common.v1.Mutation
-	48, // 37: api.community.v1.ContentReport.created_at:type_name -> google.protobuf.Timestamp
-	48, // 38: api.community.v1.ContentReport.resolved_at:type_name -> google.protobuf.Timestamp
-	50, // 39: api.community.v1.ListReportsRequest.page:type_name -> api.common.v1.PageRequest
+	56, // 36: api.community.v1.ReportContentRequest.mutation:type_name -> api.common.v1.Mutation
+	55, // 37: api.community.v1.ContentReport.created_at:type_name -> google.protobuf.Timestamp
+	55, // 38: api.community.v1.ContentReport.resolved_at:type_name -> google.protobuf.Timestamp
+	57, // 39: api.community.v1.ListReportsRequest.page:type_name -> api.common.v1.PageRequest
 	38, // 40: api.community.v1.ListReportsResponse.reports:type_name -> api.community.v1.ContentReport
-	51, // 41: api.community.v1.ListReportsResponse.page:type_name -> api.common.v1.PageResult
-	49, // 42: api.community.v1.ResolveReportRequest.mutation:type_name -> api.common.v1.Mutation
-	52, // 43: api.community.v1.ResolveReportRequest.action:type_name -> common.registry.v1.ReportResolution
-	49, // 44: api.community.v1.RemoveBookmarkRequest.mutation:type_name -> api.common.v1.Mutation
-	43, // 45: api.community.v1.CommunityService.RemoveBookmark:input_type -> api.community.v1.RemoveBookmarkRequest
-	34, // 46: api.community.v1.CommunityService.GetParticipation:input_type -> api.community.v1.GetParticipationRequest
-	36, // 47: api.community.v1.CommunityService.ReportContent:input_type -> api.community.v1.ReportContentRequest
-	39, // 48: api.community.v1.CommunityService.ListReports:input_type -> api.community.v1.ListReportsRequest
-	41, // 49: api.community.v1.CommunityService.ResolveReport:input_type -> api.community.v1.ResolveReportRequest
-	32, // 50: api.community.v1.CommunityService.UpdateAvatar:input_type -> api.community.v1.UpdateAvatarRequest
-	6,  // 51: api.community.v1.CommunityService.GetProfile:input_type -> api.community.v1.GetProfileRequest
-	8,  // 52: api.community.v1.CommunityService.UpdateProfile:input_type -> api.community.v1.UpdateProfileRequest
-	10, // 53: api.community.v1.CommunityService.GetTeam:input_type -> api.community.v1.GetTeamRequest
-	12, // 54: api.community.v1.CommunityService.UpdateTeam:input_type -> api.community.v1.UpdateTeamRequest
-	14, // 55: api.community.v1.CommunityService.ListTeams:input_type -> api.community.v1.ListTeamsRequest
-	16, // 56: api.community.v1.CommunityService.ListMembers:input_type -> api.community.v1.ListMembersRequest
-	18, // 57: api.community.v1.CommunityService.ListContributions:input_type -> api.community.v1.ListContributionsRequest
-	20, // 58: api.community.v1.CommunityService.GetDiscussion:input_type -> api.community.v1.GetDiscussionRequest
-	22, // 59: api.community.v1.CommunityService.ListComments:input_type -> api.community.v1.ListCommentsRequest
-	24, // 60: api.community.v1.CommunityService.CreateComment:input_type -> api.community.v1.CreateCommentRequest
-	26, // 61: api.community.v1.CommunityService.DeleteComment:input_type -> api.community.v1.DeleteCommentRequest
-	28, // 62: api.community.v1.CommunityService.SetReaction:input_type -> api.community.v1.SetReactionRequest
-	30, // 63: api.community.v1.CommunityService.ListBookmarks:input_type -> api.community.v1.ListBookmarksRequest
-	44, // 64: api.community.v1.CommunityService.RemoveBookmark:output_type -> api.community.v1.RemoveBookmarkResponse
-	35, // 65: api.community.v1.CommunityService.GetParticipation:output_type -> api.community.v1.GetParticipationResponse
-	37, // 66: api.community.v1.CommunityService.ReportContent:output_type -> api.community.v1.ReportContentResponse
-	40, // 67: api.community.v1.CommunityService.ListReports:output_type -> api.community.v1.ListReportsResponse
-	42, // 68: api.community.v1.CommunityService.ResolveReport:output_type -> api.community.v1.ResolveReportResponse
-	33, // 69: api.community.v1.CommunityService.UpdateAvatar:output_type -> api.community.v1.UpdateAvatarResponse
-	7,  // 70: api.community.v1.CommunityService.GetProfile:output_type -> api.community.v1.GetProfileResponse
-	9,  // 71: api.community.v1.CommunityService.UpdateProfile:output_type -> api.community.v1.UpdateProfileResponse
-	11, // 72: api.community.v1.CommunityService.GetTeam:output_type -> api.community.v1.GetTeamResponse
-	13, // 73: api.community.v1.CommunityService.UpdateTeam:output_type -> api.community.v1.UpdateTeamResponse
-	15, // 74: api.community.v1.CommunityService.ListTeams:output_type -> api.community.v1.ListTeamsResponse
-	17, // 75: api.community.v1.CommunityService.ListMembers:output_type -> api.community.v1.ListMembersResponse
-	19, // 76: api.community.v1.CommunityService.ListContributions:output_type -> api.community.v1.ListContributionsResponse
-	21, // 77: api.community.v1.CommunityService.GetDiscussion:output_type -> api.community.v1.GetDiscussionResponse
-	23, // 78: api.community.v1.CommunityService.ListComments:output_type -> api.community.v1.ListCommentsResponse
-	25, // 79: api.community.v1.CommunityService.CreateComment:output_type -> api.community.v1.CreateCommentResponse
-	27, // 80: api.community.v1.CommunityService.DeleteComment:output_type -> api.community.v1.DeleteCommentResponse
-	29, // 81: api.community.v1.CommunityService.SetReaction:output_type -> api.community.v1.SetReactionResponse
-	31, // 82: api.community.v1.CommunityService.ListBookmarks:output_type -> api.community.v1.ListBookmarksResponse
-	64, // [64:83] is the sub-list for method output_type
-	45, // [45:64] is the sub-list for method input_type
-	45, // [45:45] is the sub-list for extension type_name
-	45, // [45:45] is the sub-list for extension extendee
-	0,  // [0:45] is the sub-list for field type_name
+	58, // 41: api.community.v1.ListReportsResponse.page:type_name -> api.common.v1.PageResult
+	56, // 42: api.community.v1.ResolveReportRequest.mutation:type_name -> api.common.v1.Mutation
+	59, // 43: api.community.v1.ResolveReportRequest.action:type_name -> common.registry.v1.ReportResolution
+	56, // 44: api.community.v1.RemoveBookmarkRequest.mutation:type_name -> api.common.v1.Mutation
+	56, // 45: api.community.v1.SetSubscriptionRequest.mutation:type_name -> api.common.v1.Mutation
+	57, // 46: api.community.v1.ListSubscriptionsRequest.page:type_name -> api.common.v1.PageRequest
+	49, // 47: api.community.v1.ListSubscriptionsResponse.subscriptions:type_name -> api.community.v1.Subscription
+	58, // 48: api.community.v1.ListSubscriptionsResponse.page:type_name -> api.common.v1.PageResult
+	45, // 49: api.community.v1.CommunityService.GetSubscription:input_type -> api.community.v1.GetSubscriptionRequest
+	47, // 50: api.community.v1.CommunityService.SetSubscription:input_type -> api.community.v1.SetSubscriptionRequest
+	50, // 51: api.community.v1.CommunityService.ListSubscriptions:input_type -> api.community.v1.ListSubscriptionsRequest
+	43, // 52: api.community.v1.CommunityService.RemoveBookmark:input_type -> api.community.v1.RemoveBookmarkRequest
+	34, // 53: api.community.v1.CommunityService.GetParticipation:input_type -> api.community.v1.GetParticipationRequest
+	36, // 54: api.community.v1.CommunityService.ReportContent:input_type -> api.community.v1.ReportContentRequest
+	39, // 55: api.community.v1.CommunityService.ListReports:input_type -> api.community.v1.ListReportsRequest
+	41, // 56: api.community.v1.CommunityService.ResolveReport:input_type -> api.community.v1.ResolveReportRequest
+	32, // 57: api.community.v1.CommunityService.UpdateAvatar:input_type -> api.community.v1.UpdateAvatarRequest
+	6,  // 58: api.community.v1.CommunityService.GetProfile:input_type -> api.community.v1.GetProfileRequest
+	8,  // 59: api.community.v1.CommunityService.UpdateProfile:input_type -> api.community.v1.UpdateProfileRequest
+	10, // 60: api.community.v1.CommunityService.GetTeam:input_type -> api.community.v1.GetTeamRequest
+	12, // 61: api.community.v1.CommunityService.UpdateTeam:input_type -> api.community.v1.UpdateTeamRequest
+	14, // 62: api.community.v1.CommunityService.ListTeams:input_type -> api.community.v1.ListTeamsRequest
+	16, // 63: api.community.v1.CommunityService.ListMembers:input_type -> api.community.v1.ListMembersRequest
+	18, // 64: api.community.v1.CommunityService.ListContributions:input_type -> api.community.v1.ListContributionsRequest
+	20, // 65: api.community.v1.CommunityService.GetDiscussion:input_type -> api.community.v1.GetDiscussionRequest
+	22, // 66: api.community.v1.CommunityService.ListComments:input_type -> api.community.v1.ListCommentsRequest
+	24, // 67: api.community.v1.CommunityService.CreateComment:input_type -> api.community.v1.CreateCommentRequest
+	26, // 68: api.community.v1.CommunityService.DeleteComment:input_type -> api.community.v1.DeleteCommentRequest
+	28, // 69: api.community.v1.CommunityService.SetReaction:input_type -> api.community.v1.SetReactionRequest
+	30, // 70: api.community.v1.CommunityService.ListBookmarks:input_type -> api.community.v1.ListBookmarksRequest
+	46, // 71: api.community.v1.CommunityService.GetSubscription:output_type -> api.community.v1.GetSubscriptionResponse
+	48, // 72: api.community.v1.CommunityService.SetSubscription:output_type -> api.community.v1.SetSubscriptionResponse
+	51, // 73: api.community.v1.CommunityService.ListSubscriptions:output_type -> api.community.v1.ListSubscriptionsResponse
+	44, // 74: api.community.v1.CommunityService.RemoveBookmark:output_type -> api.community.v1.RemoveBookmarkResponse
+	35, // 75: api.community.v1.CommunityService.GetParticipation:output_type -> api.community.v1.GetParticipationResponse
+	37, // 76: api.community.v1.CommunityService.ReportContent:output_type -> api.community.v1.ReportContentResponse
+	40, // 77: api.community.v1.CommunityService.ListReports:output_type -> api.community.v1.ListReportsResponse
+	42, // 78: api.community.v1.CommunityService.ResolveReport:output_type -> api.community.v1.ResolveReportResponse
+	33, // 79: api.community.v1.CommunityService.UpdateAvatar:output_type -> api.community.v1.UpdateAvatarResponse
+	7,  // 80: api.community.v1.CommunityService.GetProfile:output_type -> api.community.v1.GetProfileResponse
+	9,  // 81: api.community.v1.CommunityService.UpdateProfile:output_type -> api.community.v1.UpdateProfileResponse
+	11, // 82: api.community.v1.CommunityService.GetTeam:output_type -> api.community.v1.GetTeamResponse
+	13, // 83: api.community.v1.CommunityService.UpdateTeam:output_type -> api.community.v1.UpdateTeamResponse
+	15, // 84: api.community.v1.CommunityService.ListTeams:output_type -> api.community.v1.ListTeamsResponse
+	17, // 85: api.community.v1.CommunityService.ListMembers:output_type -> api.community.v1.ListMembersResponse
+	19, // 86: api.community.v1.CommunityService.ListContributions:output_type -> api.community.v1.ListContributionsResponse
+	21, // 87: api.community.v1.CommunityService.GetDiscussion:output_type -> api.community.v1.GetDiscussionResponse
+	23, // 88: api.community.v1.CommunityService.ListComments:output_type -> api.community.v1.ListCommentsResponse
+	25, // 89: api.community.v1.CommunityService.CreateComment:output_type -> api.community.v1.CreateCommentResponse
+	27, // 90: api.community.v1.CommunityService.DeleteComment:output_type -> api.community.v1.DeleteCommentResponse
+	29, // 91: api.community.v1.CommunityService.SetReaction:output_type -> api.community.v1.SetReactionResponse
+	31, // 92: api.community.v1.CommunityService.ListBookmarks:output_type -> api.community.v1.ListBookmarksResponse
+	71, // [71:93] is the sub-list for method output_type
+	49, // [49:71] is the sub-list for method input_type
+	49, // [49:49] is the sub-list for extension type_name
+	49, // [49:49] is the sub-list for extension extendee
+	0,  // [0:49] is the sub-list for field type_name
 }
 
 func init() { file_api_community_v1_community_service_proto_init() }
@@ -3252,7 +3672,7 @@ func file_api_community_v1_community_service_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_community_v1_community_service_proto_rawDesc), len(file_api_community_v1_community_service_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   45,
+			NumMessages:   52,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

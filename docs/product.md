@@ -68,3 +68,11 @@ The Hub runs as one Go process with embedded Web, SQLite or PostgreSQL, and loca
 GitHub hosts software distributions. App updates are checked explicitly and installed manually; application updates do not update skills or Hubs. Hosted skills retain their own licensing and permissions independently of the Apache-2.0 software license. See [distribution](distribution.md), [operations](operations.md) and the [deployment checklist](deployment-checklist.md).
 
 Team lifecycle is Hub-admin controlled: archive removes a team from default discovery and stops writes while preserving authorized history, downloads, data and grants; restore reactivates writes. Withdrawal controls package distribution. Permanent cleanup requires archive, revision and typed namespace confirmation, retains audit and shared identities, reserves deleted names, and queues reference-safe package reclamation. See [team lifecycle](governance.md#team-archive-and-permanent-cleanup).
+
+## Version delivery
+
+Subscribers follow a skill and receive publication notifications subject to current access. Version comparison reads two authorized immutable packages and returns bounded file differences.
+
+A skill suite is an ordinary reviewed package with `skillhub.suite.json`: exact same-Hub members, verified digests and one entry skill. Clients expand installation plans and track shared member ownership. The registry verifies all members without executing them.
+
+Automation tokens are owner-scoped, hashed, expiring and revocable. Read tokens access the catalog; publish tokens also submit to one namespace. They cannot approve, administer or mint credentials. Current account grants remain authoritative.

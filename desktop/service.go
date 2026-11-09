@@ -23,12 +23,14 @@ type DesktopService struct {
 	logins       map[string]*pendingLogin
 }
 type pendingPlan struct {
+	suite   *client.SuiteInstallPlan
 	install *client.InstallPlan
 	project *client.ProjectRestorePlan
 	archive []byte
 	expires time.Time
 }
 type ChangePlan struct {
+	Retained   []string             `json:"retained"`
 	LockUpdate bool                 `json:"lock_update"`
 	Handle     string               `json:"handle"`
 	Changes    []client.InstallPlan `json:"changes"`
@@ -91,10 +93,16 @@ func (s *DesktopService) holdPlan(p pendingPlan) (ChangePlan, error) {
 	changes := []client.InstallPlan{}
 	if p.install != nil {
 		changes = append(changes, *p.install)
+	} else if p.suite != nil {
+		changes = append(changes, p.suite.Plans...)
 	} else {
 		changes = append(append([]client.InstallPlan{}, p.project.Plans...), p.project.Removals...)
 	}
-	return ChangePlan{LockUpdate: p.project != nil && p.project.LockUpdate, Handle: id, Changes: changes, ExpiresAt: p.expires.UTC().Format(time.RFC3339)}, nil
+	retained := []string{}
+	if p.suite != nil {
+		retained = p.suite.Retained
+	}
+	return ChangePlan{Retained: retained, LockUpdate: p.project != nil && p.project.LockUpdate, Handle: id, Changes: changes, ExpiresAt: p.expires.UTC().Format(time.RFC3339)}, nil
 }
 func (s *DesktopService) DiscardPlan(id string) {
 	s.mu.Lock()
@@ -108,6 +116,9 @@ func (s *DesktopService) ApplyPlan(id string) ([]client.ProjectRestoreResult, er
 	s.mu.Unlock()
 	if !ok || time.Now().After(p.expires) {
 		return nil, errors.New("change preview expired; create a new plan")
+	}
+	if p.suite != nil {
+		return s.core.ApplySuite(s.ctx, p.suite)
 	}
 	if p.project != nil {
 		return s.core.ApplyProjectRestore(s.ctx, p.project)
@@ -126,21 +137,21 @@ func (s *DesktopService) PlanInstall(coordinate, tool, scope, project string) (C
 	if err != nil {
 		return ChangePlan{}, err
 	}
-	return s.holdPlan(pendingPlan{install: plan, archive: archive})
+	return s.holdDistributionPlan(plan, archive)
 }
 func (s *DesktopService) PlanUpdate(target, version string) (ChangePlan, error) {
 	plan, archive, err := s.core.PlanRemoteUpdate(s.ctx, target, version)
 	if err != nil {
 		return ChangePlan{}, err
 	}
-	return s.holdPlan(pendingPlan{install: plan, archive: archive})
+	return s.holdDistributionPlan(plan, archive)
 }
 func (s *DesktopService) PlanUpdateFrom(target, version, source string) (ChangePlan, error) {
 	plan, archive, err := s.core.PlanRemoteUpdateFrom(s.ctx, target, version, source)
 	if err != nil {
 		return ChangePlan{}, err
 	}
-	return s.holdPlan(pendingPlan{install: plan, archive: archive})
+	return s.holdDistributionPlan(plan, archive)
 }
 func (s *DesktopService) CheckUpdatesFrom(target, source string) ([]client.UpdateCheck, error) {
 	return s.core.CheckUpdatesFrom(s.ctx, target, source)
@@ -150,7 +161,7 @@ func (s *DesktopService) PlanRemove(target string) (ChangePlan, error) {
 	if err != nil {
 		return ChangePlan{}, err
 	}
-	return s.holdPlan(pendingPlan{install: plan})
+	return s.holdDistributionPlan(plan, nil)
 }
 func (s *DesktopService) CheckUpdates() ([]client.UpdateCheck, error) {
 	return s.core.CheckUpdates(s.ctx, "")
@@ -181,4 +192,15 @@ func (s *DesktopService) PlanRestore(path string) (ChangePlan, error) {
 		return ChangePlan{}, err
 	}
 	return s.holdPlan(pendingPlan{project: plan})
+}
+
+func (s *DesktopService) holdDistributionPlan(p *client.InstallPlan, data []byte) (ChangePlan, error) {
+	suite, err := s.core.ExpandSuitePlan(s.ctx, p, data)
+	if err != nil {
+		return ChangePlan{}, err
+	}
+	if suite != nil {
+		return s.holdPlan(pendingPlan{suite: suite})
+	}
+	return s.holdPlan(pendingPlan{install: p, archive: data})
 }

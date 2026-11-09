@@ -1,3 +1,4 @@
+import { AccessTokens } from "./AccessTokens";
 import { useState } from "react";
 import { API, Field, Modal, useUI } from "./ui";
 import { ResourceState, useResource } from "./community-ui";
@@ -143,6 +144,7 @@ export function AccountSecurity() {
           )}
         </ResourceState>
       )}
+      {identity.value && !done && <AccessTokens key={source} source={source} />}
     </section>
   );
 }

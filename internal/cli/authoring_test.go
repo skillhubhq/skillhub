@@ -102,3 +102,17 @@ func TestAuthoringRejectsSymlinkDestination(t *testing.T) {
 		t.Fatal("modified symlink target", err)
 	}
 }
+
+func TestToolCatalogDoesNotOpenLocalState(t *testing.T) {
+	state := filepath.Join(t.TempDir(), "state")
+	var out bytes.Buffer
+	if e := Execute(context.Background(), []string{"--data", state, "tools"}, strings.NewReader(""), &out, &out, Options{}); e != nil {
+		t.Fatal(e)
+	}
+	if !strings.Contains(out.String(), "GitHub Copilot") {
+		t.Fatal(out.String())
+	}
+	if _, e := os.Stat(state); !errors.Is(e, os.ErrNotExist) {
+		t.Fatal("static tool list modified local state")
+	}
+}

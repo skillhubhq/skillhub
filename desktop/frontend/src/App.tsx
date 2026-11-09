@@ -564,6 +564,11 @@ export default function App() {
             </p>
           )}
           <div className="plan-list">
+            {(plan.retained ?? []).length > 0 && (
+              <p>
+                {t("Kept installed", "保留安装")}: {plan.retained?.join(", ")}
+              </p>
+            )}
             {(plan.changes ?? []).map((p) => (
               <article key={p.target}>
                 <div>

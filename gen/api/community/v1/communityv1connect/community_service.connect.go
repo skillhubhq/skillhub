@@ -33,6 +33,15 @@ const (
 // reflection-formatted method names, remove the leading slash and convert the remaining slash to a
 // period.
 const (
+	// CommunityServiceGetSubscriptionProcedure is the fully-qualified name of the CommunityService's
+	// GetSubscription RPC.
+	CommunityServiceGetSubscriptionProcedure = "/api.community.v1.CommunityService/GetSubscription"
+	// CommunityServiceSetSubscriptionProcedure is the fully-qualified name of the CommunityService's
+	// SetSubscription RPC.
+	CommunityServiceSetSubscriptionProcedure = "/api.community.v1.CommunityService/SetSubscription"
+	// CommunityServiceListSubscriptionsProcedure is the fully-qualified name of the CommunityService's
+	// ListSubscriptions RPC.
+	CommunityServiceListSubscriptionsProcedure = "/api.community.v1.CommunityService/ListSubscriptions"
 	// CommunityServiceRemoveBookmarkProcedure is the fully-qualified name of the CommunityService's
 	// RemoveBookmark RPC.
 	CommunityServiceRemoveBookmarkProcedure = "/api.community.v1.CommunityService/RemoveBookmark"
@@ -94,6 +103,12 @@ const (
 
 // CommunityServiceClient is a client for the api.community.v1.CommunityService service.
 type CommunityServiceClient interface {
+	// 查询当前用户的更新订阅。
+	GetSubscription(context.Context, *connect.Request[v1.GetSubscriptionRequest]) (*connect.Response[v1.GetSubscriptionResponse], error)
+	// 订阅或取消技能更新。
+	SetSubscription(context.Context, *connect.Request[v1.SetSubscriptionRequest]) (*connect.Response[v1.SetSubscriptionResponse], error)
+	// 列出本人的更新订阅。
+	ListSubscriptions(context.Context, *connect.Request[v1.ListSubscriptionsRequest]) (*connect.Response[v1.ListSubscriptionsResponse], error)
 	// RemoveBookmark 即使技能不可访问也允许移除本人的收藏。
 	RemoveBookmark(context.Context, *connect.Request[v1.RemoveBookmarkRequest]) (*connect.Response[v1.RemoveBookmarkResponse], error)
 	// GetParticipation 返回当前用户的投稿空间和模式配额。
@@ -145,6 +160,24 @@ func NewCommunityServiceClient(httpClient connect.HTTPClient, baseURL string, op
 	baseURL = strings.TrimRight(baseURL, "/")
 	communityServiceMethods := v1.File_api_community_v1_community_service_proto.Services().ByName("CommunityService").Methods()
 	return &communityServiceClient{
+		getSubscription: connect.NewClient[v1.GetSubscriptionRequest, v1.GetSubscriptionResponse](
+			httpClient,
+			baseURL+CommunityServiceGetSubscriptionProcedure,
+			connect.WithSchema(communityServiceMethods.ByName("GetSubscription")),
+			connect.WithClientOptions(opts...),
+		),
+		setSubscription: connect.NewClient[v1.SetSubscriptionRequest, v1.SetSubscriptionResponse](
+			httpClient,
+			baseURL+CommunityServiceSetSubscriptionProcedure,
+			connect.WithSchema(communityServiceMethods.ByName("SetSubscription")),
+			connect.WithClientOptions(opts...),
+		),
+		listSubscriptions: connect.NewClient[v1.ListSubscriptionsRequest, v1.ListSubscriptionsResponse](
+			httpClient,
+			baseURL+CommunityServiceListSubscriptionsProcedure,
+			connect.WithSchema(communityServiceMethods.ByName("ListSubscriptions")),
+			connect.WithClientOptions(opts...),
+		),
 		removeBookmark: connect.NewClient[v1.RemoveBookmarkRequest, v1.RemoveBookmarkResponse](
 			httpClient,
 			baseURL+CommunityServiceRemoveBookmarkProcedure,
@@ -264,6 +297,9 @@ func NewCommunityServiceClient(httpClient connect.HTTPClient, baseURL string, op
 
 // communityServiceClient implements CommunityServiceClient.
 type communityServiceClient struct {
+	getSubscription   *connect.Client[v1.GetSubscriptionRequest, v1.GetSubscriptionResponse]
+	setSubscription   *connect.Client[v1.SetSubscriptionRequest, v1.SetSubscriptionResponse]
+	listSubscriptions *connect.Client[v1.ListSubscriptionsRequest, v1.ListSubscriptionsResponse]
 	removeBookmark    *connect.Client[v1.RemoveBookmarkRequest, v1.RemoveBookmarkResponse]
 	getParticipation  *connect.Client[v1.GetParticipationRequest, v1.GetParticipationResponse]
 	reportContent     *connect.Client[v1.ReportContentRequest, v1.ReportContentResponse]
@@ -283,6 +319,21 @@ type communityServiceClient struct {
 	deleteComment     *connect.Client[v1.DeleteCommentRequest, v1.DeleteCommentResponse]
 	setReaction       *connect.Client[v1.SetReactionRequest, v1.SetReactionResponse]
 	listBookmarks     *connect.Client[v1.ListBookmarksRequest, v1.ListBookmarksResponse]
+}
+
+// GetSubscription calls api.community.v1.CommunityService.GetSubscription.
+func (c *communityServiceClient) GetSubscription(ctx context.Context, req *connect.Request[v1.GetSubscriptionRequest]) (*connect.Response[v1.GetSubscriptionResponse], error) {
+	return c.getSubscription.CallUnary(ctx, req)
+}
+
+// SetSubscription calls api.community.v1.CommunityService.SetSubscription.
+func (c *communityServiceClient) SetSubscription(ctx context.Context, req *connect.Request[v1.SetSubscriptionRequest]) (*connect.Response[v1.SetSubscriptionResponse], error) {
+	return c.setSubscription.CallUnary(ctx, req)
+}
+
+// ListSubscriptions calls api.community.v1.CommunityService.ListSubscriptions.
+func (c *communityServiceClient) ListSubscriptions(ctx context.Context, req *connect.Request[v1.ListSubscriptionsRequest]) (*connect.Response[v1.ListSubscriptionsResponse], error) {
+	return c.listSubscriptions.CallUnary(ctx, req)
 }
 
 // RemoveBookmark calls api.community.v1.CommunityService.RemoveBookmark.
@@ -382,6 +433,12 @@ func (c *communityServiceClient) ListBookmarks(ctx context.Context, req *connect
 
 // CommunityServiceHandler is an implementation of the api.community.v1.CommunityService service.
 type CommunityServiceHandler interface {
+	// 查询当前用户的更新订阅。
+	GetSubscription(context.Context, *connect.Request[v1.GetSubscriptionRequest]) (*connect.Response[v1.GetSubscriptionResponse], error)
+	// 订阅或取消技能更新。
+	SetSubscription(context.Context, *connect.Request[v1.SetSubscriptionRequest]) (*connect.Response[v1.SetSubscriptionResponse], error)
+	// 列出本人的更新订阅。
+	ListSubscriptions(context.Context, *connect.Request[v1.ListSubscriptionsRequest]) (*connect.Response[v1.ListSubscriptionsResponse], error)
 	// RemoveBookmark 即使技能不可访问也允许移除本人的收藏。
 	RemoveBookmark(context.Context, *connect.Request[v1.RemoveBookmarkRequest]) (*connect.Response[v1.RemoveBookmarkResponse], error)
 	// GetParticipation 返回当前用户的投稿空间和模式配额。
@@ -429,6 +486,24 @@ type CommunityServiceHandler interface {
 // and JSON codecs. They also support gzip compression.
 func NewCommunityServiceHandler(svc CommunityServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
 	communityServiceMethods := v1.File_api_community_v1_community_service_proto.Services().ByName("CommunityService").Methods()
+	communityServiceGetSubscriptionHandler := connect.NewUnaryHandler(
+		CommunityServiceGetSubscriptionProcedure,
+		svc.GetSubscription,
+		connect.WithSchema(communityServiceMethods.ByName("GetSubscription")),
+		connect.WithHandlerOptions(opts...),
+	)
+	communityServiceSetSubscriptionHandler := connect.NewUnaryHandler(
+		CommunityServiceSetSubscriptionProcedure,
+		svc.SetSubscription,
+		connect.WithSchema(communityServiceMethods.ByName("SetSubscription")),
+		connect.WithHandlerOptions(opts...),
+	)
+	communityServiceListSubscriptionsHandler := connect.NewUnaryHandler(
+		CommunityServiceListSubscriptionsProcedure,
+		svc.ListSubscriptions,
+		connect.WithSchema(communityServiceMethods.ByName("ListSubscriptions")),
+		connect.WithHandlerOptions(opts...),
+	)
 	communityServiceRemoveBookmarkHandler := connect.NewUnaryHandler(
 		CommunityServiceRemoveBookmarkProcedure,
 		svc.RemoveBookmark,
@@ -545,6 +620,12 @@ func NewCommunityServiceHandler(svc CommunityServiceHandler, opts ...connect.Han
 	)
 	return "/api.community.v1.CommunityService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
+		case CommunityServiceGetSubscriptionProcedure:
+			communityServiceGetSubscriptionHandler.ServeHTTP(w, r)
+		case CommunityServiceSetSubscriptionProcedure:
+			communityServiceSetSubscriptionHandler.ServeHTTP(w, r)
+		case CommunityServiceListSubscriptionsProcedure:
+			communityServiceListSubscriptionsHandler.ServeHTTP(w, r)
 		case CommunityServiceRemoveBookmarkProcedure:
 			communityServiceRemoveBookmarkHandler.ServeHTTP(w, r)
 		case CommunityServiceGetParticipationProcedure:
@@ -591,6 +672,18 @@ func NewCommunityServiceHandler(svc CommunityServiceHandler, opts ...connect.Han
 
 // UnimplementedCommunityServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedCommunityServiceHandler struct{}
+
+func (UnimplementedCommunityServiceHandler) GetSubscription(context.Context, *connect.Request[v1.GetSubscriptionRequest]) (*connect.Response[v1.GetSubscriptionResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("api.community.v1.CommunityService.GetSubscription is not implemented"))
+}
+
+func (UnimplementedCommunityServiceHandler) SetSubscription(context.Context, *connect.Request[v1.SetSubscriptionRequest]) (*connect.Response[v1.SetSubscriptionResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("api.community.v1.CommunityService.SetSubscription is not implemented"))
+}
+
+func (UnimplementedCommunityServiceHandler) ListSubscriptions(context.Context, *connect.Request[v1.ListSubscriptionsRequest]) (*connect.Response[v1.ListSubscriptionsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("api.community.v1.CommunityService.ListSubscriptions is not implemented"))
+}
 
 func (UnimplementedCommunityServiceHandler) RemoveBookmark(context.Context, *connect.Request[v1.RemoveBookmarkRequest]) (*connect.Response[v1.RemoveBookmarkResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("api.community.v1.CommunityService.RemoveBookmark is not implemented"))

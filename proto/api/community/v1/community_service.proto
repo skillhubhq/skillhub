@@ -8,6 +8,12 @@ import "common/registry/v1/taxonomy.proto";
 import "google/protobuf/timestamp.proto";
 // CommunityService 提供受发布受众约束的身份、团队与社区互动。
 service CommunityService {
+  // 查询当前用户的更新订阅。
+  rpc GetSubscription(GetSubscriptionRequest) returns (GetSubscriptionResponse);
+  // 订阅或取消技能更新。
+  rpc SetSubscription(SetSubscriptionRequest) returns (SetSubscriptionResponse);
+  // 列出本人的更新订阅。
+  rpc ListSubscriptions(ListSubscriptionsRequest) returns (ListSubscriptionsResponse);
   // RemoveBookmark 即使技能不可访问也允许移除本人的收藏。
   rpc RemoveBookmark(RemoveBookmarkRequest) returns (RemoveBookmarkResponse);
   // GetParticipation 返回当前用户的投稿空间和模式配额。
@@ -452,3 +458,56 @@ message RemoveBookmarkRequest {
 }
 // RemoveBookmarkResponse 表示移除已完成。
 message RemoveBookmarkResponse {}
+
+// GetSubscriptionRequest 描述当前操作的数据。
+message GetSubscriptionRequest {
+  // 命名空间。
+  string namespace = 1;
+  // 稳定名称。
+  string name = 2;
+}
+
+// GetSubscriptionResponse 描述当前操作的数据。
+message GetSubscriptionResponse {
+  // 是否已订阅。
+  bool subscribed = 1;
+}
+
+// SetSubscriptionRequest 描述当前操作的数据。
+message SetSubscriptionRequest {
+  // 幂等请求。
+  api.common.v1.Mutation mutation = 1;
+  // 命名空间。
+  string namespace = 2;
+  // 稳定名称。
+  string name = 3;
+  // 期望状态。
+  bool subscribed = 4;
+}
+
+// SetSubscriptionResponse 描述当前操作的数据。
+message SetSubscriptionResponse {}
+
+// Subscription 描述当前操作的数据。
+message Subscription {
+  // 命名空间。
+  string namespace = 1;
+  // 稳定名称。
+  string name = 2;
+  // 当前可访问。
+  bool available = 3;
+}
+
+// ListSubscriptionsRequest 描述当前操作的数据。
+message ListSubscriptionsRequest {
+  // 分页参数。
+  api.common.v1.PageRequest page = 1;
+}
+
+// ListSubscriptionsResponse 描述当前操作的数据。
+message ListSubscriptionsResponse {
+  // 订阅集合。
+  repeated Subscription subscriptions = 1;
+  // 后续页。
+  api.common.v1.PageResult page = 2;
+}

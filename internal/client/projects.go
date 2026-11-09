@@ -19,6 +19,7 @@ import (
 	catalogv1 "github.com/skillhubhq/skillhub/gen/api/catalog/v1"
 	"github.com/skillhubhq/skillhub/internal/packageformat"
 	"github.com/skillhubhq/skillhub/internal/provenancewire"
+	"github.com/skillhubhq/skillhub/internal/skillsuite"
 	"golang.org/x/mod/semver"
 )
 
@@ -196,17 +197,11 @@ func relativeSkillTarget(skill ProjectSkill) (string, error) {
 	if len(skill.Version) > 128 || !semver.IsValid("v"+skill.Version) || strings.TrimPrefix(semver.Canonical("v"+skill.Version), "v") != strings.SplitN(skill.Version, "+", 2)[0] {
 		return "", errors.New("project requires exact semantic versions")
 	}
-	switch skill.Tool {
-	case "codex":
-		return ".agents/skills/" + skill.Name, nil
-	case "claude-code":
-		if skill.Name == "synced" || skill.Name == "anthropic-skills" {
-			return "", errors.New("skill name is reserved by Claude Code")
-		}
-		return ".claude/skills/" + skill.Name, nil
-	default:
-		return "", errors.New("supported tools: codex, claude-code")
+	directory, err := toolDirectory(skill.Tool, "project", skill.Name)
+	if err != nil {
+		return "", err
 	}
+	return directory + "/" + skill.Name, nil
 }
 func validateManifest(m ProjectManifest) error {
 	if m.Schema != 1 || m.Skills == nil || len(m.Skills) > maxProjectEntries {
@@ -692,6 +687,11 @@ func (c *Client) resolveProjectLock(ctx context.Context, m ProjectManifest) (Pro
 		bundle, err := packageformat.Inspect(archive)
 		if err != nil {
 			return lock, err
+		}
+		if suite, e := skillsuite.FromBundle(bundle); e != nil {
+			return lock, e
+		} else if suite != nil {
+			return lock, errors.New("install suites with skillhub install --scope project; project manifests list individual skills")
 		}
 		if bundle.Metadata.Name != skill.Name {
 			return lock, errors.New("package does not match skill name")

@@ -6,7 +6,7 @@ import { HeaderFrame } from "./HeaderFrame";
 import { ReviewInbox } from "./ReviewInbox";
 import { Select } from "./Select";
 import { PreferenceControls } from "./PreferenceControls";
-import { useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 import { useUI } from "./ui";
 import { isWeb } from "./platform";
 import { Icon } from "./Icon";
@@ -18,6 +18,24 @@ const community = ["discover", "teams", "bookmarks", "profile"];
 const studio = ["publish", "submissions", "review", "management"];
 const library = ["installed", "projects", "configuration"];
 export function Navigation({ page }: { page: string }) {
+  const headerRef = useRef<HTMLElement>(null);
+  useLayoutEffect(() => {
+    const header = headerRef.current;
+    const shell = header?.parentElement;
+    if (!header || !shell) return;
+    const measure = () =>
+      shell.style.setProperty(
+        "--navigation-height",
+        `${header.getBoundingClientRect().height}px`,
+      );
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(header);
+    return () => {
+      observer.disconnect();
+      shell.style.removeProperty("--navigation-height");
+    };
+  }, []);
   const language = useLanguage();
   const ui = useUI();
   const permissions = ui.workspaceAccess ?? noWorkspaceAccess;
@@ -79,7 +97,7 @@ export function Navigation({ page }: { page: string }) {
     ui.sources.find((s) => s.alias === ui.activeSource)?.display_name ||
     "SkillHub";
   return (
-    <header className="navigation-shell">
+    <header ref={headerRef} className="navigation-shell">
       <HeaderFrame
         brand={
           <button

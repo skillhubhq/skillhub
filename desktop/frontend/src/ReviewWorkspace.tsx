@@ -1,3 +1,5 @@
+import { revealPageStart } from "./pageScroll";
+import { VersionComparison } from "./VersionComparison";
 import { AccessState } from "./AccessState";
 import { ProvenanceDetails } from "./ProvenancePanel";
 import { EvaluationPanel } from "./EvaluationPanel";
@@ -236,10 +238,13 @@ export function ReviewWorkspace({
             }
           : current,
       );
-      if (matchMedia("(max-width: 760px)").matches)
-        requestAnimationFrame(() =>
-          documentRef.current?.scrollIntoView({ block: "start" }),
-        );
+      requestAnimationFrame(() => {
+        if (n === generation.current && documentRef.current)
+          revealPageStart(
+            documentRef.current,
+            matchMedia("(max-width: 760px)").matches,
+          );
+      });
     } catch (e) {
       if (n === generation.current) {
         selectedID.current = selected?.release.id ?? "";
@@ -625,7 +630,15 @@ export function ReviewWorkspace({
                   version={selected.release.version}
                   digest={selected.release.digest}
                 />
-                <PreviewBody preview={selected} />
+                <PreviewBody
+                  preview={selected}
+                  actions={
+                    <VersionComparison
+                      coordinate={`${source}/${selected.release.namespace}/${selected.release.name}`}
+                      release={selected.release}
+                    />
+                  }
+                />
               </div>
               <details className="review-properties">
                 <summary>{t("Release details")}</summary>

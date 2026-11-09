@@ -104,3 +104,5 @@ CI 扫秘密和依赖，静态扫描只是证据，发布前审阅归档/依赖�
 ## 团队生命周期
 
 `TestNamespaceLifecycle` 与 `TestPostgresNamespaceLifecycle` 验证管理员权限、修订号和确认名称、归档可见性、恢复、共享包保留、永久清理、共享身份保留、命名空间占位与幂等重试。`TestNamespaceCleanupFailureCanRetry` 模拟文件删除失败。结构升级测试覆盖版本 11 到 12 的身份保留。传输层及 CLI 回归拒绝未授权和未确认操作；原生 smoke 会打开共用弹窗、归档临时团队、检查输入名称门禁并完成清理。所有写入型验收仅使用可丢弃的隔离实例。
+
+交付功能回归覆盖比较双方权限、受众变更后的通知、令牌限权与撤销、套装成员归属、本地修改、精确摘要和五种工具适配。运行 `go test -race ./...`；设置 `SKILLHUB_TEST_POSTGRES_DSN` 指向专用临时 PostgreSQL，可验证相同 HTTP 合约和结构升级。原生 smoke 另验证套装发布/安装/移除、订阅、令牌撤销和比较弹窗。

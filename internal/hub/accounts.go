@@ -61,6 +61,9 @@ func (s *Store) LookupNamespaceUsers(ctx context.Context, actor Identity, namesp
 }
 
 func revokeUserSessions(ctx context.Context, tx *hubdb.Tx, id string) error {
+	if _, err := tx.ExecContext(ctx, "UPDATE access_tokens SET revoked=1 WHERE user_id=?", id); err != nil {
+		return err
+	}
 	if _, err := tx.ExecContext(ctx, "DELETE FROM sessions WHERE user_id=?", id); err != nil {
 		return err
 	}

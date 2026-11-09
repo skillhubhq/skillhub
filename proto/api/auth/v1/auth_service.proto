@@ -7,6 +7,12 @@ import "google/protobuf/timestamp.proto";
 
 // AuthService 管理当前 Hub 的独立身份和凭据。
 service AuthService {
+  // 创建只展示一次的自动化令牌。
+  rpc CreateAccessToken(CreateAccessTokenRequest) returns (CreateAccessTokenResponse);
+  // 读取本人令牌元数据。
+  rpc ListAccessTokens(ListAccessTokensRequest) returns (ListAccessTokensResponse);
+  // 立即撤销本人的自动化令牌。
+  rpc RevokeAccessToken(RevokeAccessTokenRequest) returns (RevokeAccessTokenResponse);
   // ChangePassword 校验旧密码后更改本地密码并撤销全部会话。
   rpc ChangePassword(ChangePasswordRequest) returns (ChangePasswordResponse);
   // Login 使用本地账号获取可撤销凭据。
@@ -121,3 +127,61 @@ message ChangePasswordRequest {
 }
 // ChangePasswordResponse 表示所有客户端都需要重新登录。
 message ChangePasswordResponse {}
+
+// AccessToken 描述当前操作的数据。
+message AccessToken {
+  // 令牌标识。
+  string id = 1;
+  // 用途名称。
+  string name = 2;
+  // read 或 publish。
+  string scope = 3;
+  // 发布权限限定的空间。
+  string namespace = 4;
+  // UTC 到期秒数。
+  int64 expires_at = 5;
+  // UTC 创建秒数。
+  int64 created_at = 6;
+  // UTC 最近使用秒数。
+  int64 last_used_at = 7;
+  // 是否已撤销。
+  bool revoked = 8;
+}
+
+// CreateAccessTokenRequest 描述当前操作的数据。
+message CreateAccessTokenRequest {
+  // 用途名称。
+  string name = 1;
+  // read 或 publish。
+  string scope = 2;
+  // 发布空间。
+  string namespace = 3;
+  // 有效天数，范围一到九十。
+  uint32 days = 4;
+}
+
+// CreateAccessTokenResponse 描述当前操作的数据。
+message CreateAccessTokenResponse {
+  // 令牌元数据。
+  AccessToken token = 1;
+  // 本次响应后不再可读取的凭据。
+  string secret = 2;
+}
+
+// ListAccessTokensRequest 描述当前操作的数据。
+message ListAccessTokensRequest {}
+
+// ListAccessTokensResponse 描述当前操作的数据。
+message ListAccessTokensResponse {
+  // 最多一百个令牌，未撤销且到期时间较晚的优先。
+  repeated AccessToken tokens = 1;
+}
+
+// RevokeAccessTokenRequest 描述当前操作的数据。
+message RevokeAccessTokenRequest {
+  // 本人令牌标识。
+  string id = 1;
+}
+
+// RevokeAccessTokenResponse 描述当前操作的数据。
+message RevokeAccessTokenResponse {}

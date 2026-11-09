@@ -69,5 +69,12 @@ CREATE TABLE community_reports (sequence INTEGER PRIMARY KEY AUTOINCREMENT, id T
 CREATE INDEX community_reports_queue ON community_reports(resolved,sequence);
 
 CREATE TABLE external_identities (issuer TEXT NOT NULL, subject TEXT NOT NULL, user_id TEXT NOT NULL UNIQUE REFERENCES users(id), PRIMARY KEY(issuer,subject));
-PRAGMA user_version=14;
+PRAGMA user_version=15;
+`
+
+// 新增分发功能的结构独立创建；升级只增加表，不重写现有业务记录。
+const distributionSchema = `
+CREATE TABLE subscriptions(user_id TEXT NOT NULL REFERENCES users(id), namespace TEXT NOT NULL, name TEXT NOT NULL, PRIMARY KEY(user_id,namespace,name), FOREIGN KEY(namespace,name) REFERENCES skills(namespace,name));
+CREATE TABLE access_tokens(id TEXT PRIMARY KEY, token_hash TEXT NOT NULL UNIQUE, user_id TEXT NOT NULL REFERENCES users(id), name TEXT NOT NULL, scope TEXT NOT NULL CHECK(scope IN ('read','publish')), namespace TEXT NOT NULL DEFAULT '', expires_at INTEGER NOT NULL, created_at INTEGER NOT NULL, last_used_at INTEGER NOT NULL DEFAULT 0, revoked INTEGER NOT NULL DEFAULT 0);
+CREATE INDEX access_tokens_owner ON access_tokens(user_id,created_at);
 `

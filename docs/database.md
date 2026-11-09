@@ -36,7 +36,7 @@ The directory contains a custom-format `hub.dump`, referenced immutable `package
 
 ### Replace the server binary
 
-Stop the Hub and make a verified backup with the current executable. Retain that executable and configuration. Start the replacement only after checking that it supports the database schema. The current Hub initializes schema 14 and accepts that exact schema. Unsupported versions are rejected without changing their tables. There is no cross-driver conversion command. Verify readiness, login, permissions and package downloads before reopening traffic.
+Stop the Hub and make a verified backup with the current executable. Retain that executable and configuration. Start the replacement only after checking that it supports the database schema. The current Hub initializes schema 15 and upgrades schema 14 in one transaction, adding subscriptions and hashed automation tokens without changing existing accounts, permissions or releases. Unsupported versions are rejected without changing their tables. There is no cross-driver conversion command. Verify readiness, login, permissions and package downloads before reopening traffic.
 
 ### Restore / rollback
 

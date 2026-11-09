@@ -1,3 +1,4 @@
+import { SubscriptionsButton } from "./Subscriptions";
 import { connectionName } from "./ConnectionPreferences";
 import { useEffect, useState } from "react";
 import { API, Modal, useUI } from "./ui";
@@ -157,6 +158,7 @@ function ReviewOutcomes({
     <section aria-label={t("Updates", "动态")}>
       <div className="section-heading">
         <h3>{t("Latest updates", "最近更新")}</h3>
+        <SubscriptionsButton source={source} />
         <button
           disabled={inbox.loading || !inbox.value?.unread}
           onClick={() =>
@@ -177,7 +179,7 @@ function ReviewOutcomes({
         <p role="status">{t("Loading…")}</p>
       ) : inbox.error ? (
         <p role="alert">
-          {t("Could not load review updates.", "暂时无法读取审核结果。")}{" "}
+          {t("Could not load updates.", "暂时无法读取动态。")}{" "}
           <button onClick={inbox.reload}>{t("Try again")}</button>
         </p>
       ) : !inbox.value?.supported ? (
@@ -213,9 +215,9 @@ function ReviewOutcomes({
                     return;
                   }
                   close();
-                  if (n.kind === "reply") {
+                  if (n.kind === "reply" || n.kind === "update") {
                     ui.navigate(
-                      `discover?${new URLSearchParams({ source, skill: n.coordinate.split("@")[0], tab: "discussion" })}`,
+                      `discover?${new URLSearchParams({ source, skill: n.coordinate.split("@")[0], version: n.kind === "update" ? n.coordinate.split("@")[1] : "", tab: n.kind === "reply" ? "discussion" : "readme" })}`,
                     );
                     return;
                   }
@@ -234,11 +236,13 @@ function ReviewOutcomes({
                 <span
                   className={`outcome-status ${n.approved ? "approved" : "changes"}`}
                 >
-                  {n.kind === "reply"
-                    ? t("New reply", "新回复")
-                    : n.approved
-                      ? t("Approved", "已批准")
-                      : t("Changes requested", "需要修改")}
+                  {n.kind === "update"
+                    ? t("New version", "新版本")
+                    : n.kind === "reply"
+                      ? t("New reply", "新回复")
+                      : n.approved
+                        ? t("Approved", "已批准")
+                        : t("Changes requested", "需要修改")}
                 </span>
                 <time>{dateLabel(n.created_at)}</time>
                 {!n.read && <span>{t("Unread", "未读")}</span>}

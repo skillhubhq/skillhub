@@ -1,3 +1,4 @@
+import { runDeliverySmoke } from "./deliverySmoke";
 import { notifySessionExpired } from "./sessionEvents";
 import { pageScroller } from "./pageScroll";
 import { runResourceSmoke } from "./resourceSmoke";
@@ -629,6 +630,49 @@ export async function runNativeSmoke() {
         (row) => row.getBoundingClientRect().height >= 64,
       ),
       "release rows retain room for identity and status",
+    );
+    Array.from(document.querySelectorAll<HTMLButtonElement>(".queue-item"))
+      .find((row) => row.textContent?.includes("v1.1.0"))!
+      .click();
+    await waitForUI(
+      () =>
+        document
+          .querySelector(".review-heading")
+          ?.textContent?.includes("v1.1.0") ?? false,
+    );
+    pageScroller().scrollBy({ top: 320, behavior: "instant" });
+    await new Promise<void>((resolve) =>
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+    );
+    const contentTop = pageScroller().getBoundingClientRect().top;
+    const stickyTitle = document
+      .querySelector(".review-heading")!
+      .getBoundingClientRect();
+    const stickyQueue = document
+      .querySelector(".review-queue")!
+      .getBoundingClientRect();
+    check(
+      Math.abs(stickyTitle.top - contentTop) < 2,
+      `long review keeps its title below navigation without clipping (title=${stickyTitle.top}, content=${contentTop}, scroll=${pageScroller().scrollTop}, position=${getComputedStyle(document.querySelector(".review-heading")!).position}, top=${getComputedStyle(document.querySelector(".review-heading")!).top}, height=${document.querySelector(".review-document-body")!.getBoundingClientRect().height})`,
+    );
+    check(
+      stickyQueue.top >= contentTop && stickyQueue.top <= contentTop + 24,
+      "review queue uses content-relative sticky spacing",
+    );
+    publishedRow.click();
+    await waitForUI(
+      () =>
+        document
+          .querySelector(".review-heading")
+          ?.textContent?.includes("v1.0.0") ?? false,
+    );
+    await new Promise<void>((resolve) =>
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+    );
+    check(
+      document.querySelector(".review-document")!.getBoundingClientRect().top >=
+        contentTop,
+      "switching a scrolled release reveals the new document start",
     );
     Array.from(document.querySelectorAll<HTMLButtonElement>(".queue-item"))
       .find((row) => row.textContent?.includes("v1.1.0"))!
@@ -1959,6 +2003,7 @@ export async function runNativeSmoke() {
       "detail uses authored built-in icon and language preference",
     );
     setLanguage("en");
+    await runDeliverySmoke(check, waitForUI);
     await API.ClearCache();
     for (const [alias, origin] of [
       ["signed-out", "company"],

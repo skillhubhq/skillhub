@@ -22,12 +22,8 @@
 .desktop-shell .skill-install-aside {
   position: static;
 }
-.desktop-shell .review-queue,
 .desktop-shell .publishing-journey .publish-summary {
   top: 16px;
-}
-.desktop-shell .review-queue {
-  max-height: min(60vh, 600px);
 }
 .desktop-shell .community-detail,
 .desktop-shell .discussion-anchor,
@@ -41,5 +37,59 @@
   }
   .desktop-shell .review-queue {
     max-height: 240px;
+  }
+}
+
+/* 标题与列表相对于各自滚动容器吸顶，桌面正文不重复计入导航高度。 */
+.community-shell {
+  --review-sticky-top: var(--navigation-height, 116px);
+  --review-viewport: calc(100dvh - var(--navigation-height, 116px));
+}
+.community-shell.desktop-shell {
+  --review-sticky-top: 0px;
+}
+.community-shell .review-queue {
+  top: calc(var(--review-sticky-top) + 12px);
+  max-height: calc(var(--review-viewport) - 24px);
+  overscroll-behavior: contain;
+}
+.community-shell .review-heading {
+  position: sticky;
+  top: var(--review-sticky-top);
+  z-index: 3;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+.community-shell .review-document {
+  scroll-margin-top: calc(var(--review-sticky-top) + 12px);
+}
+@media (max-width: 760px) {
+  .community-shell .review-queue {
+    position: static;
+    max-height: 240px;
+  }
+  .community-shell .review-heading {
+    position: static;
+  }
+}
+
+/* WebKit 将滚动容器的上内边距叠加到 sticky 偏移；留白作为可滚动内容处理。 */
+.shell.community-shell.desktop-shell
+  > main:is(.page-review, .page-submissions) {
+  padding-top: 0;
+}
+.desktop-shell > main:is(.page-review, .page-submissions)::before {
+  content: "";
+  display: block;
+  height: 30px;
+}
+@media (max-width: 1100px) {
+  .desktop-shell > main:is(.page-review, .page-submissions)::before {
+    height: 26px;
+  }
+}
+@media (max-width: 760px) {
+  .desktop-shell > main:is(.page-review, .page-submissions)::before {
+    height: 22px;
   }
 }

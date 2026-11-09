@@ -85,7 +85,7 @@ func (a *application) command() *cobra.Command {
 		a.core = client.NewClient(a.store, a.options.Client)
 		return nil
 	}
-	root.AddCommand(a.evaluationCommand(), a.initCommand(), a.validateCommand(), a.passwordCommand(), a.sourceCommand(), a.loginCommand(), a.searchCommand(), a.publishCommand(), a.reviewCommand(), a.adminCommand(), a.governanceCommand(), a.projectCommand())
+	root.AddCommand(a.suitesCommand(), a.compareCommand(), a.subscriptionsCommand(), a.tokensCommand(), a.evaluationCommand(), a.initCommand(), a.validateCommand(), a.passwordCommand(), a.sourceCommand(), a.loginCommand(), a.searchCommand(), a.publishCommand(), a.reviewCommand(), a.adminCommand(), a.governanceCommand(), a.projectCommand())
 	root.AddCommand(&cobra.Command{Use: "logout SOURCE", Short: "Revoke the current session and remove its saved credential", Args: cobra.ExactArgs(1), RunE: func(cmd *cobra.Command, args []string) error {
 		if err := a.core.Logout(cmd.Context(), args[0]); err != nil {
 			return err
@@ -147,6 +147,7 @@ func (a *application) command() *cobra.Command {
 	yank.Flags().String("reason", "", "withdrawal reason")
 	_ = yank.MarkFlagRequired("reason")
 	root.AddCommand(yank)
+	root.AddCommand(&cobra.Command{Use: "tools", Annotations: map[string]string{"local-authoring": "true"}, Short: "List supported installation tools and directories", Args: cobra.NoArgs, RunE: func(cmd *cobra.Command, args []string) error { return a.output(cmd, client.Tools()) }})
 	a.configureHelp(root)
 	return root
 }
@@ -322,7 +323,7 @@ func (a *application) installCommand() *cobra.Command {
 		}
 		return a.applyPlan(cmd, plan, archive)
 	}}
-	command.Flags().String("tool", "", "target tool: codex or claude-code")
+	command.Flags().String("tool", "", "target tool (see skillhub tools)")
 	_ = command.MarkFlagRequired("tool")
 	command.Flags().String("scope", "project", "installation scope: global or project")
 	command.Flags().String("project", "", "project directory (default: working directory)")
@@ -336,6 +337,29 @@ func planFlags(cmd *cobra.Command) {
 	cmd.MarkFlagsMutuallyExclusive("yes", "dry-run")
 }
 func (a *application) applyPlan(cmd *cobra.Command, plan *client.InstallPlan, data []byte) error {
+	suite, err := a.core.ExpandSuitePlan(cmd.Context(), plan, data)
+	if err != nil {
+		return err
+	}
+	if suite != nil {
+		yes, _ := cmd.Flags().GetBool("yes")
+		dry, _ := cmd.Flags().GetBool("dry-run")
+		if !yes {
+			if err = a.output(cmd, suite); err != nil {
+				return err
+			}
+			if dry {
+				return nil
+			}
+			return ErrPlanOnly
+		}
+		results, err := a.core.ApplySuite(cmd.Context(), suite)
+		if err != nil {
+			return err
+		}
+		return a.output(cmd, results)
+	}
+
 	yes, _ := cmd.Flags().GetBool("yes")
 	dry, _ := cmd.Flags().GetBool("dry-run")
 	if !yes {

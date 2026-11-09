@@ -64,6 +64,7 @@ export interface AppInfo {
 }
 
 export interface ChangePlan {
+    "retained": string[] | null;
     "lock_update": boolean;
     "handle": string;
     "changes": client$0.InstallPlan[] | null;

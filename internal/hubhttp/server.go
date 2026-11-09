@@ -4,7 +4,6 @@ package hubhttp
 import (
 	"context"
 	"errors"
-	"github.com/skillhubhq/skillhub/internal/community"
 	"log/slog"
 	"net"
 	"net/http"
@@ -27,6 +26,7 @@ import (
 	"github.com/skillhubhq/skillhub/gen/api/publishing/v1/publishingv1connect"
 	registryv1 "github.com/skillhubhq/skillhub/gen/api/registry/v1"
 	"github.com/skillhubhq/skillhub/gen/api/registry/v1/registryv1connect"
+	"github.com/skillhubhq/skillhub/internal/community"
 	"github.com/skillhubhq/skillhub/internal/hub"
 	"github.com/skillhubhq/skillhub/internal/hubpolicy"
 	"github.com/skillhubhq/skillhub/internal/identityprovider"
@@ -110,6 +110,9 @@ func New(store *hub.Store, config Config) (*Server, error) {
 			if err := validator.Validate(message); err != nil {
 				return nil, publicError(hub.ErrInvalid)
 			}
+			if err := s.authorizeAutomation(ctx, req); err != nil {
+				return nil, publicError(err)
+			}
 			response, err := next(ctx, req)
 			if err != nil {
 				return nil, publicError(err)
@@ -155,7 +158,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) GetRegistry(ctx context.Context, req *connect.Request[registryv1.GetRegistryRequest]) (*connect.Response[registryv1.GetRegistryResponse], error) {
-	capabilities := []string{"identity.local", "identity.device", "catalog.v1", "publishing.review.v1", "publishing.cleanup.v1", "admin.v1", "namespace.lifecycle.v1", "community.v1", "community.moderation.v1", "catalog.presentation.v1", "catalog.provenance.v1", "governance.v1", "catalog.discovery.v1", "governance.tasks.v1", "evaluation.v1"}
+	capabilities := []string{"identity.local", "identity.device", "catalog.v1", "publishing.review.v1", "publishing.cleanup.v1", "admin.v1", "namespace.lifecycle.v1", "community.v1", "community.moderation.v1", "catalog.presentation.v1", "catalog.provenance.v1", "governance.v1", "catalog.discovery.v1", "governance.tasks.v1", "evaluation.v1", "catalog.compare.v1", "community.subscriptions.v1", "identity.tokens.v1", "catalog.suites.v1"}
 
 	if s.config.Policy.IsCommunity() {
 		capabilities = append(capabilities, "community.public.v1")
@@ -237,7 +240,7 @@ func bearer(header http.Header) (string, error) {
 		return "", hub.ErrUnauthenticated
 	}
 	parts := strings.Split(values[0], " ")
-	if len(parts) != 2 || !strings.EqualFold(parts[0], "Bearer") || len(parts[1]) != 43 {
+	if len(parts) != 2 || !strings.EqualFold(parts[0], "Bearer") || (len(parts[1]) != 43 && !(len(parts[1]) == 47 && strings.HasPrefix(parts[1], "sht_"))) {
 		return "", hub.ErrUnauthenticated
 	}
 	return parts[1], nil

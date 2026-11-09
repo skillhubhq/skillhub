@@ -153,7 +153,7 @@ func resetRestoredSessions(ctx context.Context, db *sql.DB, id string) error {
 		return err
 	}
 	defer tx.Rollback()
-	if _, err = tx.ExecContext(ctx, "DELETE FROM sessions; DELETE FROM devices;"); err != nil {
+	if _, err = tx.ExecContext(ctx, "DELETE FROM sessions; DELETE FROM devices; UPDATE access_tokens SET revoked=1;"); err != nil {
 		return err
 	}
 	// 保留实例密钥，维持已有幂等操作指纹；删除会话防止历史凭据复活。

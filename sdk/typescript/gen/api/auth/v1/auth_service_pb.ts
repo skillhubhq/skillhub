@@ -13,7 +13,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file api/auth/v1/auth_service.proto.
  */
 export const file_api_auth_v1_auth_service: GenFile = /*@__PURE__*/
-  fileDesc("Ch5hcGkvYXV0aC92MS9hdXRoX3NlcnZpY2UucHJvdG8SC2FwaS5hdXRoLnYxIlcKCElkZW50aXR5Eg8KB3VzZXJfaWQYASABKAkSEAoIdXNlcm5hbWUYAiABKAkSFQoNYWRtaW5pc3RyYXRvchgDIAEoCBIRCglmZWRlcmF0ZWQYBCABKAgiSgoMTG9naW5SZXF1ZXN0EhwKCHVzZXJuYW1lGAEgASgJQgq6SAdyBRABGIABEhwKCHBhc3N3b3JkGAIgASgJQgq6SAdyBRABGIAIIn4KDUxvZ2luUmVzcG9uc2USFAoMYWNjZXNzX3Rva2VuGAEgASgJEicKCGlkZW50aXR5GAIgASgLMhUuYXBpLmF1dGgudjEuSWRlbnRpdHkSLgoKZXhwaXJlc19hdBgDIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAiFAoSR2V0SWRlbnRpdHlSZXF1ZXN0Ij4KE0dldElkZW50aXR5UmVzcG9uc2USJwoIaWRlbnRpdHkYASABKAsyFS5hcGkuYXV0aC52MS5JZGVudGl0eSIPCg1Mb2dvdXRSZXF1ZXN0IhAKDkxvZ291dFJlc3BvbnNlIhkKF1N0YXJ0RGV2aWNlTG9naW5SZXF1ZXN0IqYBChhTdGFydERldmljZUxvZ2luUmVzcG9uc2USEwoLZGV2aWNlX2NvZGUYASABKAkSEQoJdXNlcl9jb2RlGAIgASgJEhgKEHZlcmlmaWNhdGlvbl91cmkYAyABKAkSLgoKZXhwaXJlc19hdBgEIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASGAoQaW50ZXJ2YWxfc2Vjb25kcxgFIAEoDSI9ChpDb21wbGV0ZURldmljZUxvZ2luUmVxdWVzdBIfCgtkZXZpY2VfY29kZRgBIAEoCUIKukgHcgUQIBiAAiJZChtDb21wbGV0ZURldmljZUxvZ2luUmVzcG9uc2USDwoHcGVuZGluZxgBIAEoCBIpCgVsb2dpbhgCIAEoCzIaLmFwaS5hdXRoLnYxLkxvZ2luUmVzcG9uc2UiXQoVQ2hhbmdlUGFzc3dvcmRSZXF1ZXN0EiMKEGN1cnJlbnRfcGFzc3dvcmQYASABKAlCCbpIBnIEIAEoSBIfCgxuZXdfcGFzc3dvcmQYAiABKAlCCbpIBnIEIAwoSCIYChZDaGFuZ2VQYXNzd29yZFJlc3BvbnNlMogECgtBdXRoU2VydmljZRJZCg5DaGFuZ2VQYXNzd29yZBIiLmFwaS5hdXRoLnYxLkNoYW5nZVBhc3N3b3JkUmVxdWVzdBojLmFwaS5hdXRoLnYxLkNoYW5nZVBhc3N3b3JkUmVzcG9uc2USPgoFTG9naW4SGS5hcGkuYXV0aC52MS5Mb2dpblJlcXVlc3QaGi5hcGkuYXV0aC52MS5Mb2dpblJlc3BvbnNlElAKC0dldElkZW50aXR5Eh8uYXBpLmF1dGgudjEuR2V0SWRlbnRpdHlSZXF1ZXN0GiAuYXBpLmF1dGgudjEuR2V0SWRlbnRpdHlSZXNwb25zZRJBCgZMb2dvdXQSGi5hcGkuYXV0aC52MS5Mb2dvdXRSZXF1ZXN0GhsuYXBpLmF1dGgudjEuTG9nb3V0UmVzcG9uc2USXwoQU3RhcnREZXZpY2VMb2dpbhIkLmFwaS5hdXRoLnYxLlN0YXJ0RGV2aWNlTG9naW5SZXF1ZXN0GiUuYXBpLmF1dGgudjEuU3RhcnREZXZpY2VMb2dpblJlc3BvbnNlEmgKE0NvbXBsZXRlRGV2aWNlTG9naW4SJy5hcGkuYXV0aC52MS5Db21wbGV0ZURldmljZUxvZ2luUmVxdWVzdBooLmFwaS5hdXRoLnYxLkNvbXBsZXRlRGV2aWNlTG9naW5SZXNwb25zZUKoAQoPY29tLmFwaS5hdXRoLnYxQhBBdXRoU2VydmljZVByb3RvUAFaNWdpdGh1Yi5jb20vc2tpbGxodWJocS9za2lsbGh1Yi9nZW4vYXBpL2F1dGgvdjE7YXV0aHYxogIDQUFYqgILQXBpLkF1dGguVjHKAgtBcGlcQXV0aFxWMeICF0FwaVxBdXRoXFYxXEdQQk1ldGFkYXRh6gINQXBpOjpBdXRoOjpWMWIGcHJvdG8z", [file_buf_validate_validate, file_google_protobuf_timestamp]);
+  fileDesc("Ch5hcGkvYXV0aC92MS9hdXRoX3NlcnZpY2UucHJvdG8SC2FwaS5hdXRoLnYxIlcKCElkZW50aXR5Eg8KB3VzZXJfaWQYASABKAkSEAoIdXNlcm5hbWUYAiABKAkSFQoNYWRtaW5pc3RyYXRvchgDIAEoCBIRCglmZWRlcmF0ZWQYBCABKAgiSgoMTG9naW5SZXF1ZXN0EhwKCHVzZXJuYW1lGAEgASgJQgq6SAdyBRABGIABEhwKCHBhc3N3b3JkGAIgASgJQgq6SAdyBRABGIAIIn4KDUxvZ2luUmVzcG9uc2USFAoMYWNjZXNzX3Rva2VuGAEgASgJEicKCGlkZW50aXR5GAIgASgLMhUuYXBpLmF1dGgudjEuSWRlbnRpdHkSLgoKZXhwaXJlc19hdBgDIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAiFAoSR2V0SWRlbnRpdHlSZXF1ZXN0Ij4KE0dldElkZW50aXR5UmVzcG9uc2USJwoIaWRlbnRpdHkYASABKAsyFS5hcGkuYXV0aC52MS5JZGVudGl0eSIPCg1Mb2dvdXRSZXF1ZXN0IhAKDkxvZ291dFJlc3BvbnNlIhkKF1N0YXJ0RGV2aWNlTG9naW5SZXF1ZXN0IqYBChhTdGFydERldmljZUxvZ2luUmVzcG9uc2USEwoLZGV2aWNlX2NvZGUYASABKAkSEQoJdXNlcl9jb2RlGAIgASgJEhgKEHZlcmlmaWNhdGlvbl91cmkYAyABKAkSLgoKZXhwaXJlc19hdBgEIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASGAoQaW50ZXJ2YWxfc2Vjb25kcxgFIAEoDSI9ChpDb21wbGV0ZURldmljZUxvZ2luUmVxdWVzdBIfCgtkZXZpY2VfY29kZRgBIAEoCUIKukgHcgUQIBiAAiJZChtDb21wbGV0ZURldmljZUxvZ2luUmVzcG9uc2USDwoHcGVuZGluZxgBIAEoCBIpCgVsb2dpbhgCIAEoCzIaLmFwaS5hdXRoLnYxLkxvZ2luUmVzcG9uc2UiXQoVQ2hhbmdlUGFzc3dvcmRSZXF1ZXN0EiMKEGN1cnJlbnRfcGFzc3dvcmQYASABKAlCCbpIBnIEIAEoSBIfCgxuZXdfcGFzc3dvcmQYAiABKAlCCbpIBnIEIAwoSCIYChZDaGFuZ2VQYXNzd29yZFJlc3BvbnNlIpgBCgtBY2Nlc3NUb2tlbhIKCgJpZBgBIAEoCRIMCgRuYW1lGAIgASgJEg0KBXNjb3BlGAMgASgJEhEKCW5hbWVzcGFjZRgEIAEoCRISCgpleHBpcmVzX2F0GAUgASgDEhIKCmNyZWF0ZWRfYXQYBiABKAMSFAoMbGFzdF91c2VkX2F0GAcgASgDEg8KB3Jldm9rZWQYCCABKAgiWAoYQ3JlYXRlQWNjZXNzVG9rZW5SZXF1ZXN0EgwKBG5hbWUYASABKAkSDQoFc2NvcGUYAiABKAkSEQoJbmFtZXNwYWNlGAMgASgJEgwKBGRheXMYBCABKA0iVAoZQ3JlYXRlQWNjZXNzVG9rZW5SZXNwb25zZRInCgV0b2tlbhgBIAEoCzIYLmFwaS5hdXRoLnYxLkFjY2Vzc1Rva2VuEg4KBnNlY3JldBgCIAEoCSIZChdMaXN0QWNjZXNzVG9rZW5zUmVxdWVzdCJEChhMaXN0QWNjZXNzVG9rZW5zUmVzcG9uc2USKAoGdG9rZW5zGAEgAygLMhguYXBpLmF1dGgudjEuQWNjZXNzVG9rZW4iJgoYUmV2b2tlQWNjZXNzVG9rZW5SZXF1ZXN0EgoKAmlkGAEgASgJIhsKGVJldm9rZUFjY2Vzc1Rva2VuUmVzcG9uc2UysQYKC0F1dGhTZXJ2aWNlEmIKEUNyZWF0ZUFjY2Vzc1Rva2VuEiUuYXBpLmF1dGgudjEuQ3JlYXRlQWNjZXNzVG9rZW5SZXF1ZXN0GiYuYXBpLmF1dGgudjEuQ3JlYXRlQWNjZXNzVG9rZW5SZXNwb25zZRJfChBMaXN0QWNjZXNzVG9rZW5zEiQuYXBpLmF1dGgudjEuTGlzdEFjY2Vzc1Rva2Vuc1JlcXVlc3QaJS5hcGkuYXV0aC52MS5MaXN0QWNjZXNzVG9rZW5zUmVzcG9uc2USYgoRUmV2b2tlQWNjZXNzVG9rZW4SJS5hcGkuYXV0aC52MS5SZXZva2VBY2Nlc3NUb2tlblJlcXVlc3QaJi5hcGkuYXV0aC52MS5SZXZva2VBY2Nlc3NUb2tlblJlc3BvbnNlElkKDkNoYW5nZVBhc3N3b3JkEiIuYXBpLmF1dGgudjEuQ2hhbmdlUGFzc3dvcmRSZXF1ZXN0GiMuYXBpLmF1dGgudjEuQ2hhbmdlUGFzc3dvcmRSZXNwb25zZRI+CgVMb2dpbhIZLmFwaS5hdXRoLnYxLkxvZ2luUmVxdWVzdBoaLmFwaS5hdXRoLnYxLkxvZ2luUmVzcG9uc2USUAoLR2V0SWRlbnRpdHkSHy5hcGkuYXV0aC52MS5HZXRJZGVudGl0eVJlcXVlc3QaIC5hcGkuYXV0aC52MS5HZXRJZGVudGl0eVJlc3BvbnNlEkEKBkxvZ291dBIaLmFwaS5hdXRoLnYxLkxvZ291dFJlcXVlc3QaGy5hcGkuYXV0aC52MS5Mb2dvdXRSZXNwb25zZRJfChBTdGFydERldmljZUxvZ2luEiQuYXBpLmF1dGgudjEuU3RhcnREZXZpY2VMb2dpblJlcXVlc3QaJS5hcGkuYXV0aC52MS5TdGFydERldmljZUxvZ2luUmVzcG9uc2USaAoTQ29tcGxldGVEZXZpY2VMb2dpbhInLmFwaS5hdXRoLnYxLkNvbXBsZXRlRGV2aWNlTG9naW5SZXF1ZXN0GiguYXBpLmF1dGgudjEuQ29tcGxldGVEZXZpY2VMb2dpblJlc3BvbnNlQqgBCg9jb20uYXBpLmF1dGgudjFCEEF1dGhTZXJ2aWNlUHJvdG9QAVo1Z2l0aHViLmNvbS9za2lsbGh1YmhxL3NraWxsaHViL2dlbi9hcGkvYXV0aC92MTthdXRodjGiAgNBQViqAgtBcGkuQXV0aC5WMcoCC0FwaVxBdXRoXFYx4gIXQXBpXEF1dGhcVjFcR1BCTWV0YWRhdGHqAg1BcGk6OkF1dGg6OlYxYgZwcm90bzM", [file_buf_validate_validate, file_google_protobuf_timestamp]);
 
 /**
  * Identity 是当前用户可见的账号摘要。
@@ -343,11 +343,253 @@ export const ChangePasswordResponseSchema: GenMessage<ChangePasswordResponse> = 
   messageDesc(file_api_auth_v1_auth_service, 12);
 
 /**
+ * AccessToken 描述当前操作的数据。
+ *
+ * @generated from message api.auth.v1.AccessToken
+ */
+export type AccessToken = Message<"api.auth.v1.AccessToken"> & {
+  /**
+   * 令牌标识。
+   *
+   * @generated from field: string id = 1;
+   */
+  id: string;
+
+  /**
+   * 用途名称。
+   *
+   * @generated from field: string name = 2;
+   */
+  name: string;
+
+  /**
+   * read 或 publish。
+   *
+   * @generated from field: string scope = 3;
+   */
+  scope: string;
+
+  /**
+   * 发布权限限定的空间。
+   *
+   * @generated from field: string namespace = 4;
+   */
+  namespace: string;
+
+  /**
+   * UTC 到期秒数。
+   *
+   * @generated from field: int64 expires_at = 5;
+   */
+  expiresAt: bigint;
+
+  /**
+   * UTC 创建秒数。
+   *
+   * @generated from field: int64 created_at = 6;
+   */
+  createdAt: bigint;
+
+  /**
+   * UTC 最近使用秒数。
+   *
+   * @generated from field: int64 last_used_at = 7;
+   */
+  lastUsedAt: bigint;
+
+  /**
+   * 是否已撤销。
+   *
+   * @generated from field: bool revoked = 8;
+   */
+  revoked: boolean;
+};
+
+/**
+ * Describes the message api.auth.v1.AccessToken.
+ * Use `create(AccessTokenSchema)` to create a new message.
+ */
+export const AccessTokenSchema: GenMessage<AccessToken> = /*@__PURE__*/
+  messageDesc(file_api_auth_v1_auth_service, 13);
+
+/**
+ * CreateAccessTokenRequest 描述当前操作的数据。
+ *
+ * @generated from message api.auth.v1.CreateAccessTokenRequest
+ */
+export type CreateAccessTokenRequest = Message<"api.auth.v1.CreateAccessTokenRequest"> & {
+  /**
+   * 用途名称。
+   *
+   * @generated from field: string name = 1;
+   */
+  name: string;
+
+  /**
+   * read 或 publish。
+   *
+   * @generated from field: string scope = 2;
+   */
+  scope: string;
+
+  /**
+   * 发布空间。
+   *
+   * @generated from field: string namespace = 3;
+   */
+  namespace: string;
+
+  /**
+   * 有效天数，范围一到九十。
+   *
+   * @generated from field: uint32 days = 4;
+   */
+  days: number;
+};
+
+/**
+ * Describes the message api.auth.v1.CreateAccessTokenRequest.
+ * Use `create(CreateAccessTokenRequestSchema)` to create a new message.
+ */
+export const CreateAccessTokenRequestSchema: GenMessage<CreateAccessTokenRequest> = /*@__PURE__*/
+  messageDesc(file_api_auth_v1_auth_service, 14);
+
+/**
+ * CreateAccessTokenResponse 描述当前操作的数据。
+ *
+ * @generated from message api.auth.v1.CreateAccessTokenResponse
+ */
+export type CreateAccessTokenResponse = Message<"api.auth.v1.CreateAccessTokenResponse"> & {
+  /**
+   * 令牌元数据。
+   *
+   * @generated from field: api.auth.v1.AccessToken token = 1;
+   */
+  token?: AccessToken | undefined;
+
+  /**
+   * 本次响应后不再可读取的凭据。
+   *
+   * @generated from field: string secret = 2;
+   */
+  secret: string;
+};
+
+/**
+ * Describes the message api.auth.v1.CreateAccessTokenResponse.
+ * Use `create(CreateAccessTokenResponseSchema)` to create a new message.
+ */
+export const CreateAccessTokenResponseSchema: GenMessage<CreateAccessTokenResponse> = /*@__PURE__*/
+  messageDesc(file_api_auth_v1_auth_service, 15);
+
+/**
+ * ListAccessTokensRequest 描述当前操作的数据。
+ *
+ * @generated from message api.auth.v1.ListAccessTokensRequest
+ */
+export type ListAccessTokensRequest = Message<"api.auth.v1.ListAccessTokensRequest"> & {
+};
+
+/**
+ * Describes the message api.auth.v1.ListAccessTokensRequest.
+ * Use `create(ListAccessTokensRequestSchema)` to create a new message.
+ */
+export const ListAccessTokensRequestSchema: GenMessage<ListAccessTokensRequest> = /*@__PURE__*/
+  messageDesc(file_api_auth_v1_auth_service, 16);
+
+/**
+ * ListAccessTokensResponse 描述当前操作的数据。
+ *
+ * @generated from message api.auth.v1.ListAccessTokensResponse
+ */
+export type ListAccessTokensResponse = Message<"api.auth.v1.ListAccessTokensResponse"> & {
+  /**
+   * 最多一百个令牌，未撤销且到期时间较晚的优先。
+   *
+   * @generated from field: repeated api.auth.v1.AccessToken tokens = 1;
+   */
+  tokens: AccessToken[];
+};
+
+/**
+ * Describes the message api.auth.v1.ListAccessTokensResponse.
+ * Use `create(ListAccessTokensResponseSchema)` to create a new message.
+ */
+export const ListAccessTokensResponseSchema: GenMessage<ListAccessTokensResponse> = /*@__PURE__*/
+  messageDesc(file_api_auth_v1_auth_service, 17);
+
+/**
+ * RevokeAccessTokenRequest 描述当前操作的数据。
+ *
+ * @generated from message api.auth.v1.RevokeAccessTokenRequest
+ */
+export type RevokeAccessTokenRequest = Message<"api.auth.v1.RevokeAccessTokenRequest"> & {
+  /**
+   * 本人令牌标识。
+   *
+   * @generated from field: string id = 1;
+   */
+  id: string;
+};
+
+/**
+ * Describes the message api.auth.v1.RevokeAccessTokenRequest.
+ * Use `create(RevokeAccessTokenRequestSchema)` to create a new message.
+ */
+export const RevokeAccessTokenRequestSchema: GenMessage<RevokeAccessTokenRequest> = /*@__PURE__*/
+  messageDesc(file_api_auth_v1_auth_service, 18);
+
+/**
+ * RevokeAccessTokenResponse 描述当前操作的数据。
+ *
+ * @generated from message api.auth.v1.RevokeAccessTokenResponse
+ */
+export type RevokeAccessTokenResponse = Message<"api.auth.v1.RevokeAccessTokenResponse"> & {
+};
+
+/**
+ * Describes the message api.auth.v1.RevokeAccessTokenResponse.
+ * Use `create(RevokeAccessTokenResponseSchema)` to create a new message.
+ */
+export const RevokeAccessTokenResponseSchema: GenMessage<RevokeAccessTokenResponse> = /*@__PURE__*/
+  messageDesc(file_api_auth_v1_auth_service, 19);
+
+/**
  * AuthService 管理当前 Hub 的独立身份和凭据。
  *
  * @generated from service api.auth.v1.AuthService
  */
 export const AuthService: GenService<{
+  /**
+   * 创建只展示一次的自动化令牌。
+   *
+   * @generated from rpc api.auth.v1.AuthService.CreateAccessToken
+   */
+  createAccessToken: {
+    methodKind: "unary";
+    input: typeof CreateAccessTokenRequestSchema;
+    output: typeof CreateAccessTokenResponseSchema;
+  },
+  /**
+   * 读取本人令牌元数据。
+   *
+   * @generated from rpc api.auth.v1.AuthService.ListAccessTokens
+   */
+  listAccessTokens: {
+    methodKind: "unary";
+    input: typeof ListAccessTokensRequestSchema;
+    output: typeof ListAccessTokensResponseSchema;
+  },
+  /**
+   * 立即撤销本人的自动化令牌。
+   *
+   * @generated from rpc api.auth.v1.AuthService.RevokeAccessToken
+   */
+  revokeAccessToken: {
+    methodKind: "unary";
+    input: typeof RevokeAccessTokenRequestSchema;
+    output: typeof RevokeAccessTokenResponseSchema;
+  },
   /**
    * ChangePassword 校验旧密码后更改本地密码并撤销全部会话。
    *

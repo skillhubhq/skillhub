@@ -139,17 +139,9 @@ func ResolveTarget(tool, scope, project, home, name string) (string, string, err
 	if !packageformat.ValidName(name) {
 		return "", "", errors.New("invalid skill name")
 	}
-	directory := ""
-	switch tool {
-	case "codex":
-		directory = ".agents"
-	case "claude-code":
-		directory = ".claude"
-		if name == "synced" || name == "anthropic-skills" {
-			return "", "", errors.New("skill name is reserved by Claude Code")
-		}
-	default:
-		return "", "", errors.New("supported tools: codex, claude-code")
+	directory, directoryErr := toolDirectory(tool, scope, name)
+	if directoryErr != nil {
+		return "", "", directoryErr
 	}
 	var base string
 	var err error
@@ -190,7 +182,7 @@ func ResolveTarget(tool, scope, project, home, name string) (string, string, err
 	if err != nil {
 		return "", "", err
 	}
-	target, err := canonicalTarget(filepath.Join(base, directory, "skills", name))
+	target, err := canonicalTarget(filepath.Join(base, directory, name))
 	if err == nil && scope == "project" {
 		// 工具目录可以在项目内复用，但不能由仓库中的符号链接导向项目外。
 		relative, relativeErr := filepath.Rel(canonicalProject, target)

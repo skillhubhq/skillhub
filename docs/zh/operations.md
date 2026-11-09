@@ -42,7 +42,7 @@ skillhub-server restore --input /srv/skillhub-backups/before-upgrade \
   --data /srv/skillhub/recovered-before-upgrade --timeout 10m
 ```
 
-保留实例身份、账号密码、治理、包和历史审计/幂等数据；移除全部会话和待定设备授权，新增恢复审计。客户端需重登。快照后的密码、禁用、权限和内容变化不在恢复结果中，重新开放前必须核对。
+保留实例身份、账号密码、治理、包和历史审计/幂等数据；移除全部会话、待定设备授权和自动化令牌，新增恢复审计。客户端需重登。快照后的密码、禁用、权限和内容变化不在恢复结果中，重新开放前必须核对。
 
 1. 校验并恢复，保留当前目录用于回退。
 2. 停旧进程，不能同时服务同一 origin。
@@ -70,7 +70,7 @@ skillhub-server restore --input /srv/skillhub-backups/before-upgrade \
 
 ## 账号生命周期与应急恢复 [#account-lifecycle-and-emergency-recovery]
 
-Web/App“设置 → 账号安全”修改本地密码，需要当前密码。Hub 管理员在人员管理重置其他本地用户密码、授予/撤销管理员身份（含已有 SSO 用户）；修改密码或管理身份撤销该用户会话/设备授权。最后一个有效管理员不能降级，企业密码仍由 IdP 管理。不发送重置邮件或自动过期密码。
+Web/App“设置 → 账号安全”修改本地密码，需要当前密码。Hub 管理员在人员管理重置其他本地用户密码、授予/撤销管理员身份（含已有 SSO 用户）；修改密码或管理身份撤销该用户会话、设备授权和自动化令牌。最后一个有效管理员不能降级，企业密码仍由 IdP 管理。不发送重置邮件或自动过期密码。
 
 ```sh
 skillhub password-change --source work --passwords-stdin
@@ -87,7 +87,7 @@ skillhub-server recover-admin --data /var/lib/skillhub/data \
   --username EXISTING_LOCAL_USERNAME --password-stdin
 ```
 
-仅恢复已有本地账号：启用、授予管理员、设置密码、撤销会话并记录审计；拒绝不存在或 SSO 账号。排他目录锁阻止与服务同时运行。数据目录访问本身是管理员权限，应严格限制。
+仅恢复已有本地账号：启用、授予管理员、设置密码、撤销会话、设备授权和自动化令牌并记录审计；拒绝不存在或 SSO 账号。排他目录锁阻止与服务同时运行。数据目录访问本身是管理员权限，应严格限制。
 
 ## 候选构建与目标验收 [#candidate-preparation-and-internal-server-acceptance]
 

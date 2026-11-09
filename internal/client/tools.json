@@ -1,0 +1,32 @@
+[
+  {
+    "id": "codex",
+    "name": "Codex",
+    "project_directory": ".agents/skills",
+    "global_directory": ".agents/skills"
+  },
+  {
+    "id": "claude-code",
+    "name": "Claude Code",
+    "project_directory": ".claude/skills",
+    "global_directory": ".claude/skills"
+  },
+  {
+    "id": "cursor",
+    "name": "Cursor",
+    "project_directory": ".cursor/skills",
+    "global_directory": ".cursor/skills"
+  },
+  {
+    "id": "gemini-cli",
+    "name": "Gemini CLI",
+    "project_directory": ".gemini/skills",
+    "global_directory": ".gemini/skills"
+  },
+  {
+    "id": "github-copilot",
+    "name": "GitHub Copilot",
+    "project_directory": ".github/skills",
+    "global_directory": ".copilot/skills"
+  }
+]
