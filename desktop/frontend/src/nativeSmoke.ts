@@ -23,6 +23,8 @@ import { API } from "./ui";
 // 运行在测试构建的真实系统 WebView 内，通过生产绑定验证原生桥接与产品流程。
 export async function runNativeSmoke() {
   if (await runUpgradeSmoke()) return;
+  // 独立流程使用固定语言；覆盖升级用例单独验证原有偏好保留。
+  setLanguage("en");
   const checks: string[] = [];
   const started = performance.now();
   let error = "";
