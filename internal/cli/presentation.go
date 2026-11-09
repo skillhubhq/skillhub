@@ -14,6 +14,7 @@ import (
 	"connectrpc.com/connect"
 	"github.com/mattn/go-isatty"
 	"github.com/skillhubhq/skillhub/internal/client"
+	"github.com/skillhubhq/skillhub/internal/hub"
 	"github.com/spf13/cobra"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
@@ -81,6 +82,56 @@ func (a *application) output(cmd *cobra.Command, value any) error {
 	}
 	p := &presentation{color: terminalColor(cmd.OutOrStdout(), a.noColor)}
 	switch v := value.(type) {
+	case []client.ToolAdapter:
+		p.heading("Installation tools")
+		for _, v := range v {
+			p.gap()
+			p.field(v.Name, v.ID)
+			p.field("Project", v.ProjectDirectory+"/NAME")
+			p.field("Global", "~/"+v.GlobalDirectory+"/NAME")
+		}
+	case *client.SuiteInstallPlan:
+		p.heading("Suite change preview")
+		for _, v := range v.Plans {
+			p.gap()
+			p.plan(v, false)
+		}
+		for _, target := range v.Retained {
+			p.field("Kept installed", target)
+		}
+	case []client.SuiteInstallation:
+		p.heading("Installed suites")
+		for _, v := range v {
+			p.gap()
+			p.field("Suite", v.Coordinate.Namespace+"/"+v.Coordinate.Name+"@"+v.Coordinate.Version)
+			p.field("Target", v.Target)
+			for _, m := range v.Members {
+				p.field("Member", m.Target)
+			}
+		}
+	case hub.ReleaseDifference:
+		p.heading(fmt.Sprintf("Version changes · %d files", len(v.Files)))
+		for _, f := range v.Files {
+			p.field(f.Change, f.Path)
+			if f.BeforeExecutable != f.AfterExecutable {
+				p.hint("Executable permission changed")
+			}
+			if f.TextAvailable {
+				p.field("Before", f.BeforeText)
+				p.field("After", f.AfterText)
+			}
+		}
+	case client.SubscriptionPage:
+		p.heading("Following")
+		for _, s := range v.Items {
+			status := "Available"
+			if !s.Available {
+				status = "Unavailable"
+			}
+			p.field(s.Namespace+"/"+s.Name, status)
+		}
+		p.field("Next page", v.NextPage)
+
 	case client.SkillConfiguration:
 		p.heading("Local configuration · " + v.Installation.Name)
 		p.field("Target", v.Installation.Target)
@@ -236,7 +287,7 @@ func (a *application) output(cmd *cobra.Command, value any) error {
 			p.hint("No locked skills to restore.")
 		}
 	case []client.ProjectRestoreResult:
-		p.heading("Project restore results")
+		p.heading("Installation results")
 		for _, result := range v {
 			p.gap()
 			p.field("Target", result.Target)
@@ -361,6 +412,56 @@ func quantity(n int, noun string) string {
 // 不认识的管理响应也以可读字段展示；原始字段、枚举和精度由 --json 保留。
 func (p *presentation) tree(value any, indent string) {
 	switch v := value.(type) {
+	case []client.ToolAdapter:
+		p.heading("Installation tools")
+		for _, v := range v {
+			p.gap()
+			p.field(v.Name, v.ID)
+			p.field("Project", v.ProjectDirectory+"/NAME")
+			p.field("Global", "~/"+v.GlobalDirectory+"/NAME")
+		}
+	case *client.SuiteInstallPlan:
+		p.heading("Suite change preview")
+		for _, v := range v.Plans {
+			p.gap()
+			p.plan(v, false)
+		}
+		for _, target := range v.Retained {
+			p.field("Kept installed", target)
+		}
+	case []client.SuiteInstallation:
+		p.heading("Installed suites")
+		for _, v := range v {
+			p.gap()
+			p.field("Suite", v.Coordinate.Namespace+"/"+v.Coordinate.Name+"@"+v.Coordinate.Version)
+			p.field("Target", v.Target)
+			for _, m := range v.Members {
+				p.field("Member", m.Target)
+			}
+		}
+	case hub.ReleaseDifference:
+		p.heading(fmt.Sprintf("Version changes · %d files", len(v.Files)))
+		for _, f := range v.Files {
+			p.field(f.Change, f.Path)
+			if f.BeforeExecutable != f.AfterExecutable {
+				p.hint("Executable permission changed")
+			}
+			if f.TextAvailable {
+				p.field("Before", f.BeforeText)
+				p.field("After", f.AfterText)
+			}
+		}
+	case client.SubscriptionPage:
+		p.heading("Following")
+		for _, s := range v.Items {
+			status := "Available"
+			if !s.Available {
+				status = "Unavailable"
+			}
+			p.field(s.Namespace+"/"+s.Name, status)
+		}
+		p.field("Next page", v.NextPage)
+
 	case map[string]any:
 		keys := make([]string, 0, len(v))
 		for k := range v {

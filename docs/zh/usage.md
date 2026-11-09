@@ -121,6 +121,9 @@ skillhub remove /absolute/path/to/managed/skill --yes
 | --- | --- | --- |
 | Codex | `~/.agents/skills/NAME` | `PROJECT/.agents/skills/NAME` |
 | Claude Code | `~/.claude/skills/NAME` | `PROJECT/.claude/skills/NAME` |
+| Cursor | `~/.cursor/skills/NAME` | `PROJECT/.cursor/skills/NAME` |
+| Gemini CLI | `~/.gemini/skills/NAME` | `PROJECT/.gemini/skills/NAME` |
+| GitHub Copilot | `~/.copilot/skills/NAME` | `PROJECT/.github/skills/NAME` |
 
 Claude 保留的 `synced`、`anthropic-skills` 名称会拒绝。暂不自动发现自定义工具配置根目录。无需后台守护进程。
 
@@ -155,6 +158,8 @@ skillhub project list
 
 更新共享要求需重新 add 精确版本、lock、检查并 restore。`project remove NAME --tool TOOL` 仅删期望条目，实际卸载用 `skillhub remove TARGET`。修改清单使锁失效，元数据写入采用临时文件/原子替换。`project show` 注册快捷入口，`project forget --project PATH` 仅忘记入口，保留项目文件和安装。
 
+App 与 CLI 共用本地数据时应一起升级。升级前备份已关闭的客户端数据目录；回退到旧结构版本时，应恢复对应的数据快照和程序。
+
 ## 备份与恢复 [#hub-backup-and-recovery]
 
 ```sh
@@ -180,3 +185,63 @@ python3 scripts/smoke.py --server bin/skillhub-server --cli bin/skillhub
 Web 仅展示自身 Hub，站点名与 Logo 合并；App 可管理多个独立连接。两者共享社区、创作、评测、审核和管理界面，默认英文，支持简体中文及浅色/深色/系统主题。Web 安装提供 CLI 操作指引和归档下载，不能直接写本机工具目录；App 则展示路径和计划后安装。源码文档是公开软件资料，即使私有 Hub 的 `/docs/` 也公开，不包含社区运行数据。
 
 点赞、收藏和讨论以技能为单位。收藏每个技能只显示一项，默认打开最高稳定版本；评论标注讨论的版本。升级或清理旧包不会清空这些互动，技能访问规则统一作用于全部版本和讨论。失效收藏仍可由本人移除。
+
+### 版本差异与更新订阅
+
+在技能详情或投稿预览中选择「比较版本」，指定基线版本，查看新增、删除和修改的文件，包括可执行权限。文本按行标记差异，大文件和二进制文件显示变更状态。比较双方都需对当前账号可访问。
+
+```sh
+skillhub compare company/team/review 1.0.0 1.1.0
+skillhub subscriptions follow company/team/review
+skillhub subscriptions list --source company
+skillhub subscriptions unfollow company/team/review
+```
+
+「订阅更新」跟随技能而不是单个版本。新版本正式发布时，有访问权限的订阅者会收到站内通知；待审核提交不会触发通知。发布与通知在同一事务内完成。访问权撤销后，通知会隐藏内容。在「通知 → 我的订阅」可管理订阅，包括取消已不可访问的技能。订阅不会自动修改本地文件。
+
+### 技能套装
+
+套装通过命名空间、名称、精确版本和 SHA-256 摘要，固定同一 Hub 中的 1–50 个技能。在「发布 → 创建技能套装」中搜索技能、选择版本并设置入口技能。套装复用团队的发布权限、扫描与审核流程。投稿、审核和下载都会检查每个成员当前的访问权限，套装不会额外授予访问权。套装不能嵌套，也不能含有目标文件夹同名的技能。
+
+App 和 CLI 的安装、更新、移除入口会展开套装，先展示所有文件变更。入口文档指明从哪个技能开始，Hub 不执行技能。Web 详情展示套装成员，提供「在 SkillHub 中打开」与 CLI 安装指引。
+
+```sh
+skillhub install company/team/starter@1.0.0 --tool cursor --scope project --dry-run
+skillhub install company/team/starter@1.0.0 --tool cursor --scope project --yes
+skillhub suites list
+skillhub update /path/to/project/.cursor/skills/starter --yes
+skillhub remove /path/to/project/.cursor/skills/starter --yes
+```
+
+移除套装会保留单独安装、被其他套装共用或用户修改过的成员。不会覆盖独立安装的冲突版本；被套装固定的成员应通过套装更新。每个目录原子写入，操作中断后保留已完成内容与归属记录，可以重试。套装总下载量上限为 64 MiB。项目清单目前记录单个技能；将套装安装到项目请使用 `install --scope project`。
+
+CLI 发布：保存以下 JSON 定义，再运行 `skillhub suites publish suite.json --source company`：
+
+```json
+{
+  "namespace": "team",
+  "name": "starter",
+  "version": "1.0.0",
+  "description": "Tools for reviewing a change",
+  "visibility": 2,
+  "entry": "team/review",
+  "members": [{"namespace": "team", "name": "review", "version": "1.0.0"}]
+}
+```
+
+客户端提交前解析并固定摘要。`visibility: 2` 表示 Hub 成员，`1` 表示公开，仍受 Hub 访问策略约束。手工制作的包需要在 `SKILL.md` 同目录提供 `skillhub.suite.json`，包含 `schema: 1`、`entry` 和带 `digest` 的成员列表。
+
+### 自动化访问令牌
+
+在「账号 → 安全 → 自动化令牌」或 CLI 中创建：
+
+```sh
+skillhub tokens create build-read --source company --scope read --days 30 --output /secure/build-read.token
+skillhub tokens create release-submit --source company --scope publish --namespace team --days 30 --output /secure/release-submit.token
+skillhub tokens list --source company
+skillhub tokens revoke TOKEN_ID --source company
+```
+
+App/Web 只展示一次密钥，CLI 写入仅当前用户可读的新文件。将密钥保存在 CI 的密钥管理功能中，为 `company` 连接注入 `SKILLHUB_TOKEN_COMPANY` 环境变量；别名中的连字符转换为下划线。不要放入命令参数或项目文件。
+
+只读令牌可发现、比较和下载有权访问的技能；投稿令牌额外允许向指定团队提交，并遵循正常审核规则。令牌不能审核、管理 Hub、创建凭据或修改社区数据，始终受当前账号与团队权限约束。有效期 1–90 天，可立即撤销，每人最多 20 个有效令牌。账号安全变更和备份恢复会撤销令牌。技能运行时密钥与访问令牌分开管理，仍保存在本机。

@@ -26,7 +26,7 @@ func TestClientReopenPreservesStateAndRejectsUnsupportedSchema(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err = database.Exec("UPDATE client_schema SET version=1"); err != nil {
+	if _, err = database.Exec("DROP TABLE suite_installations; UPDATE client_schema SET version=2"); err != nil {
 		t.Fatal(err)
 	}
 	if err = database.Close(); err != nil {
@@ -37,7 +37,7 @@ func TestClientReopenPreservesStateAndRejectsUnsupportedSchema(t *testing.T) {
 		t.Fatal(err)
 	}
 	var version int
-	if err = store.db.QueryRow("SELECT version FROM client_schema").Scan(&version); err != nil || version != 2 {
+	if err = store.db.QueryRow("SELECT version FROM client_schema").Scan(&version); err != nil || version != 3 {
 		t.Fatal("complete client structure did not preserve schema identity", err)
 	}
 	items, err := store.ListInstallations(context.Background())

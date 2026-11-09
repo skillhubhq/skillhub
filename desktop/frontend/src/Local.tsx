@@ -24,6 +24,11 @@ import {
 export function Installed() {
   const ui = useUI();
   const inventory = useResource(() => API.ListInstalled(), [], ui.revision);
+  const suites = useResource(() => API.Suites(), [], ui.revision);
+  const pinnedBy = (target: string) =>
+    (suites.value ?? []).filter((s) =>
+      (s.members ?? []).some((m) => m.target === target),
+    );
   const items = inventory.value ?? [];
   const setItems = inventory.setValue;
   const [filter, setFilter] = useState("");
@@ -45,7 +50,9 @@ export function Installed() {
   const checkUpdates = (targets: Installation[], source = "") =>
     void ui.run(async () => {
       const results: UpdateCheck[] = [];
-      for (const item of targets) {
+      for (const item of targets.filter(
+        (i) => pinnedBy(i.target).length === 0,
+      )) {
         results.push(
           ...((await API.CheckUpdatesFrom(item.target, source)) ?? []),
         );
@@ -184,6 +191,10 @@ export function Installed() {
               !check.error &&
               !check.version_unavailable &&
               !check.available_version;
+            const suite = (suites.value ?? []).find(
+              (s) => s.target === item.target,
+            );
+            const parents = pinnedBy(item.target);
             const project = item.project?.split(/[\\/]/).pop();
             return (
               <article className="installed-row" key={item.id}>
@@ -191,6 +202,11 @@ export function Installed() {
                   <div className="installation-heading">
                     <SkillSymbol icon={item.icon} />
                     <h2>{skillTitle(item)}</h2>
+                    {suite && (
+                      <span className="badge">
+                        {t("Suite", "套装")} · {suite.members?.length ?? 0}
+                      </span>
+                    )}
                     <span className="version">v{item.version}</span>
                   </div>
                   <span className="skill-coordinate">
@@ -207,6 +223,14 @@ export function Installed() {
                       {hubName(item)} / {item.namespace}
                     </span>
                   </div>
+                  {parents.length > 0 && (
+                    <p className="muted">
+                      {t("Updated with suite", "随套装更新")}:{" "}
+                      {parents
+                        .map((s) => s.target.split(/[\\/]/).pop())
+                        .join(", ")}
+                    </p>
+                  )}
                   {item.provenance && (
                     <UpstreamAuthor value={item.provenance} />
                   )}
@@ -283,7 +307,11 @@ export function Installed() {
                   >
                     {t("Configure", "配置")}
                   </button>
-                  {current ? (
+                  {parents.length > 0 ? (
+                    <span className="muted">
+                      {t("Version pinned by suite", "版本由套装固定")}
+                    </span>
+                  ) : current ? (
                     <span className="installation-current" role="status">
                       {t("Up to date", "已是最新")}
                     </span>
@@ -314,7 +342,7 @@ export function Installed() {
                   )}
                   <button
                     className="text-danger"
-                    disabled={ui.busy}
+                    disabled={ui.busy || parents.length > 0}
                     onClick={() => ui.plan(() => API.PlanRemove(item.target))}
                   >
                     {t("Uninstall")}

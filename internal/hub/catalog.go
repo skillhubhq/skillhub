@@ -195,6 +195,9 @@ func (s *Store) SubmitRelease(ctx context.Context, actor Identity, key string, c
 		if err != nil || len(bundleMarkdown(bundle)) > 256<<10 {
 			return Release{}, ErrInvalid
 		}
+		if err = s.validateSuite(ctx, tx, user, bundle); err != nil {
+			return Release{}, err
+		}
 		if err = provenance.Validate(cmd.Provenance, bundle); err != nil {
 			return Release{}, ErrInvalid
 		}
@@ -284,6 +287,9 @@ func (s *Store) SubmitRelease(ctx context.Context, actor Identity, key string, c
 			return Release{}, err
 		}
 		if !review {
+			if err = s.notifySubscribers(ctx, tx, id); err != nil {
+				return Release{}, err
+			}
 			if err = publishSkillDetails(ctx, tx, id); err != nil {
 				return Release{}, err
 			}
@@ -325,6 +331,17 @@ func (s *Store) ReviewRelease(ctx context.Context, actor Identity, key string, c
 		}
 		status := taxonomy.ReleaseStatus_RELEASE_STATUS_REJECTED
 		if cmd.Approve {
+			raw, e := s.readBlob(r.Digest)
+			if e != nil {
+				return Release{}, e
+			}
+			bundle, e := packageformat.Inspect(raw)
+			if e != nil {
+				return Release{}, e
+			}
+			if e = s.validateSuite(ctx, tx, user, bundle); e != nil {
+				return Release{}, e
+			}
 			report, err := latestScan(ctx, tx, r.ID)
 			if err != nil {
 				return Release{}, err
@@ -344,6 +361,9 @@ func (s *Store) ReviewRelease(ctx context.Context, actor Identity, key string, c
 			return Release{}, err
 		}
 		if status == taxonomy.ReleaseStatus_RELEASE_STATUS_PUBLISHED {
+			if err = s.notifySubscribers(ctx, tx, r.ID); err != nil {
+				return Release{}, err
+			}
 			if err = publishSkillDetails(ctx, tx, r.ID); err != nil {
 				return Release{}, err
 			}
@@ -488,6 +508,13 @@ func (s *Store) DownloadRelease(ctx context.Context, actor Identity, namespace, 
 	}
 	data, err := s.readBlob(r.Digest)
 	if err != nil {
+		return Release{}, nil, err
+	}
+	bundle, err := packageformat.Inspect(data)
+	if err != nil {
+		return Release{}, nil, err
+	}
+	if err = s.validateSuite(ctx, tx, user, bundle); err != nil {
 		return Release{}, nil, err
 	}
 	return r, data, nil

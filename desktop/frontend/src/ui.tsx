@@ -1,3 +1,4 @@
+import toolAdapters from "../../../internal/client/tools.json";
 import { lockModalScroll } from "./modalScroll";
 import { Select } from "./Select";
 import { t } from "./i18n";
@@ -81,7 +82,7 @@ export const visibilityLabel = (value: Visibility) =>
 export const roleLabel = (value: Role) =>
   t(roleLabels[value] ?? "Unknown role");
 export const toolLabel = (value: string) =>
-  value === "codex" ? "Codex" : "Claude Code";
+  toolAdapters.find((tool) => tool.id === value)?.name ?? value;
 export function Field({
   label,
   children,
@@ -154,8 +155,11 @@ export function ToolSelect({
       value={value}
       onChange={(e) => onChange(e.target.value)}
     >
-      <option value="codex">Codex</option>
-      <option value="claude-code">Claude Code</option>
+      {toolAdapters.map((tool) => (
+        <option key={tool.id} value={tool.id}>
+          {tool.name}
+        </option>
+      ))}
     </Select>
   );
 }
@@ -273,9 +277,11 @@ export function Modal({
 export function PreviewBody({
   preview,
   view = "all",
+  actions,
 }: {
   preview: ReleasePreview;
   view?: "all" | "readme" | "files";
+  actions?: React.ReactNode;
 }) {
   const ui = useUI();
   const [file, setFile] = useState<PreviewContent | null>(null);
@@ -337,7 +343,12 @@ export function PreviewBody({
         </p>
       )}
       {view !== "files" && !file && (
-        <SkillDocument key={r.id} text={r.markdown} onNavigate={openDocument} />
+        <SkillDocument
+          key={r.id}
+          text={r.markdown}
+          onNavigate={openDocument}
+          actions={actions}
+        />
       )}
       {file && (
         <div ref={content} className="package-document">

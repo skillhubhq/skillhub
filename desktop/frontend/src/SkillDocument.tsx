@@ -1,5 +1,5 @@
 import { t } from "./i18n";
-import { useState, useRef } from "react";
+import { useState, useRef, type ReactNode } from "react";
 import { ProjectLink } from "./Downloads";
 import { documentLink, headingAnchor } from "./documentLinks";
 import Markdown from "react-markdown";
@@ -9,11 +9,13 @@ import remarkGfm from "remark-gfm";
 export function SkillDocument({
   text,
   controls = true,
+  actions,
   path = "SKILL.md",
   onNavigate,
 }: {
   text: string;
   controls?: boolean;
+  actions?: ReactNode;
   path?: string;
   onNavigate?: (path: string, anchor: string) => void;
 }) {
@@ -29,6 +31,7 @@ export function SkillDocument({
           role="group"
           aria-label={t("Document view")}
         >
+          {actions}
           <button
             aria-pressed={!raw && !large}
             disabled={large}

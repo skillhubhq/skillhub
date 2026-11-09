@@ -13,6 +13,7 @@ import (
 	"github.com/skillhubhq/skillhub/internal/packageformat"
 	"github.com/skillhubhq/skillhub/internal/provenance"
 	"github.com/skillhubhq/skillhub/internal/provenancewire"
+	"github.com/skillhubhq/skillhub/internal/skillsuite"
 )
 
 type ReleaseInfo struct {
@@ -54,9 +55,10 @@ type PreviewFile struct {
 	Executable bool   `json:"executable"`
 }
 type ReleasePreview struct {
-	Release ReleaseInfo   `json:"release"`
-	Files   []PreviewFile `json:"files"`
-	Target  PreviewTarget `json:"target"`
+	Suite   *skillsuite.Manifest `json:"suite,omitempty"`
+	Release ReleaseInfo          `json:"release"`
+	Files   []PreviewFile        `json:"files"`
+	Target  PreviewTarget        `json:"target"`
 }
 
 // PreviewTarget 绑定待查看的固定版本；文件读取仍需重新验证源身份与下载权限。
@@ -93,6 +95,10 @@ func inspectPreview(release *catalogv1.Release, archive []byte) (ReleasePreview,
 		return ReleasePreview{}, err
 	}
 	result := ReleasePreview{Release: ReleaseInformation(release), Files: []PreviewFile{}}
+	result.Suite, err = skillsuite.FromBundle(bundle)
+	if err != nil {
+		return ReleasePreview{}, err
+	}
 	// 正文来自已校验的包，不能让独立的服务端预览文本替代审核内容。
 	result.Release.Markdown = bundle.Markdown
 	for _, file := range bundle.Files {

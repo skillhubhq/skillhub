@@ -1,3 +1,5 @@
+import { VersionComparison } from "./VersionComparison";
+import { SubscribeButton } from "./Subscriptions";
 import { SkillMetadata } from "./SkillMetadata";
 import { ProvenanceDetails } from "./ProvenancePanel";
 import { skillWebURL } from "./official";
@@ -666,7 +668,9 @@ export function Discover() {
               <Icon name="installed" />
               {installed.length
                 ? t("Install elsewhere", "安装到其他位置")
-                : t("Install skill")}
+                : preview?.suite
+                  ? t("Install suite", "安装套装")
+                  : t("Install skill")}
               <span>v{version}</span>
             </button>
             {preview && (
@@ -681,6 +685,15 @@ export function Discover() {
                   setFocusComment((n) => n + 1);
                 }}
               />
+            )}
+            {preview && (
+              <VersionComparison
+                coordinate={selected.coordinate}
+                release={preview.release}
+              />
+            )}
+            {detailSummary.value?.can_interact && (
+              <SubscribeButton coordinate={selected.coordinate} />
             )}
             <SkillMetadata
               source={selected.coordinate.split("/")[0]}
@@ -859,6 +872,29 @@ export function Discover() {
                         detailTab === "discussion" || detailTab === "evaluation"
                       }
                     >
+                      {preview.suite && (
+                        <section className="preference-section">
+                          <h3>{t("Included skills", "套装内的技能")}</h3>
+                          <ul>
+                            {preview.suite.members?.map((m) => (
+                              <li key={m.name}>
+                                <button
+                                  onClick={() =>
+                                    ui.navigate(
+                                      `discover?${new URLSearchParams({ source: selected.coordinate.split("/")[0], skill: m.namespace + "/" + m.name, version: m.version })}`,
+                                    )
+                                  }
+                                >
+                                  {m.namespace}/{m.name} · {m.version}
+                                </button>
+                                {preview.suite?.entry ===
+                                  m.namespace + "/" + m.name &&
+                                  ` · ${t("Start here", "入口")}`}
+                              </li>
+                            ))}
+                          </ul>
+                        </section>
+                      )}
                       <PreviewBody
                         preview={preview}
                         view={detailTab === "files" ? "files" : "readme"}
@@ -912,6 +948,7 @@ export function Discover() {
           </p>
           {isWeb ? (
             <WebInstallGuide
+              suite={!!preview?.suite}
               url={
                 ui.sources.find(
                   (s) => s.alias === selected.coordinate.split("/")[0],

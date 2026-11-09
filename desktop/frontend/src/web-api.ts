@@ -1,3 +1,14 @@
+import type { AccessToken as TokenWire } from "../../../sdk/typescript/gen/api/auth/v1/auth_service_pb";
+const tokenView = (v: TokenWire) => ({
+  id: v.id,
+  name: v.name,
+  scope: v.scope,
+  namespace: v.namespace,
+  expires_at: Number(v.expiresAt),
+  created_at: Number(v.createdAt),
+  last_used_at: Number(v.lastUsedAt),
+  revoked: v.revoked,
+});
 import type { NamespaceLifecycle as LifecycleWire } from "../../../sdk/typescript/gen/api/admin/v1/admin_service_pb";
 const lifecycleView = (v?: LifecycleWire) => {
   if (!v) throw new Error("Team lifecycle unavailable");
@@ -27,7 +38,7 @@ import {
   type Evidence,
 } from "../../../sdk/typescript/src/index";
 import { parseDocument } from "yaml";
-import { unzipSync } from "fflate";
+import { unzipSync, zipSync, strToU8 } from "fflate";
 import type { PlatformAPI } from "./platform";
 import type {
   PublishForm,
@@ -238,6 +249,11 @@ async function preview(target: PreviewTarget) {
       executable: false,
     })),
     bundle,
+    suite: bundle.files["skillhub.suite.json"]
+      ? JSON.parse(
+          new TextDecoder().decode(bundle.files["skillhub.suite.json"]),
+        )
+      : undefined,
   };
 }
 export async function publishPackage(form: PublishForm, archive: Uint8Array) {
@@ -283,6 +299,115 @@ export async function publishPackage(form: PublishForm, archive: Uint8Array) {
   );
 }
 const supported: Partial<PlatformAPI> = {
+  PublishSuite: async (form) => {
+    if (
+      !(await clients.registry.getRegistry({})).capabilities.includes(
+        "catalog.suites.v1",
+      )
+    )
+      throw new Error(
+        t(
+          "This Hub needs an upgrade to accept skill suites.",
+          "此 Hub 需要升级后才能接收技能套装。",
+        ),
+      );
+    if (!form.members || form.members.length < 1 || form.members.length > 50)
+      throw new Error(t("Choose 1–50 skills", "请选择 1–50 个技能"));
+    const members = [];
+    for (const m of form.members) {
+      const r = await clients.catalog.downloadRelease({
+        namespace: m.namespace,
+        name: m.name,
+        version: m.version,
+      });
+      const b = await inspectArchive(r.archive);
+      if (b.files["skillhub.suite.json"])
+        throw new Error(
+          t("Nested suites are not supported", "套装不能包含其他套装"),
+        );
+      if ((m.digest && m.digest !== b.digest) || b.digest !== r.release?.digest)
+        throw new Error(t("Content changed. Reload the preview."));
+      members.push({ ...m, digest: b.digest });
+    }
+    const manifest = { schema: 1, entry: form.entry, members };
+    const markdown =
+      `---\nname: ${form.name}\ndescription: ${JSON.stringify(form.description)}\n---\n# ${form.name}\n\n${form.description}\n\nEntry skill: ${form.entry}.\n` +
+      members.map((m) => `\n- ${m.namespace}/${m.name}@${m.version}`).join("");
+    const archive = zipSync({
+      "SKILL.md": strToU8(markdown),
+      "skillhub.suite.json": strToU8(JSON.stringify(manifest)),
+    });
+    return info(
+      (
+        await clients.publishing.submitRelease({
+          mutation: { idempotencyKey: form.request_id },
+          namespace: form.namespace,
+          version: form.version,
+          visibility: Number(form.visibility),
+          archive,
+        })
+      ).release,
+    );
+  },
+
+  CompareReleases: async (value, beforeId, afterId) => {
+    const v = await clients.catalog.compareReleases({
+      ...coordinate(value),
+      beforeId,
+      afterId,
+    });
+    return {
+      before_digest: v.beforeDigest,
+      after_digest: v.afterDigest,
+      files: v.files.map((f) => ({
+        path: f.path,
+        change: f.change,
+        before_text: f.beforeText,
+        after_text: f.afterText,
+        text_available: f.textAvailable,
+        before_executable: f.beforeExecutable,
+        after_executable: f.afterExecutable,
+      })),
+    };
+  },
+  Subscription: async (value) =>
+    (await clients.community.getSubscription(coordinate(value))).subscribed,
+  Subscribe: async (value, subscribed, key) => {
+    await clients.community.setSubscription({
+      ...coordinate(value),
+      subscribed,
+      mutation: { idempotencyKey: key },
+    });
+  },
+  Subscriptions: async (_source, token) => {
+    const v = await clients.community.listSubscriptions({ page: page(token) });
+    return {
+      items: v.subscriptions.map((s) => ({
+        namespace: s.namespace,
+        name: s.name,
+        available: s.available,
+      })),
+      next_page: v.page?.nextPageToken ?? "",
+    };
+  },
+  AccessTokens: async () => {
+    const v = await clients.auth.listAccessTokens({});
+    return v.tokens.map(tokenView);
+  },
+  CreateAccessToken: async (_source, name, scope, namespace, days) => {
+    const v = await clients.auth.createAccessToken({
+      name,
+      scope,
+      namespace,
+      days,
+    });
+    if (!v.token) throw new Error("Token unavailable");
+    return { token: tokenView(v.token), secret: v.secret };
+  },
+  RevokeAccessToken: async (_source, id) => {
+    await clients.auth.revokeAccessToken({ id });
+  },
+
   ...communityWeb(clients),
   ReviewTasks: async (_source, token) => {
     if (

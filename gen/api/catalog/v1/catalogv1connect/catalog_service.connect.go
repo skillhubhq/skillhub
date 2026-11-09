@@ -33,6 +33,9 @@ const (
 // reflection-formatted method names, remove the leading slash and convert the remaining slash to a
 // period.
 const (
+	// CatalogServiceCompareReleasesProcedure is the fully-qualified name of the CatalogService's
+	// CompareReleases RPC.
+	CatalogServiceCompareReleasesProcedure = "/api.catalog.v1.CatalogService/CompareReleases"
 	// CatalogServiceUpdateSkillMetadataProcedure is the fully-qualified name of the CatalogService's
 	// UpdateSkillMetadata RPC.
 	CatalogServiceUpdateSkillMetadataProcedure = "/api.catalog.v1.CatalogService/UpdateSkillMetadata"
@@ -51,6 +54,8 @@ const (
 
 // CatalogServiceClient is a client for the api.catalog.v1.CatalogService service.
 type CatalogServiceClient interface {
+	// 比较同一技能的两个有权读取的版本。
+	CompareReleases(context.Context, *connect.Request[v1.CompareReleasesRequest]) (*connect.Response[v1.CompareReleasesResponse], error)
 	// UpdateSkillMetadata 修改技能展示资料，版本包保持不变。
 	UpdateSkillMetadata(context.Context, *connect.Request[v1.UpdateSkillMetadataRequest]) (*connect.Response[v1.UpdateSkillMetadataResponse], error)
 	// SearchSkills 只返回主体有权发现的技能。
@@ -74,6 +79,12 @@ func NewCatalogServiceClient(httpClient connect.HTTPClient, baseURL string, opts
 	baseURL = strings.TrimRight(baseURL, "/")
 	catalogServiceMethods := v1.File_api_catalog_v1_catalog_service_proto.Services().ByName("CatalogService").Methods()
 	return &catalogServiceClient{
+		compareReleases: connect.NewClient[v1.CompareReleasesRequest, v1.CompareReleasesResponse](
+			httpClient,
+			baseURL+CatalogServiceCompareReleasesProcedure,
+			connect.WithSchema(catalogServiceMethods.ByName("CompareReleases")),
+			connect.WithClientOptions(opts...),
+		),
 		updateSkillMetadata: connect.NewClient[v1.UpdateSkillMetadataRequest, v1.UpdateSkillMetadataResponse](
 			httpClient,
 			baseURL+CatalogServiceUpdateSkillMetadataProcedure,
@@ -109,11 +120,17 @@ func NewCatalogServiceClient(httpClient connect.HTTPClient, baseURL string, opts
 
 // catalogServiceClient implements CatalogServiceClient.
 type catalogServiceClient struct {
+	compareReleases     *connect.Client[v1.CompareReleasesRequest, v1.CompareReleasesResponse]
 	updateSkillMetadata *connect.Client[v1.UpdateSkillMetadataRequest, v1.UpdateSkillMetadataResponse]
 	searchSkills        *connect.Client[v1.SearchSkillsRequest, v1.SearchSkillsResponse]
 	getSkill            *connect.Client[v1.GetSkillRequest, v1.GetSkillResponse]
 	listReleases        *connect.Client[v1.ListReleasesRequest, v1.ListReleasesResponse]
 	downloadRelease     *connect.Client[v1.DownloadReleaseRequest, v1.DownloadReleaseResponse]
+}
+
+// CompareReleases calls api.catalog.v1.CatalogService.CompareReleases.
+func (c *catalogServiceClient) CompareReleases(ctx context.Context, req *connect.Request[v1.CompareReleasesRequest]) (*connect.Response[v1.CompareReleasesResponse], error) {
+	return c.compareReleases.CallUnary(ctx, req)
 }
 
 // UpdateSkillMetadata calls api.catalog.v1.CatalogService.UpdateSkillMetadata.
@@ -143,6 +160,8 @@ func (c *catalogServiceClient) DownloadRelease(ctx context.Context, req *connect
 
 // CatalogServiceHandler is an implementation of the api.catalog.v1.CatalogService service.
 type CatalogServiceHandler interface {
+	// 比较同一技能的两个有权读取的版本。
+	CompareReleases(context.Context, *connect.Request[v1.CompareReleasesRequest]) (*connect.Response[v1.CompareReleasesResponse], error)
 	// UpdateSkillMetadata 修改技能展示资料，版本包保持不变。
 	UpdateSkillMetadata(context.Context, *connect.Request[v1.UpdateSkillMetadataRequest]) (*connect.Response[v1.UpdateSkillMetadataResponse], error)
 	// SearchSkills 只返回主体有权发现的技能。
@@ -162,6 +181,12 @@ type CatalogServiceHandler interface {
 // and JSON codecs. They also support gzip compression.
 func NewCatalogServiceHandler(svc CatalogServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
 	catalogServiceMethods := v1.File_api_catalog_v1_catalog_service_proto.Services().ByName("CatalogService").Methods()
+	catalogServiceCompareReleasesHandler := connect.NewUnaryHandler(
+		CatalogServiceCompareReleasesProcedure,
+		svc.CompareReleases,
+		connect.WithSchema(catalogServiceMethods.ByName("CompareReleases")),
+		connect.WithHandlerOptions(opts...),
+	)
 	catalogServiceUpdateSkillMetadataHandler := connect.NewUnaryHandler(
 		CatalogServiceUpdateSkillMetadataProcedure,
 		svc.UpdateSkillMetadata,
@@ -194,6 +219,8 @@ func NewCatalogServiceHandler(svc CatalogServiceHandler, opts ...connect.Handler
 	)
 	return "/api.catalog.v1.CatalogService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
+		case CatalogServiceCompareReleasesProcedure:
+			catalogServiceCompareReleasesHandler.ServeHTTP(w, r)
 		case CatalogServiceUpdateSkillMetadataProcedure:
 			catalogServiceUpdateSkillMetadataHandler.ServeHTTP(w, r)
 		case CatalogServiceSearchSkillsProcedure:
@@ -212,6 +239,10 @@ func NewCatalogServiceHandler(svc CatalogServiceHandler, opts ...connect.Handler
 
 // UnimplementedCatalogServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedCatalogServiceHandler struct{}
+
+func (UnimplementedCatalogServiceHandler) CompareReleases(context.Context, *connect.Request[v1.CompareReleasesRequest]) (*connect.Response[v1.CompareReleasesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("api.catalog.v1.CatalogService.CompareReleases is not implemented"))
+}
 
 func (UnimplementedCatalogServiceHandler) UpdateSkillMetadata(context.Context, *connect.Request[v1.UpdateSkillMetadataRequest]) (*connect.Response[v1.UpdateSkillMetadataResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("api.catalog.v1.CatalogService.UpdateSkillMetadata is not implemented"))

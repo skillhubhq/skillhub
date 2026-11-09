@@ -273,7 +273,7 @@ func (c *Client) connectSource(ctx context.Context, alias string, withCredential
 				return nil, err
 			}
 		}
-		if (injected || (source.HasCredential && err == nil)) && len(token) != 43 {
+		if (injected || (source.HasCredential && err == nil)) && len(token) != 43 && !(len(token) == 47 && strings.HasPrefix(token, "sht_")) {
 			return nil, errors.New("invalid source credential")
 		}
 	}

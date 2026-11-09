@@ -64,6 +64,35 @@ def verify_protocol_boundary(args):
                     except subprocess.TimeoutExpired: process.kill(); process.wait()
 
 
+def verify_client_upgrade(args):
+    """验证新版升级以及旧版拒绝未来结构，再通过快照恢复旧版。"""
+    with tempfile.TemporaryDirectory(prefix="skillhub-client-boundary-") as temporary:
+        root = Path(temporary)
+        data = root / "client"
+        def invoke(binary):
+            return subprocess.run([binary, "--data", str(data), "source", "list"], capture_output=True, text=True, timeout=30)
+        def rows():
+            with sqlite3.connect((data / "client.db").as_uri() + "?mode=ro&immutable=1", uri=True) as db:
+                return list(db.iterdump())
+        assert invoke(args.baseline_cli).returncode == 0
+        import shutil
+        shutil.copytree(data, root / "snapshot")
+        assert invoke(args.cli).returncode == 0
+        upgraded = rows()
+        result = invoke(args.baseline_cli)
+        if result.returncode == 0:
+            return False
+        if "unsupported client database schema" not in result.stderr:
+            raise RuntimeError("baseline CLI failed for an unexpected reason")
+        if rows() != upgraded:
+            raise RuntimeError("baseline CLI changed a future client schema")
+        shutil.rmtree(data)
+        shutil.copytree(root / "snapshot", data)
+        assert invoke(args.baseline_cli).returncode == 0
+        print("PASS: client schema upgrade, future-schema rejection without writes and snapshot rollback", flush=True)
+        return True
+
+
 def main():
     root = Path(__file__).resolve().parents[1]
     args = SimpleNamespace(
@@ -74,11 +103,13 @@ def main():
     )
     if verify_protocol_boundary(args): return
     smoke = Path(__file__).with_name("smoke.py")
+    client_boundary = verify_client_upgrade(args)
     matrix = [
         ("new CLI / baseline Hub", args.baseline_server, args.cli, None),
         ("baseline CLI / new Hub", args.server, args.baseline_cli, None),
-        ("alternating CLIs / shared local state", args.server, args.baseline_cli, args.cli),
     ]
+    if not client_boundary:
+        matrix.append(("alternating CLIs / shared local state", args.server, args.baseline_cli, args.cli))
     for label, server, cli, alternate in matrix:
         print(label, flush=True)
         command = [sys.executable, str(smoke), "--server", server, "--cli", cli]

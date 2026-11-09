@@ -5,6 +5,8 @@ export type {
     CacheInfo,
     ConfigTarget,
     ConfigVariableStatus,
+    Coordinate,
+    CreatedAccessToken,
     DraftFile,
     DraftSummary,
     DraftWorkspace,
@@ -26,6 +28,7 @@ export type {
     ProjectRestoreResult,
     ProjectSkill,
     ProjectState,
+    PublishSuite,
     ReleaseInfo,
     ReleasePreview,
     ReviewTask,
@@ -35,5 +38,8 @@ export type {
     SkillConfiguration,
     SkillMetadataChange,
     Source,
+    SubscriptionPage,
+    SuiteInstallation,
+    SuiteMemberInstallation,
     UpdateCheck
 } from "./models.js";

@@ -1,3 +1,4 @@
+import { SuiteComposer } from "./SuiteComposer";
 import { registerDraftSave } from "./pendingDraft";
 import { scrollPageToTop } from "./pageScroll";
 import { validProvenance, type Provenance } from "./provenance";
@@ -508,6 +509,7 @@ export function PublishWizard({ source }: { source: string }) {
     );
   return (
     <div className="publishing-journey">
+      <SuiteComposer source={source} />
       <p className="muted" role="status">
         {draftSave}
       </p>

@@ -50,7 +50,7 @@ func (a *application) projectCommand() *cobra.Command {
 		}
 		return a.output(cmd, state)
 	}}
-	add.Flags().String("tool", "", "target tool: codex or claude-code")
+	add.Flags().String("tool", "", "target tool (see skillhub tools)")
 	_ = add.MarkFlagRequired("tool")
 	command.AddCommand(add)
 	remove := &cobra.Command{Use: "remove NAME", Short: "Remove a manifest entry; installed files remain until explicitly removed", Args: cobra.ExactArgs(1), RunE: func(cmd *cobra.Command, args []string) error {
@@ -61,7 +61,7 @@ func (a *application) projectCommand() *cobra.Command {
 		}
 		return a.output(cmd, state)
 	}}
-	remove.Flags().String("tool", "", "target tool: codex or claude-code")
+	remove.Flags().String("tool", "", "target tool (see skillhub tools)")
 	_ = remove.MarkFlagRequired("tool")
 	command.AddCommand(remove)
 	command.AddCommand(&cobra.Command{Use: "lock", Short: "Resolve configured sources and pin authorized package digests", Args: cobra.NoArgs, RunE: func(cmd *cobra.Command, args []string) error {

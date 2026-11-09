@@ -12,6 +12,7 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -20,7 +21,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-const currentSchema = 14
+const currentSchema = 15
 
 var (
 	ErrUnauthenticated = errors.New("authentication required")
@@ -45,10 +46,13 @@ type Store struct {
 
 // Identity 不包含密码或凭据摘要，也不依赖 API 消息。
 type Identity struct {
-	Federated     bool
-	ID            string
-	Username      string
-	Administrator bool
+	AutomationID        string
+	AutomationScope     string
+	AutomationNamespace string
+	Federated           bool
+	ID                  string
+	Username            string
+	Administrator       bool
 }
 
 type Session struct {
@@ -129,7 +133,7 @@ func (s *Store) initializeContext(ctx context.Context) error {
 	if err = tx.QueryRowContext(ctx, "PRAGMA user_version").Scan(&version); err != nil {
 		return err
 	}
-	if version != 0 && version != currentSchema {
+	if version != 0 && version != 14 && version != currentSchema {
 		return errors.New("unsupported hub database schema")
 	}
 	if version == 0 {
@@ -140,8 +144,13 @@ func (s *Store) initializeContext(ctx context.Context) error {
 			return err
 		}
 	}
+	if version == 0 || version == 14 {
+		if _, err = tx.ExecContext(ctx, distributionSchema); err != nil {
+			return err
+		}
+	}
 	// 拒绝结构不完整的数据库，不能用 CREATE IF NOT EXISTS 掩盖损坏。
-	for _, table := range []string{"instance", "users", "sessions", "devices", "audit", "groups", "group_members", "namespaces", "namespace_grants", "categories", "skills", "releases", "release_groups", "release_tags", "mutations", "profiles", "team_profiles", "comments", "reactions", "access_requests", "platform_roles", "release_scans", "review_notifications", "featured_skills", "evaluation_evidence", "personal_namespaces", "community_reports", "external_identities", "namespace_tombstones", "package_cleanup", "release_tombstones"} {
+	for _, table := range []string{"instance", "users", "sessions", "devices", "audit", "groups", "group_members", "namespaces", "namespace_grants", "categories", "skills", "releases", "release_groups", "release_tags", "mutations", "profiles", "team_profiles", "comments", "reactions", "access_requests", "platform_roles", "release_scans", "review_notifications", "featured_skills", "evaluation_evidence", "personal_namespaces", "community_reports", "external_identities", "namespace_tombstones", "package_cleanup", "release_tombstones", "subscriptions", "access_tokens"} {
 		rows, e := tx.QueryContext(ctx, "SELECT * FROM "+table+" LIMIT 0")
 		if e != nil {
 			return errors.New("incomplete hub database schema")
@@ -157,7 +166,7 @@ func (s *Store) initializeContext(ctx context.Context) error {
 		return err
 	}
 
-	if _, err = tx.ExecContext(ctx, "PRAGMA user_version=14;"); err != nil {
+	if _, err = tx.ExecContext(ctx, "PRAGMA user_version=15;"); err != nil {
 		return err
 	}
 	return tx.Commit()
@@ -306,6 +315,9 @@ func (s *Store) Login(ctx context.Context, username, password string) (Session, 
 }
 
 func (s *Store) Authenticate(ctx context.Context, token string) (Identity, error) {
+	if len(token) == 47 && strings.HasPrefix(token, "sht_") {
+		return s.authenticateAccessToken(ctx, token)
+	}
 	if len(token) != 43 {
 		return Identity{}, ErrUnauthenticated
 	}

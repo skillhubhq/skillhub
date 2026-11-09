@@ -112,6 +112,7 @@ func currentIdentity(ctx context.Context, tx *hubdb.Tx, user Identity) (Identity
 	if errors.Is(err, sql.ErrNoRows) {
 		return Identity{}, ErrUnauthenticated
 	}
+	current.AutomationID, current.AutomationScope, current.AutomationNamespace = user.AutomationID, user.AutomationScope, user.AutomationNamespace
 	return current, err
 }
 

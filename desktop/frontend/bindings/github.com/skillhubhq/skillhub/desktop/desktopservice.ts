@@ -30,6 +30,10 @@ import * as hub$0 from "../internal/hub/models.js";
 // @ts-ignore: Unused imports
 import * as $models from "./models.js";
 
+export function AccessTokens(source: string): $CancellablePromise<hub$0.AccessToken[] | null> {
+    return $Call.ByID(230165697, source);
+}
+
 export function AddSource(alias: string, url: string): $CancellablePromise<client$0.Source> {
     return $Call.ByID(1510140465, alias, url);
 }
@@ -181,6 +185,10 @@ export function CommunityUpdateTeam(source: string, $namespace: string, name: st
     return $Call.ByID(1292972358, source, $namespace, name, bio, revision, key);
 }
 
+export function CompareReleases(coordinate: string, before: string, after: string): $CancellablePromise<hub$0.ReleaseDifference> {
+    return $Call.ByID(2184459118, coordinate, before, after);
+}
+
 export function ConfigurationTargets(): $CancellablePromise<client$0.ConfigTarget[] | null> {
     return $Call.ByID(631288013);
 }
@@ -190,6 +198,10 @@ export function ConfigurationTargets(): $CancellablePromise<client$0.ConfigTarge
  */
 export function ConnectOpenRequest(hub: string, alias: string): $CancellablePromise<client$0.Source> {
     return $Call.ByID(3234646290, hub, alias);
+}
+
+export function CreateAccessToken(source: string, name: string, scope: string, $namespace: string, days: number): $CancellablePromise<client$0.CreatedAccessToken> {
+    return $Call.ByID(1925477664, source, name, scope, $namespace, days);
 }
 
 export function CreateDraft(directory: string, target: client$0.PreviewTarget): $CancellablePromise<client$0.DraftWorkspace> {
@@ -332,6 +344,14 @@ export function PlanRestore(path: string): $CancellablePromise<$models.ChangePla
     return $Call.ByID(2116724184, path);
 }
 
+export function PlanSuiteInstall(value: string, tool: string, scope: string, project: string): $CancellablePromise<$models.ChangePlan> {
+    return $Call.ByID(2785680997, value, tool, scope, project);
+}
+
+export function PlanSuiteRemove(target: string): $CancellablePromise<$models.ChangePlan> {
+    return $Call.ByID(4287327130, target);
+}
+
 export function PlanUpdate(target: string, version: string): $CancellablePromise<$models.ChangePlan> {
     return $Call.ByID(1253458603, target, version);
 }
@@ -365,6 +385,10 @@ export function Publish(form: $models.PublishForm): $CancellablePromise<client$0
  */
 export function PublishChecked(form: $models.PublishForm, digest: string): $CancellablePromise<client$0.ReleaseInfo> {
     return $Call.ByID(1113970641, form, digest);
+}
+
+export function PublishSuite(form: client$0.PublishSuite): $CancellablePromise<client$0.ReleaseInfo> {
+    return $Call.ByID(271062508, form);
 }
 
 export function ReadDraftFile(id: string, path: string): $CancellablePromise<client$0.DraftFile> {
@@ -405,6 +429,10 @@ export function Review(source: string, id: string, reason: string, requestID: st
 
 export function ReviewTasks(source: string, token: string): $CancellablePromise<client$0.ReviewTaskPage> {
     return $Call.ByID(3579221625, source, token);
+}
+
+export function RevokeAccessToken(source: string, id: string): $CancellablePromise<void> {
+    return $Call.ByID(592574750, source, id);
 }
 
 export function SaveDraftFile(id: string, path: string, digest: string, text: string): $CancellablePromise<client$0.DraftFile> {
@@ -453,6 +481,22 @@ export function SubmissionCleanupSupported(source: string): $CancellablePromise<
 
 export function Submissions(source: string, $namespace: string, token: string): $CancellablePromise<$models.ReleasePage> {
     return $Call.ByID(3052681070, source, $namespace, token);
+}
+
+export function Subscribe(coordinate: string, active: boolean, key: string): $CancellablePromise<void> {
+    return $Call.ByID(2521224579, coordinate, active, key);
+}
+
+export function Subscription(coordinate: string): $CancellablePromise<boolean> {
+    return $Call.ByID(449372948, coordinate);
+}
+
+export function Subscriptions(source: string, token: string): $CancellablePromise<client$0.SubscriptionPage> {
+    return $Call.ByID(2436758309, source, token);
+}
+
+export function Suites(): $CancellablePromise<client$0.SuiteInstallation[] | null> {
+    return $Call.ByID(1547103844);
 }
 
 export function UnsetSkillConfiguration(target: string, name: string): $CancellablePromise<void> {

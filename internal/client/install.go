@@ -249,7 +249,39 @@ func sameInstallation(a, b *Installation) bool {
 }
 
 func (s *Store) Apply(ctx context.Context, plan InstallPlan, archive []byte) error {
-	return s.apply(ctx, plan, archive, nil)
+	return s.withTarget(ctx, "suite-state", func() error {
+		records, err := s.Suites(ctx)
+		if err != nil {
+			return err
+		}
+		for _, r := range records {
+			if r.Target == plan.Target {
+				return errors.New("use the suite installation plan to change this suite")
+			}
+			for _, m := range r.Members {
+				if m.Target == plan.Target && (plan.After == nil || plan.After.Digest != m.Digest) {
+					return errors.New("this skill is pinned by an installed suite; update or remove the suite first")
+				}
+			}
+		}
+		// 用户单独安装同一版本时将其保留为独立安装，即使之后移除套装。
+		for _, r := range records {
+			changed := false
+			for i, m := range r.Members {
+				if m.Target == plan.Target && m.Managed {
+					r.Members[i].Managed = false
+					changed = true
+				}
+			}
+			if changed {
+				raw, _ := json.Marshal(r)
+				if _, err = s.db.ExecContext(ctx, "UPDATE suite_installations SET record=? WHERE target=?", string(raw), r.Target); err != nil {
+					return err
+				}
+			}
+		}
+		return s.apply(ctx, plan, archive, nil)
+	})
 }
 
 // hook 仅用于故障注入测试，生产调用始终为空。

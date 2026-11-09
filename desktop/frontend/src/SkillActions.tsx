@@ -1,3 +1,4 @@
+import toolAdapters from "../../../internal/client/tools.json";
 import { skillAppURL } from "./official";
 import { ReportButton } from "./Moderation";
 import { Select } from "./Select";
@@ -63,8 +64,8 @@ export function SkillActions({
         disabled={!summary || ui.busy}
         onClick={() => void react(true)}
         title={t(
-          "Save this version privately in this hub",
-          "在此 Hub 私密收藏当前版本",
+          "Save this skill privately in this hub",
+          "在此 Hub 私密收藏此技能",
         )}
       >
         <Icon name="bookmark" />
@@ -121,10 +122,12 @@ export function CopyValue({ label, value }: { label: string; value: string }) {
 }
 
 export function WebInstallGuide({
+  suite = false,
   url,
   coordinate,
 }: {
   url: string;
+  suite?: boolean;
   coordinate: string;
 }) {
   const ui = useUI();
@@ -139,6 +142,15 @@ export function WebInstallGuide({
     <div className="install-guide">
       <div className="content-tabs">
         <button
+          disabled={suite}
+          title={
+            suite
+              ? t(
+                  "Install suite members with the App or CLI",
+                  "使用 App 或 CLI 安装套装成员",
+                )
+              : undefined
+          }
           aria-pressed={method === "zip"}
           onClick={() => setMethod("zip")}
         >
@@ -170,7 +182,7 @@ export function WebInstallGuide({
           </Field>
           <CopyValue
             label={t("Folder in your project", "项目内的目标文件夹")}
-            value={`${tool === "codex" ? ".agents" : ".claude"}/skills/${coordinate.split("/").pop()?.split("@")[0]}/`}
+            value={`${toolAdapters.find((item) => item.id === tool)?.project_directory}/${coordinate.split("/").pop()?.split("@")[0]}/`}
           />
           <p className="muted">
             {t(
@@ -207,8 +219,8 @@ export function WebInstallGuide({
           </h3>
           <p>
             {t(
-              "Choose Codex or Claude Code and a project or global destination in the App. Review the file changes before installing.",
-              "在 App 内选择 Codex 或 Claude Code，以及项目或全局位置。确认文件变更后再安装。",
+              "Choose your tool and a project or global destination in the App. Review the file changes before installing.",
+              "在 App 内选择目标工具以及项目或全局位置。确认文件变更后再安装。",
             )}
           </p>
           <a

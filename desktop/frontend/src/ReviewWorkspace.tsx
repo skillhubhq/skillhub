@@ -1,3 +1,5 @@
+import { revealPageStart } from "./pageScroll";
+import { VersionComparison } from "./VersionComparison";
 import { AccessState } from "./AccessState";
 import { ProvenanceDetails } from "./ProvenancePanel";
 import { EvaluationPanel } from "./EvaluationPanel";
@@ -6,7 +8,7 @@ import { Select } from "./Select";
 import { SkillSymbol, skillTitle } from "./SkillIdentity";
 import { dateLabel, t } from "./i18n";
 import { Person, useResource } from "./community-ui";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type {
   IdentityView,
   ReleasePage,
@@ -48,6 +50,14 @@ export function ReviewWorkspace({
           : String(Status.ReleaseStatus_RELEASE_STATUS_PENDING),
     );
   const documentRef = useRef<HTMLElement>(null);
+  const revealSelection = useRef("");
+  // 在新正文提交布局时回位，避免下一帧覆盖用户刚发生的滚动。
+  useLayoutEffect(() => {
+    if (selected?.release.id !== revealSelection.current) return;
+    revealSelection.current = "";
+    if (documentRef.current)
+      revealPageStart(documentRef.current, matchMedia("(max-width: 760px)").matches);
+  }, [selected?.release.id]);
   const [selecting, setSelecting] = useState("");
   const cleanup = useResource(
     () => API.SubmissionCleanupSupported(source),
@@ -225,6 +235,7 @@ export function ReviewWorkspace({
     try {
       const p = await API.PreviewSubmission(source, id);
       if (n !== generation.current) return;
+      revealSelection.current = id;
       setSelected(p);
       setPage((current) =>
         current
@@ -236,10 +247,6 @@ export function ReviewWorkspace({
             }
           : current,
       );
-      if (matchMedia("(max-width: 760px)").matches)
-        requestAnimationFrame(() =>
-          documentRef.current?.scrollIntoView({ block: "start" }),
-        );
     } catch (e) {
       if (n === generation.current) {
         selectedID.current = selected?.release.id ?? "";
@@ -625,7 +632,15 @@ export function ReviewWorkspace({
                   version={selected.release.version}
                   digest={selected.release.digest}
                 />
-                <PreviewBody preview={selected} />
+                <PreviewBody
+                  preview={selected}
+                  actions={
+                    <VersionComparison
+                      coordinate={`${source}/${selected.release.namespace}/${selected.release.name}`}
+                      release={selected.release}
+                    />
+                  }
+                />
               </div>
               <details className="review-properties">
                 <summary>{t("Release details")}</summary>

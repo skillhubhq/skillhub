@@ -162,6 +162,9 @@ Default tool targets:
 | --- | --- | --- |
 | Codex | `~/.agents/skills/NAME` | `PROJECT/.agents/skills/NAME` |
 | Claude Code | `~/.claude/skills/NAME` | `PROJECT/.claude/skills/NAME` |
+| Cursor | `~/.cursor/skills/NAME` | `PROJECT/.cursor/skills/NAME` |
+| Gemini CLI | `~/.gemini/skills/NAME` | `PROJECT/.gemini/skills/NAME` |
+| GitHub Copilot | `~/.copilot/skills/NAME` | `PROJECT/.github/skills/NAME` |
 
 Sources: [OpenAI local skill locations](https://learn.chatgpt.com/docs/build-skills#where-codex-loads-local-skills), [Claude Code skill locations](https://code.claude.com/docs/en/skills#choose-where-skills-load). Claude's reserved `synced` and `anthropic-skills` names are rejected by that adapter. Custom tool configuration roots are not yet auto-detected.
 
@@ -205,7 +208,7 @@ Batch application commits one target at a time and returns a result per target. 
 
 To change shared requirements, repeat `project add ...@NEW_VERSION`, run `project lock`, review the two files and restore. `project remove NAME --tool TOOL` removes only the desired entry; use `skillhub remove TARGET` to uninstall its managed files. Editing a manifest makes its existing lock stale until resolved again. Metadata writes use a temporary file and atomic replacement; a lock is accepted only when its recorded manifest digest matches.
 
-`project show` registers an existing project in the local SQLite inventory shared by CLI and App. `project forget --project PATH` removes only that shortcut, including for a deleted directory. It preserves metadata and installed files. The shared client database stores sources, installations and project shortcuts together; unsupported schema versions are rejected.
+`project show` registers an existing project in the local SQLite inventory shared by CLI and App. `project forget --project PATH` removes only that shortcut, including for a deleted directory. It preserves metadata and installed files. The shared client database stores sources, installations and project shortcuts together; unsupported schema versions are rejected. Upgrade the App and CLI together when they share local state. Back up the closed client data directory before upgrading; returning to an older schema requires that version’s saved data and executable.
 
 ## Hub backup and recovery
 
@@ -253,3 +256,65 @@ skillhub update /path/to/project/.agents/skills/example --source company-author 
 ```
 
 App normally reuses the saved installation connection. If it is unavailable or its identity cannot be resolved, the library offers connection recovery. An explicitly selected replacement must match the installation's Hub identity and URL; failed authorization never switches to another account.
+
+### Version changes and subscriptions
+
+Use **Compare versions** in a skill's details or a submission preview. Choose a baseline version to see added, removed and changed files, including executable permissions. Text differences are highlighted; large and binary files show their change status. Both versions must remain accessible to your account.
+
+```sh
+skillhub compare company/team/review 1.0.0 1.1.0
+skillhub subscriptions follow company/team/review
+skillhub subscriptions list --source company
+skillhub subscriptions unfollow company/team/review
+```
+
+**Follow updates** subscribes to the skill, across versions. A newly published version creates an in-app Inbox notification for followers who can access it; a pending submission does not. Publication and notification are committed together. Revoked access hides notification details. Manage subscriptions from **Inbox → Following**, including removing subscriptions to unavailable skills. Subscriptions notify you; they do not automatically update local files.
+
+### Skill suites
+
+A suite is a reviewed package that pins 1–50 skills from the same Hub by namespace, name, exact version and SHA-256 digest. Choose **Publish → Create a skill suite**, select skills and versions, and choose an entry skill. Suite publication uses the same namespace permissions, security scan and review workflow as individual skills. Every member's current access is checked at submission, approval and download; a suite does not grant access to its members. Suites cannot contain other suites or duplicate tool-folder names.
+
+Install, update and remove a suite with the normal App or CLI controls. A change preview includes its entry document and all pinned members. The entry names the skill to start with; the Hub does not execute it. Web details list the members and offer **Open in SkillHub** and CLI instructions.
+
+```sh
+skillhub install company/team/starter@1.0.0 --tool cursor --scope project --dry-run
+skillhub install company/team/starter@1.0.0 --tool cursor --scope project --yes
+skillhub suites list
+skillhub update /path/to/project/.cursor/skills/starter --yes
+skillhub remove /path/to/project/.cursor/skills/starter --yes
+```
+
+Removing a suite retains independently installed, locally modified and shared members. A conflicting independently installed version is not overwritten. Members pinned by a suite must be updated through the suite. File writes are atomic per destination; if an operation is interrupted, completed destinations and ownership remain recorded so the same installation can be retried. The combined download budget is 64 MiB. Project manifests currently list individual skills; install a suite into a project with `install --scope project`.
+
+For CLI publication, save a JSON definition and run `skillhub suites publish suite.json --source company`:
+
+```json
+{
+  "namespace": "team",
+  "name": "starter",
+  "version": "1.0.0",
+  "description": "Tools for reviewing a change",
+  "visibility": 2,
+  "entry": "team/review",
+  "members": [{"namespace": "team", "name": "review", "version": "1.0.0"}]
+}
+```
+
+The client resolves each digest before submission. Visibility `2` means Hub members; `1` means public, subject to the Hub's access policy. Run `skillhub tools` to list supported installation targets.
+
+A manually authored package declares the resolved manifest in `skillhub.suite.json` with `schema: 1`, `entry`, and `members` containing required `digest` values, alongside its `SKILL.md`.
+
+### Automation tokens
+
+Create an automation token in **Account → Security → Automation tokens**, or with the CLI:
+
+```sh
+skillhub tokens create build-read --source company --scope read --days 30 --output /secure/build-read.token
+skillhub tokens create release-submit --source company --scope publish --namespace team --days 30 --output /secure/release-submit.token
+skillhub tokens list --source company
+skillhub tokens revoke TOKEN_ID --source company
+```
+
+The secret is shown once in the App/Web, or written to a new owner-only file by the CLI. Store it in your CI secret manager and inject it as `SKILLHUB_TOKEN_COMPANY` for the `company` source. Hyphens in aliases become underscores. Do not put the token in command arguments or project files.
+
+Read tokens can discover, compare and download accessible skills. Publish tokens additionally submit to one namespace using normal review rules. Tokens cannot approve submissions, administer a Hub, mint credentials, or change community data. Current account and namespace permissions always apply. Tokens expire in 1–90 days, can be revoked immediately, and have a limit of 20 active tokens per user. Account security changes and backup restoration revoke tokens. Skill runtime secrets remain separate and local to your device.

@@ -1,3 +1,4 @@
+import { runDeliverySmoke } from "./deliverySmoke";
 import { notifySessionExpired } from "./sessionEvents";
 import { pageScroller } from "./pageScroll";
 import { runResourceSmoke } from "./resourceSmoke";
@@ -22,6 +23,8 @@ import { API } from "./ui";
 // 运行在测试构建的真实系统 WebView 内，通过生产绑定验证原生桥接与产品流程。
 export async function runNativeSmoke() {
   if (await runUpgradeSmoke()) return;
+  // 独立流程使用固定语言；覆盖升级用例单独验证原有偏好保留。
+  setLanguage("en");
   const checks: string[] = [];
   const started = performance.now();
   let error = "";
@@ -639,6 +642,49 @@ export async function runNativeSmoke() {
           .querySelector(".review-heading")
           ?.textContent?.includes("v1.1.0") ?? false,
     );
+    pageScroller().scrollBy({ top: 320, behavior: "instant" });
+    await new Promise<void>((resolve) =>
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+    );
+    const contentTop = pageScroller().getBoundingClientRect().top;
+    const stickyTitle = document
+      .querySelector(".review-heading")!
+      .getBoundingClientRect();
+    const stickyQueue = document
+      .querySelector(".review-queue")!
+      .getBoundingClientRect();
+    check(
+      Math.abs(stickyTitle.top - contentTop) < 2,
+      `long review keeps its title below navigation without clipping (title=${stickyTitle.top}, content=${contentTop}, scroll=${pageScroller().scrollTop}, position=${getComputedStyle(document.querySelector(".review-heading")!).position}, top=${getComputedStyle(document.querySelector(".review-heading")!).top}, height=${document.querySelector(".review-document-body")!.getBoundingClientRect().height})`,
+    );
+    check(
+      stickyQueue.top >= contentTop && stickyQueue.top <= contentTop + 24,
+      "review queue uses content-relative sticky spacing",
+    );
+    publishedRow.click();
+    await waitForUI(
+      () =>
+        document
+          .querySelector(".review-heading")
+          ?.textContent?.includes("v1.0.0") ?? false,
+    );
+    await new Promise<void>((resolve) =>
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+    );
+    check(
+      document.querySelector(".review-document")!.getBoundingClientRect().top >=
+        contentTop,
+      "switching a scrolled release reveals the new document start",
+    );
+    Array.from(document.querySelectorAll<HTMLButtonElement>(".queue-item"))
+      .find((row) => row.textContent?.includes("v1.1.0"))!
+      .click();
+    await waitForUI(
+      () =>
+        document
+          .querySelector(".review-heading")
+          ?.textContent?.includes("v1.1.0") ?? false,
+    );
     const exact = await API.GetSkill("company", "platform", "release-check");
     check(
       exact.name === "release-check",
@@ -816,7 +862,15 @@ export async function runNativeSmoke() {
           r.textContent?.includes("Team lifecycle"),
       ),
     );
-    const openLifecycle = () => {
+    const openLifecycle = async () => {
+      await waitForUI(() =>
+        Array.from(document.querySelectorAll("article")).some((row) =>
+          row.textContent?.includes("lifecycle-smoke") &&
+          Array.from(row.querySelectorAll("button")).some((button) =>
+            button.textContent === "Team lifecycle" && !button.disabled,
+          ),
+        ),
+      );
       const row = Array.from(document.querySelectorAll("article")).find((r) =>
         r.textContent?.includes("lifecycle-smoke"),
       )!;
@@ -826,7 +880,7 @@ export async function runNativeSmoke() {
         ) as HTMLButtonElement
       ).click();
     };
-    openLifecycle();
+    await openLifecycle();
     await waitForUI(() =>
       Array.from(document.querySelectorAll("dialog[open] button")).some(
         (b) => b.textContent === "Archive team",
@@ -846,7 +900,7 @@ export async function runNativeSmoke() {
             r.textContent?.includes("Archived"),
         ),
     );
-    openLifecycle();
+    await openLifecycle();
     await waitForUI(
       () =>
         !!document.querySelector("dialog[open] .team-lifecycle-danger input"),
@@ -1959,6 +2013,7 @@ export async function runNativeSmoke() {
       "detail uses authored built-in icon and language preference",
     );
     setLanguage("en");
+    await runDeliverySmoke(check, waitForUI);
     await API.ClearCache();
     for (const [alias, origin] of [
       ["signed-out", "company"],

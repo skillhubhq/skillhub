@@ -9,6 +9,8 @@ import "google/protobuf/timestamp.proto";
 
 // CatalogService 提供权限感知的目录和精确版本下载。
 service CatalogService {
+  // 比较同一技能的两个有权读取的版本。
+  rpc CompareReleases(CompareReleasesRequest) returns (CompareReleasesResponse);
   // UpdateSkillMetadata 修改技能展示资料，版本包保持不变。
   rpc UpdateSkillMetadata(UpdateSkillMetadataRequest) returns (UpdateSkillMetadataResponse);
   // SearchSkills 只返回主体有权发现的技能。
@@ -237,4 +239,44 @@ message UpdateSkillMetadataRequest {
 message UpdateSkillMetadataResponse {
   // 资料修订。
   uint64 revision = 1;
+}
+
+// CompareReleasesRequest 描述当前操作的数据。
+message CompareReleasesRequest {
+  // 命名空间。
+  string namespace = 1;
+  // 稳定名称。
+  string name = 2;
+  // 基线版本标识。
+  string before_id = 3;
+  // 目标版本标识。
+  string after_id = 4;
+}
+
+// FileDifference 描述当前操作的数据。
+message FileDifference {
+  // 包内路径。
+  string path = 1;
+  // added、removed 或 modified。
+  string change = 2;
+  // 有界 UTF8 基线文本。
+  string before_text = 3;
+  // 有界 UTF8 目标文本。
+  string after_text = 4;
+  // 两侧文本均可完整比较。
+  bool text_available = 5;
+  // 基线执行位。
+  bool before_executable = 6;
+  // 目标执行位。
+  bool after_executable = 7;
+}
+
+// CompareReleasesResponse 描述当前操作的数据。
+message CompareReleasesResponse {
+  // 变化文件。
+  repeated FileDifference files = 1;
+  // 基线包摘要。
+  string before_digest = 2;
+  // 目标包摘要。
+  string after_digest = 3;
 }

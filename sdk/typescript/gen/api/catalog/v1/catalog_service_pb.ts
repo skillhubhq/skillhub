@@ -17,7 +17,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file api/catalog/v1/catalog_service.proto.
  */
 export const file_api_catalog_v1_catalog_service: GenFile = /*@__PURE__*/
-  fileDesc("CiRhcGkvY2F0YWxvZy92MS9jYXRhbG9nX3NlcnZpY2UucHJvdG8SDmFwaS5jYXRhbG9nLnYxIqUBCgpQcm92ZW5hbmNlEhMKC2F1dGhvcl9uYW1lGAEgASgJEhIKCmF1dGhvcl91cmwYAiABKAkSEgoKc291cmNlX3VybBgDIAEoCRIQCghyZXZpc2lvbhgEIAEoCRIPCgdsaWNlbnNlGAUgASgJEhQKDGxpY2Vuc2VfZmlsZRgGIAEoCRIQCghtb2RpZmllZBgHIAEoCBIPCgdjaGFuZ2VzGAggASgJIroCCgVTa2lsbBIRCgluYW1lc3BhY2UYASABKAkSDAoEbmFtZRgCIAEoCRITCgtkZXNjcmlwdGlvbhgDIAEoCRIQCghjYXRlZ29yeRgEIAEoCRIMCgR0YWdzGAUgAygJEhYKDmxhdGVzdF92ZXJzaW9uGAYgASgJEhcKD2Rpc3BsYXlfbmFtZV9lbhgHIAEoCRIXCg9kaXNwbGF5X25hbWVfemgYCCABKAkSKwoEaWNvbhgJIAEoDjIdLmNvbW1vbi5yZWdpc3RyeS52MS5Ta2lsbEljb24SEAoIZmVhdHVyZWQYCiABKAgSLgoKcHJvdmVuYW5jZRgLIAEoCzIaLmFwaS5jYXRhbG9nLnYxLlByb3ZlbmFuY2USEAoIcmV2aXNpb24YDCABKAQSEAoIY2FuX2VkaXQYDSABKAgi3QMKB1JlbGVhc2USEgoKcmVsZWFzZV9pZBgBIAEoCRIRCgluYW1lc3BhY2UYAiABKAkSDAoEbmFtZRgDIAEoCRIPCgd2ZXJzaW9uGAQgASgJEg4KBmRpZ2VzdBgFIAEoCRIxCgZzdGF0dXMYBiABKA4yIS5jb21tb24ucmVnaXN0cnkudjEuUmVsZWFzZVN0YXR1cxIyCgp2aXNpYmlsaXR5GAcgASgOMh4uY29tbW9uLnJlZ2lzdHJ5LnYxLlZpc2liaWxpdHkSEQoJZ3JvdXBfaWRzGAggAygJEhQKDHN1Ym1pdHRlZF9ieRgJIAEoCRIuCgpjcmVhdGVkX2F0GAogASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIVCg1yZXZpZXdfcmVhc29uGAsgASgJEhYKDnNraWxsX21hcmtkb3duGAwgASgJEhcKD2Rpc3BsYXlfbmFtZV9lbhgNIAEoCRIXCg9kaXNwbGF5X25hbWVfemgYDiABKAkSKwoEaWNvbhgPIAEoDjIdLmNvbW1vbi5yZWdpc3RyeS52MS5Ta2lsbEljb24SLgoKcHJvdmVuYW5jZRgQIAEoCzIaLmFwaS5jYXRhbG9nLnYxLlByb3ZlbmFuY2Ui0wEKE1NlYXJjaFNraWxsc1JlcXVlc3QSFwoFcXVlcnkYASABKAlCCLpIBXIDGMgBEhEKCW5hbWVzcGFjZRgCIAEoCRIQCghjYXRlZ29yeRgDIAEoCRIMCgR0YWdzGAQgAygJEigKBHBhZ2UYBSABKAsyGi5hcGkuY29tbW9uLnYxLlBhZ2VSZXF1ZXN0Ei8KBW9yZGVyGAYgASgOMiAuY29tbW9uLnJlZ2lzdHJ5LnYxLkNhdGFsb2dPcmRlchIVCg1mZWF0dXJlZF9vbmx5GAcgASgIImYKFFNlYXJjaFNraWxsc1Jlc3BvbnNlEiUKBnNraWxscxgBIAMoCzIVLmFwaS5jYXRhbG9nLnYxLlNraWxsEicKBHBhZ2UYAiABKAsyGS5hcGkuY29tbW9uLnYxLlBhZ2VSZXN1bHQiSgoPR2V0U2tpbGxSZXF1ZXN0Eh0KCW5hbWVzcGFjZRgBIAEoCUIKukgHcgUQARiAARIYCgRuYW1lGAIgASgJQgq6SAdyBRABGIABIjgKEEdldFNraWxsUmVzcG9uc2USJAoFc2tpbGwYASABKAsyFS5hcGkuY2F0YWxvZy52MS5Ta2lsbCJ4ChNMaXN0UmVsZWFzZXNSZXF1ZXN0Eh0KCW5hbWVzcGFjZRgBIAEoCUIKukgHcgUQARiAARIYCgRuYW1lGAIgASgJQgq6SAdyBRABGIABEigKBHBhZ2UYAyABKAsyGi5hcGkuY29tbW9uLnYxLlBhZ2VSZXF1ZXN0ImoKFExpc3RSZWxlYXNlc1Jlc3BvbnNlEikKCHJlbGVhc2VzGAEgAygLMhcuYXBpLmNhdGFsb2cudjEuUmVsZWFzZRInCgRwYWdlGAIgASgLMhkuYXBpLmNvbW1vbi52MS5QYWdlUmVzdWx0IqUBChZEb3dubG9hZFJlbGVhc2VSZXF1ZXN0Eh0KCW5hbWVzcGFjZRgBIAEoCUIKukgHcgUQARiAARIYCgRuYW1lGAIgASgJQgq6SAdyBRABGIABEhsKB3ZlcnNpb24YAyABKAlCCrpIB3IFEAEYgAESNQoMa25vd25fZGlnZXN0GAQgASgJQh+6SBxyGjIYXihzaGEyNTY6WzAtOWEtZl17NjR9KT8kInoKF0Rvd25sb2FkUmVsZWFzZVJlc3BvbnNlEg8KB2FyY2hpdmUYASABKAwSDgoGZGlnZXN0GAIgASgJEigKB3JlbGVhc2UYAyABKAsyFy5hcGkuY2F0YWxvZy52MS5SZWxlYXNlEhQKDG5vdF9tb2RpZmllZBgEIAEoCCKXAgoaVXBkYXRlU2tpbGxNZXRhZGF0YVJlcXVlc3QSKQoIbXV0YXRpb24YASABKAsyFy5hcGkuY29tbW9uLnYxLk11dGF0aW9uEhEKCW5hbWVzcGFjZRgCIAEoCRIMCgRuYW1lGAMgASgJEhkKEWV4cGVjdGVkX3JldmlzaW9uGAQgASgEEhcKD2Rpc3BsYXlfbmFtZV9lbhgFIAEoCRIXCg9kaXNwbGF5X25hbWVfemgYBiABKAkSEwoLZGVzY3JpcHRpb24YByABKAkSKwoEaWNvbhgIIAEoDjIdLmNvbW1vbi5yZWdpc3RyeS52MS5Ta2lsbEljb24SEAoIY2F0ZWdvcnkYCSABKAkSDAoEdGFncxgKIAMoCSIvChtVcGRhdGVTa2lsbE1ldGFkYXRhUmVzcG9uc2USEAoIcmV2aXNpb24YASABKAQy6QMKDkNhdGFsb2dTZXJ2aWNlEm4KE1VwZGF0ZVNraWxsTWV0YWRhdGESKi5hcGkuY2F0YWxvZy52MS5VcGRhdGVTa2lsbE1ldGFkYXRhUmVxdWVzdBorLmFwaS5jYXRhbG9nLnYxLlVwZGF0ZVNraWxsTWV0YWRhdGFSZXNwb25zZRJZCgxTZWFyY2hTa2lsbHMSIy5hcGkuY2F0YWxvZy52MS5TZWFyY2hTa2lsbHNSZXF1ZXN0GiQuYXBpLmNhdGFsb2cudjEuU2VhcmNoU2tpbGxzUmVzcG9uc2USTQoIR2V0U2tpbGwSHy5hcGkuY2F0YWxvZy52MS5HZXRTa2lsbFJlcXVlc3QaIC5hcGkuY2F0YWxvZy52MS5HZXRTa2lsbFJlc3BvbnNlElkKDExpc3RSZWxlYXNlcxIjLmFwaS5jYXRhbG9nLnYxLkxpc3RSZWxlYXNlc1JlcXVlc3QaJC5hcGkuY2F0YWxvZy52MS5MaXN0UmVsZWFzZXNSZXNwb25zZRJiCg9Eb3dubG9hZFJlbGVhc2USJi5hcGkuY2F0YWxvZy52MS5Eb3dubG9hZFJlbGVhc2VSZXF1ZXN0GicuYXBpLmNhdGFsb2cudjEuRG93bmxvYWRSZWxlYXNlUmVzcG9uc2VCwAEKEmNvbS5hcGkuY2F0YWxvZy52MUITQ2F0YWxvZ1NlcnZpY2VQcm90b1ABWjtnaXRodWIuY29tL3NraWxsaHViaHEvc2tpbGxodWIvZ2VuL2FwaS9jYXRhbG9nL3YxO2NhdGFsb2d2MaICA0FDWKoCDkFwaS5DYXRhbG9nLlYxygIOQXBpXENhdGFsb2dcVjHiAhpBcGlcQ2F0YWxvZ1xWMVxHUEJNZXRhZGF0YeoCEEFwaTo6Q2F0YWxvZzo6VjFiBnByb3RvMw", [file_api_common_v1_types, file_buf_validate_validate, file_common_registry_v1_taxonomy, file_google_protobuf_timestamp]);
+  fileDesc("CiRhcGkvY2F0YWxvZy92MS9jYXRhbG9nX3NlcnZpY2UucHJvdG8SDmFwaS5jYXRhbG9nLnYxIqUBCgpQcm92ZW5hbmNlEhMKC2F1dGhvcl9uYW1lGAEgASgJEhIKCmF1dGhvcl91cmwYAiABKAkSEgoKc291cmNlX3VybBgDIAEoCRIQCghyZXZpc2lvbhgEIAEoCRIPCgdsaWNlbnNlGAUgASgJEhQKDGxpY2Vuc2VfZmlsZRgGIAEoCRIQCghtb2RpZmllZBgHIAEoCBIPCgdjaGFuZ2VzGAggASgJIroCCgVTa2lsbBIRCgluYW1lc3BhY2UYASABKAkSDAoEbmFtZRgCIAEoCRITCgtkZXNjcmlwdGlvbhgDIAEoCRIQCghjYXRlZ29yeRgEIAEoCRIMCgR0YWdzGAUgAygJEhYKDmxhdGVzdF92ZXJzaW9uGAYgASgJEhcKD2Rpc3BsYXlfbmFtZV9lbhgHIAEoCRIXCg9kaXNwbGF5X25hbWVfemgYCCABKAkSKwoEaWNvbhgJIAEoDjIdLmNvbW1vbi5yZWdpc3RyeS52MS5Ta2lsbEljb24SEAoIZmVhdHVyZWQYCiABKAgSLgoKcHJvdmVuYW5jZRgLIAEoCzIaLmFwaS5jYXRhbG9nLnYxLlByb3ZlbmFuY2USEAoIcmV2aXNpb24YDCABKAQSEAoIY2FuX2VkaXQYDSABKAgi3QMKB1JlbGVhc2USEgoKcmVsZWFzZV9pZBgBIAEoCRIRCgluYW1lc3BhY2UYAiABKAkSDAoEbmFtZRgDIAEoCRIPCgd2ZXJzaW9uGAQgASgJEg4KBmRpZ2VzdBgFIAEoCRIxCgZzdGF0dXMYBiABKA4yIS5jb21tb24ucmVnaXN0cnkudjEuUmVsZWFzZVN0YXR1cxIyCgp2aXNpYmlsaXR5GAcgASgOMh4uY29tbW9uLnJlZ2lzdHJ5LnYxLlZpc2liaWxpdHkSEQoJZ3JvdXBfaWRzGAggAygJEhQKDHN1Ym1pdHRlZF9ieRgJIAEoCRIuCgpjcmVhdGVkX2F0GAogASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIVCg1yZXZpZXdfcmVhc29uGAsgASgJEhYKDnNraWxsX21hcmtkb3duGAwgASgJEhcKD2Rpc3BsYXlfbmFtZV9lbhgNIAEoCRIXCg9kaXNwbGF5X25hbWVfemgYDiABKAkSKwoEaWNvbhgPIAEoDjIdLmNvbW1vbi5yZWdpc3RyeS52MS5Ta2lsbEljb24SLgoKcHJvdmVuYW5jZRgQIAEoCzIaLmFwaS5jYXRhbG9nLnYxLlByb3ZlbmFuY2Ui0wEKE1NlYXJjaFNraWxsc1JlcXVlc3QSFwoFcXVlcnkYASABKAlCCLpIBXIDGMgBEhEKCW5hbWVzcGFjZRgCIAEoCRIQCghjYXRlZ29yeRgDIAEoCRIMCgR0YWdzGAQgAygJEigKBHBhZ2UYBSABKAsyGi5hcGkuY29tbW9uLnYxLlBhZ2VSZXF1ZXN0Ei8KBW9yZGVyGAYgASgOMiAuY29tbW9uLnJlZ2lzdHJ5LnYxLkNhdGFsb2dPcmRlchIVCg1mZWF0dXJlZF9vbmx5GAcgASgIImYKFFNlYXJjaFNraWxsc1Jlc3BvbnNlEiUKBnNraWxscxgBIAMoCzIVLmFwaS5jYXRhbG9nLnYxLlNraWxsEicKBHBhZ2UYAiABKAsyGS5hcGkuY29tbW9uLnYxLlBhZ2VSZXN1bHQiSgoPR2V0U2tpbGxSZXF1ZXN0Eh0KCW5hbWVzcGFjZRgBIAEoCUIKukgHcgUQARiAARIYCgRuYW1lGAIgASgJQgq6SAdyBRABGIABIjgKEEdldFNraWxsUmVzcG9uc2USJAoFc2tpbGwYASABKAsyFS5hcGkuY2F0YWxvZy52MS5Ta2lsbCJ4ChNMaXN0UmVsZWFzZXNSZXF1ZXN0Eh0KCW5hbWVzcGFjZRgBIAEoCUIKukgHcgUQARiAARIYCgRuYW1lGAIgASgJQgq6SAdyBRABGIABEigKBHBhZ2UYAyABKAsyGi5hcGkuY29tbW9uLnYxLlBhZ2VSZXF1ZXN0ImoKFExpc3RSZWxlYXNlc1Jlc3BvbnNlEikKCHJlbGVhc2VzGAEgAygLMhcuYXBpLmNhdGFsb2cudjEuUmVsZWFzZRInCgRwYWdlGAIgASgLMhkuYXBpLmNvbW1vbi52MS5QYWdlUmVzdWx0IqUBChZEb3dubG9hZFJlbGVhc2VSZXF1ZXN0Eh0KCW5hbWVzcGFjZRgBIAEoCUIKukgHcgUQARiAARIYCgRuYW1lGAIgASgJQgq6SAdyBRABGIABEhsKB3ZlcnNpb24YAyABKAlCCrpIB3IFEAEYgAESNQoMa25vd25fZGlnZXN0GAQgASgJQh+6SBxyGjIYXihzaGEyNTY6WzAtOWEtZl17NjR9KT8kInoKF0Rvd25sb2FkUmVsZWFzZVJlc3BvbnNlEg8KB2FyY2hpdmUYASABKAwSDgoGZGlnZXN0GAIgASgJEigKB3JlbGVhc2UYAyABKAsyFy5hcGkuY2F0YWxvZy52MS5SZWxlYXNlEhQKDG5vdF9tb2RpZmllZBgEIAEoCCKXAgoaVXBkYXRlU2tpbGxNZXRhZGF0YVJlcXVlc3QSKQoIbXV0YXRpb24YASABKAsyFy5hcGkuY29tbW9uLnYxLk11dGF0aW9uEhEKCW5hbWVzcGFjZRgCIAEoCRIMCgRuYW1lGAMgASgJEhkKEWV4cGVjdGVkX3JldmlzaW9uGAQgASgEEhcKD2Rpc3BsYXlfbmFtZV9lbhgFIAEoCRIXCg9kaXNwbGF5X25hbWVfemgYBiABKAkSEwoLZGVzY3JpcHRpb24YByABKAkSKwoEaWNvbhgIIAEoDjIdLmNvbW1vbi5yZWdpc3RyeS52MS5Ta2lsbEljb24SEAoIY2F0ZWdvcnkYCSABKAkSDAoEdGFncxgKIAMoCSIvChtVcGRhdGVTa2lsbE1ldGFkYXRhUmVzcG9uc2USEAoIcmV2aXNpb24YASABKAQiXgoWQ29tcGFyZVJlbGVhc2VzUmVxdWVzdBIRCgluYW1lc3BhY2UYASABKAkSDAoEbmFtZRgCIAEoCRIRCgliZWZvcmVfaWQYAyABKAkSEAoIYWZ0ZXJfaWQYBCABKAkipAEKDkZpbGVEaWZmZXJlbmNlEgwKBHBhdGgYASABKAkSDgoGY2hhbmdlGAIgASgJEhMKC2JlZm9yZV90ZXh0GAMgASgJEhIKCmFmdGVyX3RleHQYBCABKAkSFgoOdGV4dF9hdmFpbGFibGUYBSABKAgSGQoRYmVmb3JlX2V4ZWN1dGFibGUYBiABKAgSGAoQYWZ0ZXJfZXhlY3V0YWJsZRgHIAEoCCJ1ChdDb21wYXJlUmVsZWFzZXNSZXNwb25zZRItCgVmaWxlcxgBIAMoCzIeLmFwaS5jYXRhbG9nLnYxLkZpbGVEaWZmZXJlbmNlEhUKDWJlZm9yZV9kaWdlc3QYAiABKAkSFAoMYWZ0ZXJfZGlnZXN0GAMgASgJMs0ECg5DYXRhbG9nU2VydmljZRJiCg9Db21wYXJlUmVsZWFzZXMSJi5hcGkuY2F0YWxvZy52MS5Db21wYXJlUmVsZWFzZXNSZXF1ZXN0GicuYXBpLmNhdGFsb2cudjEuQ29tcGFyZVJlbGVhc2VzUmVzcG9uc2USbgoTVXBkYXRlU2tpbGxNZXRhZGF0YRIqLmFwaS5jYXRhbG9nLnYxLlVwZGF0ZVNraWxsTWV0YWRhdGFSZXF1ZXN0GisuYXBpLmNhdGFsb2cudjEuVXBkYXRlU2tpbGxNZXRhZGF0YVJlc3BvbnNlElkKDFNlYXJjaFNraWxscxIjLmFwaS5jYXRhbG9nLnYxLlNlYXJjaFNraWxsc1JlcXVlc3QaJC5hcGkuY2F0YWxvZy52MS5TZWFyY2hTa2lsbHNSZXNwb25zZRJNCghHZXRTa2lsbBIfLmFwaS5jYXRhbG9nLnYxLkdldFNraWxsUmVxdWVzdBogLmFwaS5jYXRhbG9nLnYxLkdldFNraWxsUmVzcG9uc2USWQoMTGlzdFJlbGVhc2VzEiMuYXBpLmNhdGFsb2cudjEuTGlzdFJlbGVhc2VzUmVxdWVzdBokLmFwaS5jYXRhbG9nLnYxLkxpc3RSZWxlYXNlc1Jlc3BvbnNlEmIKD0Rvd25sb2FkUmVsZWFzZRImLmFwaS5jYXRhbG9nLnYxLkRvd25sb2FkUmVsZWFzZVJlcXVlc3QaJy5hcGkuY2F0YWxvZy52MS5Eb3dubG9hZFJlbGVhc2VSZXNwb25zZULAAQoSY29tLmFwaS5jYXRhbG9nLnYxQhNDYXRhbG9nU2VydmljZVByb3RvUAFaO2dpdGh1Yi5jb20vc2tpbGxodWJocS9za2lsbGh1Yi9nZW4vYXBpL2NhdGFsb2cvdjE7Y2F0YWxvZ3YxogIDQUNYqgIOQXBpLkNhdGFsb2cuVjHKAg5BcGlcQ2F0YWxvZ1xWMeICGkFwaVxDYXRhbG9nXFYxXEdQQk1ldGFkYXRh6gIQQXBpOjpDYXRhbG9nOjpWMWIGcHJvdG8z", [file_api_common_v1_types, file_buf_validate_validate, file_common_registry_v1_taxonomy, file_google_protobuf_timestamp]);
 
 /**
  * Provenance 是提交者声明并经审核的上游署名；不代表作者拥有本 Hub 账号或认可收录。
@@ -713,11 +713,161 @@ export const UpdateSkillMetadataResponseSchema: GenMessage<UpdateSkillMetadataRe
   messageDesc(file_api_catalog_v1_catalog_service, 12);
 
 /**
+ * CompareReleasesRequest 描述当前操作的数据。
+ *
+ * @generated from message api.catalog.v1.CompareReleasesRequest
+ */
+export type CompareReleasesRequest = Message<"api.catalog.v1.CompareReleasesRequest"> & {
+  /**
+   * 命名空间。
+   *
+   * @generated from field: string namespace = 1;
+   */
+  namespace: string;
+
+  /**
+   * 稳定名称。
+   *
+   * @generated from field: string name = 2;
+   */
+  name: string;
+
+  /**
+   * 基线版本标识。
+   *
+   * @generated from field: string before_id = 3;
+   */
+  beforeId: string;
+
+  /**
+   * 目标版本标识。
+   *
+   * @generated from field: string after_id = 4;
+   */
+  afterId: string;
+};
+
+/**
+ * Describes the message api.catalog.v1.CompareReleasesRequest.
+ * Use `create(CompareReleasesRequestSchema)` to create a new message.
+ */
+export const CompareReleasesRequestSchema: GenMessage<CompareReleasesRequest> = /*@__PURE__*/
+  messageDesc(file_api_catalog_v1_catalog_service, 13);
+
+/**
+ * FileDifference 描述当前操作的数据。
+ *
+ * @generated from message api.catalog.v1.FileDifference
+ */
+export type FileDifference = Message<"api.catalog.v1.FileDifference"> & {
+  /**
+   * 包内路径。
+   *
+   * @generated from field: string path = 1;
+   */
+  path: string;
+
+  /**
+   * added、removed 或 modified。
+   *
+   * @generated from field: string change = 2;
+   */
+  change: string;
+
+  /**
+   * 有界 UTF8 基线文本。
+   *
+   * @generated from field: string before_text = 3;
+   */
+  beforeText: string;
+
+  /**
+   * 有界 UTF8 目标文本。
+   *
+   * @generated from field: string after_text = 4;
+   */
+  afterText: string;
+
+  /**
+   * 两侧文本均可完整比较。
+   *
+   * @generated from field: bool text_available = 5;
+   */
+  textAvailable: boolean;
+
+  /**
+   * 基线执行位。
+   *
+   * @generated from field: bool before_executable = 6;
+   */
+  beforeExecutable: boolean;
+
+  /**
+   * 目标执行位。
+   *
+   * @generated from field: bool after_executable = 7;
+   */
+  afterExecutable: boolean;
+};
+
+/**
+ * Describes the message api.catalog.v1.FileDifference.
+ * Use `create(FileDifferenceSchema)` to create a new message.
+ */
+export const FileDifferenceSchema: GenMessage<FileDifference> = /*@__PURE__*/
+  messageDesc(file_api_catalog_v1_catalog_service, 14);
+
+/**
+ * CompareReleasesResponse 描述当前操作的数据。
+ *
+ * @generated from message api.catalog.v1.CompareReleasesResponse
+ */
+export type CompareReleasesResponse = Message<"api.catalog.v1.CompareReleasesResponse"> & {
+  /**
+   * 变化文件。
+   *
+   * @generated from field: repeated api.catalog.v1.FileDifference files = 1;
+   */
+  files: FileDifference[];
+
+  /**
+   * 基线包摘要。
+   *
+   * @generated from field: string before_digest = 2;
+   */
+  beforeDigest: string;
+
+  /**
+   * 目标包摘要。
+   *
+   * @generated from field: string after_digest = 3;
+   */
+  afterDigest: string;
+};
+
+/**
+ * Describes the message api.catalog.v1.CompareReleasesResponse.
+ * Use `create(CompareReleasesResponseSchema)` to create a new message.
+ */
+export const CompareReleasesResponseSchema: GenMessage<CompareReleasesResponse> = /*@__PURE__*/
+  messageDesc(file_api_catalog_v1_catalog_service, 15);
+
+/**
  * CatalogService 提供权限感知的目录和精确版本下载。
  *
  * @generated from service api.catalog.v1.CatalogService
  */
 export const CatalogService: GenService<{
+  /**
+   * 比较同一技能的两个有权读取的版本。
+   *
+   * @generated from rpc api.catalog.v1.CatalogService.CompareReleases
+   */
+  compareReleases: {
+    methodKind: "unary";
+    input: typeof CompareReleasesRequestSchema;
+    output: typeof CompareReleasesResponseSchema;
+  },
   /**
    * UpdateSkillMetadata 修改技能展示资料，版本包保持不变。
    *

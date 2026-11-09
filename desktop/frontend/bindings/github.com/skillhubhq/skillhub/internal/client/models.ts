@@ -6,7 +6,13 @@
 import * as registryv1$0 from "../../gen/common/registry/v1/models.js";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
+import * as hub$0 from "../hub/models.js";
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
 import * as provenance$0 from "../provenance/models.js";
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
+import * as skillsuite$0 from "../skillsuite/models.js";
 
 export interface CacheInfo {
     "entries": number;
@@ -29,6 +35,18 @@ export interface ConfigVariableStatus {
     "required": boolean;
     "mode": string;
     "status": string;
+}
+
+export interface Coordinate {
+    "Source": string;
+    "Namespace": string;
+    "Name": string;
+    "Version": string;
+}
+
+export interface CreatedAccessToken {
+    "token": hub$0.AccessToken;
+    "secret": string;
 }
 
 export interface DraftFile {
@@ -237,6 +255,18 @@ export interface ProjectState {
     "needs_lock": boolean;
 }
 
+export interface PublishSuite {
+    "source": string;
+    "namespace": string;
+    "name": string;
+    "version": string;
+    "description": string;
+    "visibility": registryv1$0.Visibility;
+    "members": skillsuite$0.Member[] | null;
+    "entry": string;
+    "request_id": string;
+}
+
 export interface ReleaseInfo {
     "provenance"?: provenance$0.Record | null;
     "display_name_en": string;
@@ -257,6 +287,7 @@ export interface ReleaseInfo {
 }
 
 export interface ReleasePreview {
+    "suite"?: skillsuite$0.Manifest | null;
     "release": ReleaseInfo;
     "files": PreviewFile[] | null;
     "target": PreviewTarget;
@@ -327,6 +358,23 @@ export interface Source {
     "private": boolean;
     "credential_ref": string;
     "has_credential": boolean;
+}
+
+export interface SubscriptionPage {
+    "items": hub$0.Subscription[] | null;
+    "next_page": string;
+}
+
+export interface SuiteInstallation {
+    "target": string;
+    "coordinate": Coordinate;
+    "members": SuiteMemberInstallation[] | null;
+}
+
+export interface SuiteMemberInstallation {
+    "target": string;
+    "digest": string;
+    "managed": boolean;
 }
 
 export interface UpdateCheck {
