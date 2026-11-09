@@ -158,6 +158,8 @@ skillhub project list
 
 更新共享要求需重新 add 精确版本、lock、检查并 restore。`project remove NAME --tool TOOL` 仅删期望条目，实际卸载用 `skillhub remove TARGET`。修改清单使锁失效，元数据写入采用临时文件/原子替换。`project show` 注册快捷入口，`project forget --project PATH` 仅忘记入口，保留项目文件和安装。
 
+App 与 CLI 共用本地数据时应一起升级。升级前备份已关闭的客户端数据目录；回退到旧结构版本时，应恢复对应的数据快照和程序。
+
 ## 备份与恢复 [#hub-backup-and-recovery]
 
 ```sh

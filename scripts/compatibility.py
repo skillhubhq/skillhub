@@ -72,7 +72,7 @@ def verify_client_upgrade(args):
         def invoke(binary):
             return subprocess.run([binary, "--data", str(data), "source", "list"], capture_output=True, text=True, timeout=30)
         def rows():
-            with sqlite3.connect(f"file:{data / 'client.db'}?mode=ro", uri=True) as db:
+            with sqlite3.connect((data / "client.db").as_uri() + "?mode=ro&immutable=1", uri=True) as db:
                 return list(db.iterdump())
         assert invoke(args.baseline_cli).returncode == 0
         import shutil
