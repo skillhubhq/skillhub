@@ -75,12 +75,14 @@ def build_baseline(reference):
             provenance = {"baseline_revision": revision, "fixture_identity_normalization": identity_overlays, "baseline_test_overlays": {
                 name: hashlib.sha256((worktree / name).read_bytes()).hexdigest()
                 for name in [*overlays, "desktop/frontend/src/nativeSmoke.ts"]}}
-            yield app, provenance
+            baseline_cli = worktree / "bin" / ("skillhub.exe" if os.name == "nt" else "skillhub")
+            run(["go", "build", "-o", baseline_cli, "./cmd/skillhub"], cwd=worktree, timeout=300)
+            yield app, provenance, baseline_cli
         finally:
             run(["git", "worktree", "remove", "--force", worktree], cwd=ROOT)
 
 
-def exercise(baseline, candidate, server, cli, report_path, provenance=None):
+def exercise(baseline, candidate, server, cli, report_path, provenance=None, baseline_cli=None):
     if sys.platform not in ("darwin", "win32"):
         raise RuntimeError("native App replacement requires macOS or Windows")
     evidence = {"passed": False, "phases": [], "platform": sys.platform, **(provenance or {})}
@@ -94,6 +96,7 @@ def exercise(baseline, candidate, server, cli, report_path, provenance=None):
         data.mkdir(mode=0o700)
         env.update(SKILLHUB_HOME=str(data), SKILLHUB_NATIVE_SMOKE="1")
         (data / ".native-smoke-fixture").write_bytes(b"skillhub-native-smoke-v1\n")
+        active_cli = baseline_cli or cli
         config_target = None
         config_files = {}
         def binary(app):
@@ -101,7 +104,7 @@ def exercise(baseline, candidate, server, cli, report_path, provenance=None):
         def app_hash(app):
             return hashlib.sha256(binary(app).read_bytes()).hexdigest()
         def client(*args, password=None):
-            return run([cli, "--data", data, "--json", *args], input=password, text=True, env=env)
+            return run([active_cli, "--data", data, "--json", *args], input=password, text=True, env=env)
         installed = root / "Applications" / baseline.name
         installed.parent.mkdir()
         def replace(app):
@@ -178,7 +181,7 @@ def exercise(baseline, candidate, server, cli, report_path, provenance=None):
             account_file.write_text(json.dumps(accounts)); account_file.chmod(0o600)
             replace(baseline)
             phase("seed")
-            # The current CLI seeds settings beside an older App without changing its existing data.
+            # 使用对应版本 CLI 准备旧版状态，避免在覆盖安装前升级本地结构。
             config_target = json.loads((data / "upgrade-snapshot.json").read_text())["installed"][1]["target"]
             client("config", "set", config_target, "UPGRADE_TOKEN", "--mode", "keychain", "--value-stdin", password=secrets.token_urlsafe(32)+"\n")
             config_files = {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in (data / "local-configuration").glob("*.json")}
@@ -199,10 +202,16 @@ def exercise(baseline, candidate, server, cli, report_path, provenance=None):
                 finally: run(["hdiutil", "detach", mount])
                 evidence["dmg_verified_and_replaced"] = True
             else: replace(candidate)
+            active_cli = cli
             phase("candidate")
             phase("restart")
+            # 结构升级后的回退恢复关闭状态备份，不让旧程序读取新版数据库。
+            shutil.rmtree(data)
+            shutil.copytree(root / "client-before-upgrade", data)
+            active_cli = baseline_cli or cli
             replace(baseline)
             phase("rollback")
+            evidence["rollback_restored_snapshot"] = True
             evidence["passed"] = True
         finally:
             # Only these random fixture credential references are removed.
@@ -233,11 +242,12 @@ if __name__ == "__main__":
     baseline.add_argument("--baseline-ref", help="build a full comparison commit SHA with test-only instrumentation")
     for name in ("candidate-app", "server", "cli", "report"):
         parser.add_argument("--" + name, type=Path, required=True)
+    parser.add_argument("--baseline-cli", type=Path, help="CLI matching --baseline-app")
     args = parser.parse_args()
     paths = [args.candidate_app.resolve(), args.server.resolve(), args.cli.resolve(), args.report.resolve()]
     if args.baseline_ref:
-        with build_baseline(args.baseline_ref) as (app, provenance):
-            exercise(app, *paths, provenance=provenance)
+        with build_baseline(args.baseline_ref) as (app, provenance, baseline_cli):
+            exercise(app, *paths, provenance=provenance, baseline_cli=baseline_cli)
     else:
-        exercise(args.baseline_app.resolve(), *paths)
+        exercise(args.baseline_app.resolve(), *paths, baseline_cli=args.baseline_cli.resolve() if args.baseline_cli else None)
     print("PASS: native App overwrite upgrade, OS credentials, drafts, preferences, project/global skills and compatible rollback")

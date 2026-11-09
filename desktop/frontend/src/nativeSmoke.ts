@@ -860,7 +860,15 @@ export async function runNativeSmoke() {
           r.textContent?.includes("Team lifecycle"),
       ),
     );
-    const openLifecycle = () => {
+    const openLifecycle = async () => {
+      await waitForUI(() =>
+        Array.from(document.querySelectorAll("article")).some((row) =>
+          row.textContent?.includes("lifecycle-smoke") &&
+          Array.from(row.querySelectorAll("button")).some((button) =>
+            button.textContent === "Team lifecycle" && !button.disabled,
+          ),
+        ),
+      );
       const row = Array.from(document.querySelectorAll("article")).find((r) =>
         r.textContent?.includes("lifecycle-smoke"),
       )!;
@@ -870,7 +878,7 @@ export async function runNativeSmoke() {
         ) as HTMLButtonElement
       ).click();
     };
-    openLifecycle();
+    await openLifecycle();
     await waitForUI(() =>
       Array.from(document.querySelectorAll("dialog[open] button")).some(
         (b) => b.textContent === "Archive team",
@@ -890,7 +898,7 @@ export async function runNativeSmoke() {
             r.textContent?.includes("Archived"),
         ),
     );
-    openLifecycle();
+    await openLifecycle();
     await waitForUI(
       () =>
         !!document.querySelector("dialog[open] .team-lifecycle-danger input"),
