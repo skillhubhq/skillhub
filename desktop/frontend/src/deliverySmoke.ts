@@ -108,10 +108,12 @@ export async function runDeliverySmoke(
         .querySelector(".detail-hero h1")
         ?.textContent?.includes("delivery-suite") ?? false,
   );
-  const button = [
-    ...document.querySelectorAll<HTMLButtonElement>("button"),
-  ].find((b) => b.textContent === "Compare versions");
-  button?.click();
+  const compareButton = () =>
+    [...document.querySelectorAll<HTMLButtonElement>("button")].find(
+      (button) => button.textContent === "Compare versions" && !button.disabled,
+    );
+  await wait(() => !!compareButton());
+  compareButton()!.click();
   await wait(() => !!document.querySelector("dialog[open] .version-file"));
   check(
     document.querySelector("dialog[open]")!.getBoundingClientRect().height <=
