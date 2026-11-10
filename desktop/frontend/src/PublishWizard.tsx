@@ -129,6 +129,7 @@ export function PublishWizard({ source }: { source: string }) {
       categories: AdminRow[];
       groups: AdminRow[];
     } | null>(null),
+    [optionsLoading, setOptionsLoading] = useState(true),
     [reload, setReload] = useState(0),
     [result, setResult] = useState<ReleaseInfo | null>(null);
   const draftIdentity = useResource(() => API.Identity(source), [source]);
@@ -335,37 +336,42 @@ export function PublishWizard({ source }: { source: string }) {
   useEffect(() => {
     let active = true;
     setOptions(null);
+    setOptionsLoading(true);
     setNamespace("");
     setCategory("");
     setGroups([]);
     setStep(0);
-    void ui.run(async () => {
-      const all = async (kind: string) => {
-        let token = "";
-        const rows: AdminRow[] = [];
-        do {
-          const p = await API.AdminList(source, kind, "", token);
-          rows.push(...(p.rows ?? []));
-          token = p.next_page;
-        } while (token);
-        return rows;
-      };
-      const [namespaces, categories] = await Promise.all([
-        all("submission-namespaces"),
-        all("categories"),
-      ]);
-      // 群组目录并非所有发布者都有列举权；未获权时不提供猜测 ID 的入口。
-      let groupRows: AdminRow[] = [];
-      try {
-        groupRows = await all("groups");
-      } catch {}
-      if (active)
-        setOptions({
-          namespaces,
-          categories: categories.filter((c) => c.enabled),
-          groups: groupRows,
-        });
-    });
+    void ui
+      .run(async () => {
+        const all = async (kind: string) => {
+          let token = "";
+          const rows: AdminRow[] = [];
+          do {
+            const p = await API.AdminList(source, kind, "", token);
+            rows.push(...(p.rows ?? []));
+            token = p.next_page;
+          } while (token);
+          return rows;
+        };
+        const [namespaces, categories] = await Promise.all([
+          all("submission-namespaces"),
+          all("categories"),
+        ]);
+        // 群组目录并非所有发布者都有列举权；未获权时不提供猜测 ID 的入口。
+        let groupRows: AdminRow[] = [];
+        try {
+          groupRows = await all("groups");
+        } catch {}
+        if (active)
+          setOptions({
+            namespaces,
+            categories: categories.filter((c) => c.enabled),
+            groups: groupRows,
+          });
+      })
+      .finally(() => {
+        if (active) setOptionsLoading(false);
+      });
     return () => {
       active = false;
       fileGeneration.current++;
@@ -613,7 +619,7 @@ export function PublishWizard({ source }: { source: string }) {
               </li>
             ))}
           </ol>
-          {!options && !ui.busy && (
+          {!options && !optionsLoading && (
             <div className="notice">
               {t("Publication options are not ready.")}
               <button

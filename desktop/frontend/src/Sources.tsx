@@ -11,8 +11,13 @@ import { API, Empty, Field, Modal, useUI } from "./ui";
 import type { CacheInfo } from "../bindings/github.com/skillhubhq/skillhub/internal/client/models";
 export function Sources() {
   const ui = useUI();
+  const [loginRetrying, setLoginRetrying] = useState(false);
   const [adding, setAdding] = useState(false),
-    [managing, setManaging] = useState("");
+    [managing, setManaging] = useState(
+      () =>
+        new URLSearchParams(location.hash.split("?")[1] ?? "").get("manage") ??
+        "",
+    );
   const [alias, setAlias] = useState(""),
     [url, setURL] = useState(""),
     [account, setAccount] = useState(""),
@@ -27,6 +32,16 @@ export function Sources() {
   const [identityState, setIdentityState] = useState<Record<string, string>>(
     {},
   );
+  const [identityEpoch, setIdentityEpoch] = useState(0);
+  useEffect(() => {
+    const recheck = () => setIdentityEpoch((value) => value + 1);
+    window.addEventListener("online", recheck);
+    window.addEventListener("focus", recheck);
+    return () => {
+      window.removeEventListener("online", recheck);
+      window.removeEventListener("focus", recheck);
+    };
+  }, []);
   const sourceKey = ui.sources.map((s) => s.alias).join("/");
   useEffect(() => {
     let active = true;
@@ -70,15 +85,17 @@ export function Sources() {
     return () => {
       active = false;
     };
-  }, [ui.revision, sourceKey]);
+  }, [ui.revision, sourceKey, identityEpoch]);
   useEffect(() => {
     if (!device) return;
+    setLoginRetrying(false);
     let stopped = false;
     let timer: ReturnType<typeof setTimeout>;
     const poll = async () => {
       try {
         const result = await API.PollLogin(device.view.handle);
         if (stopped) return;
+        setLoginRetrying(false);
         if (result.pending) {
           timer = setTimeout(poll, device.view.interval_seconds * 1000);
         } else {
@@ -87,11 +104,26 @@ export function Sources() {
             [device.source]: result.identity,
           }));
           setDevice(null);
+          ui.refresh();
           ui.changed(
             `${t("Signed in to", "已登录")} ${device.source}: ${result.identity.username}`,
           );
         }
       } catch (error) {
+        if (
+          !stopped &&
+          /unavailable|deadline.exceeded|unexpected EOF|network|connection reset|fetch failed/i.test(
+            String(error),
+          ) &&
+          Date.now() < Date.parse(device.view.expires_at)
+        ) {
+          setLoginRetrying(true);
+          timer = setTimeout(
+            poll,
+            Math.max(3, device.view.interval_seconds) * 1000,
+          );
+          return;
+        }
         if (!stopped) {
           setDevice(null);
           void ui.run(async () => {
@@ -236,7 +268,10 @@ export function Sources() {
                       ? t("Checking account…", "正在确认账号…")
                       : identityState[source.alias] === "signed-out"
                         ? t("Not signed in")
-                        : t("Account not verified", "账号暂未验证")}
+                        : t(
+                            "Connection unavailable — try again",
+                            "连接暂时不可用，请重试",
+                          )}
                 </p>
                 {identities[source.alias]?.administrator && (
                   <small>{t("Hub admin", "Hub 管理员")}</small>
@@ -292,7 +327,10 @@ export function Sources() {
                         ? t("Checking account…", "正在确认账号…")
                         : identityState[source.alias] === "signed-out"
                           ? t("Not signed in")
-                          : t("Account not verified", "账号暂未验证"))}
+                          : t(
+                              "Connection unavailable — try again",
+                              "连接暂时不可用，请重试",
+                            ))}
                   </p>
                   <div className="connection-actions">
                     <button
@@ -327,6 +365,7 @@ export function Sources() {
                             ...old,
                             [source.alias]: identity,
                           }));
+                          ui.refresh();
                         })
                       }
                     >
@@ -423,6 +462,7 @@ export function Sources() {
                 );
                 setIdentities((old) => ({ ...old, [account]: identity }));
                 setAccount("");
+                ui.refresh();
                 ui.changed(`${t("Signed in as")}: ${identity.username}`);
               });
             }}
@@ -463,6 +503,14 @@ export function Sources() {
           <p>
             {t("Open this hub in your browser and enter the following code.")}
           </p>
+          {loginRetrying && (
+            <p role="status">
+              {t(
+                "Connection interrupted. Retrying sign-in…",
+                "连接暂时中断，正在恢复登录…",
+              )}
+            </p>
+          )}
           <div className="device-code">{device.view.code}</div>
           <p className="path">{device.view.url}</p>
           <p className="muted">

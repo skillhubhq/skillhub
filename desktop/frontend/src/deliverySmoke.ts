@@ -57,7 +57,7 @@ export async function runDeliverySmoke(
     namespace: "platform",
     name: "delivery-suite",
     version: "1.1.0",
-    description: "Delivery suite with updated guidance",
+    description: "Delivery suite with updated guidance. ".repeat(15),
     visibility: Visibility.Visibility_VISIBILITY_PUBLIC,
     members: [
       {
@@ -122,9 +122,123 @@ export async function runDeliverySmoke(
     !!document.querySelector("dialog[open] .diff-added"),
     "native comparison highlights added lines",
   );
+  const diff = document.querySelector<HTMLElement>(".version-unified")!;
+  check(
+    diff.scrollWidth <= diff.clientWidth + 1 &&
+      getComputedStyle(diff.querySelector("span")!).whiteSpace === "pre-wrap",
+    "native comparison wraps long text without horizontal scrolling",
+  );
   document
-    .querySelector<HTMLButtonElement>('dialog[open] button[aria-label="Close"]')
+    .querySelector<HTMLButtonElement>(
+      'dialog[open] button[aria-label="Close dialog"]',
+    )
     ?.click();
+  await wait(() => !document.querySelector("dialog[open]"));
+  const follow = () =>
+    [
+      ...document.querySelectorAll<HTMLButtonElement>("button[aria-pressed]"),
+    ].find(
+      (b) =>
+        b.textContent === "Follow updates" || b.textContent === "Following",
+    );
+  await wait(() => !!follow() && !follow()!.disabled);
+  follow()!.click();
+  await wait(
+    () =>
+      follow()?.getAttribute("aria-pressed") === "true" && !follow()!.disabled,
+  );
+  document.querySelector<HTMLButtonElement>(".utility-inbox")!.click();
+  await wait(() => !!document.querySelector("dialog[open]"));
+  const dialogButton = (text: string) =>
+    [
+      ...document.querySelectorAll<HTMLButtonElement>("dialog[open] button"),
+    ].find((b) => b.textContent === text && !b.disabled);
+  await wait(() => !!dialogButton("Updates"));
+  dialogButton("Updates")!.click();
+  await wait(() => !!dialogButton("Following"));
+  dialogButton("Following")!.click();
+  await wait(() => !!dialogButton("Unfollow"));
+  const subscriptionsDialog = [
+    ...document.querySelectorAll<HTMLDialogElement>("dialog[open]"),
+  ].at(-1)!;
+  const subscriptionsHeight =
+    subscriptionsDialog.getBoundingClientRect().height;
+  check(
+    subscriptionsHeight <= 440,
+    "subscription management uses a compact dialog",
+  );
+  dialogButton("Unfollow")!.click();
+  await wait(
+    () =>
+      !document.querySelector("dialog[open] .loading-skeleton") &&
+      !dialogButton("Unfollow"),
+  );
+  await wait(
+    () =>
+      follow()?.getAttribute("aria-pressed") === "false" && !follow()!.disabled,
+  );
+  check(true, "native unfollow in Inbox synchronizes the mounted skill detail");
+  check(
+    Math.abs(
+      subscriptionsDialog.getBoundingClientRect().height - subscriptionsHeight,
+    ) < 2 &&
+      subscriptionsDialog.textContent?.includes("No followed skills yet"),
+    "removing the last subscription shows an explicit empty state without resizing the dialog",
+  );
+  while (document.querySelector("dialog[open]")) {
+    const dialogs = document.querySelectorAll("dialog[open]");
+    const top = dialogs[dialogs.length - 1];
+    top
+      .querySelector<HTMLButtonElement>('button[aria-label="Close dialog"]')!
+      .click();
+    await wait(() => !top.isConnected);
+  }
+  location.hash = "publish?source=public";
+  await wait(() =>
+    [...document.querySelectorAll("button")].some(
+      (b) => b.textContent === "Create a skill suite",
+    ),
+  );
+  [...document.querySelectorAll<HTMLButtonElement>("button")]
+    .find((b) => b.textContent === "Create a skill suite")!
+    .click();
+  await wait(
+    () =>
+      !!document.querySelector('dialog[open] input[aria-label="Find a skill"]'),
+  );
+  const searchInput = document.querySelector<HTMLInputElement>(
+    'dialog[open] input[aria-label="Find a skill"]',
+  )!;
+  const setInput = Object.getOwnPropertyDescriptor(
+    HTMLInputElement.prototype,
+    "value",
+  )!.set!;
+  setInput.call(searchInput, "no-such-fixture-skill");
+  searchInput.dispatchEvent(new Event("input", { bubbles: true }));
+  await wait(() => !!dialogButton("Search"));
+  const enter = new KeyboardEvent("keydown", {
+    key: "Enter",
+    bubbles: true,
+    cancelable: true,
+  });
+  searchInput.dispatchEvent(enter);
+  await wait(
+    () =>
+      document
+        .querySelector("dialog[open]")
+        ?.textContent?.includes("No skills match your search.") ?? false,
+  );
+  check(
+    enter.defaultPrevented,
+    "suite search Enter searches without submitting the publication form",
+  );
+  check(true, "suite search renders an explicit no-results state");
+  document
+    .querySelector<HTMLButtonElement>(
+      'dialog[open] button[aria-label="Close dialog"]',
+    )!
+    .click();
+  await wait(() => !document.querySelector("dialog[open]"));
   location.hash = "sources";
   await wait(() => !!document.querySelector(".source-card"));
 }

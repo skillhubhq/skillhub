@@ -59,12 +59,25 @@ export function AccessState({
               {t("Sign in", "登录")}
             </a>
           ) : (
-            <button className="primary" onClick={() => ui.navigate("sources")}>
+            <button
+              className="primary"
+              onClick={() =>
+                ui.navigate(
+                  `sources?manage=${encodeURIComponent(ui.activeSource)}`,
+                )
+              }
+            >
               {t("Sign in", "登录")}
             </button>
           ))}
         {!isWeb && !signIn && (
-          <button onClick={() => ui.navigate("sources")}>
+          <button
+            onClick={() =>
+              ui.navigate(
+                `sources?manage=${encodeURIComponent(ui.activeSource)}`,
+              )
+            }
+          >
             {t("Connections", "连接与账号")}
           </button>
         )}

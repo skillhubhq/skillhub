@@ -1,5 +1,5 @@
 .version-file {
-  border: 1px solid var(--border);
+  border: 1px solid var(--line);
   border-radius: 10px;
   padding: 12px;
   min-width: 0;
@@ -21,8 +21,8 @@
 }
 .version-unified > span {
   display: block;
-  min-width: max-content;
-  white-space: pre;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
   min-height: 1.65em;
 }
 .diff-added {
@@ -30,4 +30,51 @@
 }
 .diff-removed {
   background: color-mix(in srgb, #d14545 14%, transparent);
+}
+.distribution-input-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.distribution-input-row > :first-child {
+  flex: 1;
+  min-width: 0;
+}
+.distribution-input-row > button:last-child {
+  flex: none;
+}
+.distribution-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.distribution-list:empty {
+  display: none;
+}
+.distribution-list > li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+.distribution-list > li > :first-child {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.distribution-list > li > button:last-child {
+  flex: none;
+  font-size: 12px;
+  min-height: 32px;
+  padding: 5px 10px;
+}
+.distribution-list .distribution-link {
+  text-align: left;
+  white-space: normal;
+  border: 0;
+  padding: 6px 0;
+  background: none;
+  color: var(--link);
 }

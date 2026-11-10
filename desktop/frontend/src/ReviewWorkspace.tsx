@@ -56,7 +56,10 @@ export function ReviewWorkspace({
     if (selected?.release.id !== revealSelection.current) return;
     revealSelection.current = "";
     if (documentRef.current)
-      revealPageStart(documentRef.current, matchMedia("(max-width: 760px)").matches);
+      revealPageStart(
+        documentRef.current,
+        matchMedia("(max-width: 760px)").matches,
+      );
   }, [selected?.release.id]);
   const [selecting, setSelecting] = useState("");
   const cleanup = useResource(
@@ -541,7 +544,7 @@ export function ReviewWorkspace({
                 className={`release-progress status-${selected.release.status}`}
                 aria-label={t("Submission status", "提交状态")}
               >
-                <div>
+                <div className="release-status-row">
                   <span className="badge">
                     {statusLabel(selected.release.status)}
                   </span>
@@ -559,7 +562,7 @@ export function ReviewWorkspace({
                           )
                         }
                       >
-                        {t("View published skill", "查看已发布技能")}
+                        {t("View skill", "查看技能")}
                       </button>
                     )}
                     {mine &&
@@ -576,7 +579,7 @@ export function ReviewWorkspace({
                             )
                           }
                         >
-                          {t("Submit an updated version", "提交修改后的版本")}
+                          {t("New version", "提交新版本")}
                         </button>
                       )}
                   </div>

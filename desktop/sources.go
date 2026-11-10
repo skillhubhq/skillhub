@@ -124,7 +124,7 @@ func (s *DesktopService) PollLogin(id string) (LoginPoll, error) {
 	identity, waiting, err := s.core.CompleteLogin(s.ctx, pending.login)
 	s.mu.Lock()
 	pending.polling = false
-	if err != nil || !waiting {
+	if err != nil && connect.CodeOf(err) != connect.CodeUnavailable && connect.CodeOf(err) != connect.CodeDeadlineExceeded || err == nil && !waiting {
 		delete(s.logins, id)
 	}
 	s.mu.Unlock()

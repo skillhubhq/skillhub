@@ -783,7 +783,7 @@ export async function runNativeSmoke() {
     check(
       document
         .querySelector(".release-progress")
-        ?.textContent?.includes("View published skill"),
+        ?.textContent?.includes("View skill"),
       "refresh exposes review feedback and published skill action",
     );
     const releaseTop = document
@@ -795,6 +795,24 @@ export async function runNativeSmoke() {
     check(
       proseTop - releaseTop < 240,
       `release status and feedback leave document near the top (${Math.round(proseTop - releaseTop)}px)`,
+    );
+    const statusRow = document
+      .querySelector(".release-status-row")!
+      .getBoundingClientRect();
+    const headingBottom = document
+      .querySelector(".review-heading")!
+      .getBoundingClientRect().bottom;
+    check(
+      statusRow.top - headingBottom >= 10,
+      "release status and actions have breathing room below the sticky heading",
+    );
+    check(
+      document.querySelector(".document-modes")?.querySelectorAll("button")
+        .length === 2 &&
+        document
+          .querySelector(".document-actions")
+          ?.textContent?.includes("Compare versions"),
+      "version comparison is separate from document reading modes",
     );
     const feedback =
       document.querySelector<HTMLDetailsElement>(".release-feedback")!;
@@ -864,11 +882,13 @@ export async function runNativeSmoke() {
     );
     const openLifecycle = async () => {
       await waitForUI(() =>
-        Array.from(document.querySelectorAll("article")).some((row) =>
-          row.textContent?.includes("lifecycle-smoke") &&
-          Array.from(row.querySelectorAll("button")).some((button) =>
-            button.textContent === "Team lifecycle" && !button.disabled,
-          ),
+        Array.from(document.querySelectorAll("article")).some(
+          (row) =>
+            row.textContent?.includes("lifecycle-smoke") &&
+            Array.from(row.querySelectorAll("button")).some(
+              (button) =>
+                button.textContent === "Team lifecycle" && !button.disabled,
+            ),
         ),
       );
       const row = Array.from(document.querySelectorAll("article")).find((r) =>
@@ -2104,16 +2124,31 @@ export async function runNativeSmoke() {
       ),
       "expired session removes Studio navigation",
     );
-    window.dispatchEvent(new Event("focus"));
-    await waitForUI(
-      () =>
-        !!document.querySelector(".account-menu .avatar") &&
-        !!document.querySelector(".discovery-search"),
-    );
+    (
+      document.querySelector(
+        ".access-state button.primary",
+      ) as HTMLButtonElement
+    ).click();
+    await waitForUI(() => !!document.querySelector("dialog[open]"));
     check(
-      !document.querySelector(".access-state"),
-      "focus revalidates the session and restores the community",
+      location.hash.includes("manage=company"),
+      "expired sign-in opens the affected connection directly",
     );
+    const identityCheck = [
+      ...document.querySelectorAll("dialog[open] button"),
+    ].find(
+      (button) => button.textContent === "Check identity",
+    ) as HTMLButtonElement;
+    identityCheck.click();
+    await waitForUI(() => !!document.querySelector(".account-menu .avatar"));
+    check(
+      !!document.querySelector(".account-menu .avatar"),
+      "identity recovery clears the expired session without window focus",
+    );
+    location.hash = "discover?source=company";
+    await waitForUI(() => !!document.querySelector(".discovery-search"));
+    window.dispatchEvent(new Event("online"));
+    await waitForUI(() => !!document.querySelector(".account-menu .avatar"));
   } catch (failure) {
     error = failure instanceof Error ? failure.message : String(failure);
   }

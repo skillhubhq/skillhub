@@ -423,7 +423,7 @@
   font-size: 13px;
 }
 .community-shell .detail-content .document-modes {
-  margin: 0 0 10px;
+  margin: 0;
   border: 0;
   justify-content: flex-end;
   gap: 3px;
@@ -433,7 +433,7 @@
   padding: 3px 9px;
   border: 0;
   border-radius: 5px;
-  font-size: 11px;
+  font-size: 12px;
 }
 .community-shell .detail-content .document-modes button[aria-pressed="true"] {
   background: var(--surface-soft);
@@ -766,10 +766,10 @@
 /* 状态与反馈为正文提供上下文，避免形成独立的大卡片。 */
 .community-shell .review-heading {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   flex-wrap: wrap;
   gap: 6px 14px;
-  padding: 14px 20px 10px;
+  padding: 10px 20px;
   border-bottom: 0;
 }
 .community-shell .review-heading h2 {
@@ -779,10 +779,10 @@
   overflow-wrap: anywhere;
 }
 .community-shell .release-progress {
-  padding: 0 20px 12px;
-  background: transparent;
+  padding: 12px 20px;
+  background: var(--surface);
 }
-.community-shell .release-progress > div:first-child {
+.community-shell .release-status-row {
   gap: 8px 12px;
 }
 .community-shell .release-progress .actions {
@@ -791,11 +791,11 @@
 }
 .community-shell .release-progress .actions button {
   min-height: 32px;
-  padding: 5px 10px;
-  font-size: 12px;
+  padding: 5px 12px;
+  font-size: 13px;
 }
 .community-shell .release-feedback {
-  margin-top: 10px;
+  margin-top: 8px;
   padding: 0;
   border: 0;
   background: none;
@@ -805,7 +805,7 @@
   align-items: baseline;
   gap: 8px;
   min-height: 0;
-  padding: 8px 10px;
+  padding: 6px 10px;
   font-size: 13px;
   line-height: 1.5;
   background: var(--surface-soft);
@@ -834,7 +834,7 @@
   overflow: hidden;
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 1;
   overflow-wrap: anywhere;
 }
 .release-feedback[open] .feedback-excerpt {
@@ -856,7 +856,10 @@
   font-size: 12px;
 }
 .community-shell .review-content {
-  padding: 14px 20px 20px;
+  padding: 10px 20px 20px;
+}
+.community-shell .review-content .document-toolbar {
+  margin-bottom: 8px;
 }
 .community-shell .review-content .document-tabs {
   margin-top: 0;
@@ -901,10 +904,10 @@
 }
 @media (max-width: 760px) {
   .community-shell .review-heading {
-    padding: 12px 14px 8px;
+    padding: 14px;
   }
   .community-shell .release-progress {
-    padding: 0 14px 12px;
+    padding: 12px 14px;
   }
   .community-shell .release-progress .actions button {
     min-height: 44px;
@@ -925,7 +928,7 @@
   }
 }
 .community-shell .review-content .document-modes {
-  margin: 0 0 10px;
+  margin: 0;
   border: 0;
   gap: 4px;
 }
@@ -1485,6 +1488,8 @@
 /* 切换时保留正文空间，避免重新挂载造成整页跳动。 */
 .review-document {
   position: relative;
+  background: var(--surface);
+  border-radius: 0 0 12px 0;
 }
 .review-document-body {
   min-width: 0;

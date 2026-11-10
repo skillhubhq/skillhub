@@ -62,12 +62,13 @@ func TestOfficialOnboardingRetryAndOptOut(t *testing.T) {
 	if _, err = store.db.Exec("DELETE FROM sources WHERE alias='official'"); err != nil {
 		t.Fatal(err)
 	}
+	callsBeforeRemoval := calls
 	next := NewClient(store, coreOptions(core))
 	if err = next.EnsureOfficialSource(ctx); err != nil {
 		t.Fatal(err)
 	}
 	sources, _ = next.ListSources(ctx)
-	if len(sources) != 0 || calls != 2 {
+	if len(sources) != 0 || calls != callsBeforeRemoval {
 		t.Fatal("removed source was re-added")
 	}
 }

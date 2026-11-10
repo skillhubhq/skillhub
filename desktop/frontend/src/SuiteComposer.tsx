@@ -3,6 +3,7 @@ import { API, Field, Modal, useUI } from "./ui";
 import { useResource, ResourceState } from "./community-ui";
 import { Select } from "./Select";
 import { t } from "./i18n";
+import "./distribution.css";
 import {
   Visibility,
   CatalogOrder,
@@ -158,44 +159,60 @@ function Composer({ source, close }: { source: string; close: () => void }) {
             onChange={(e) => setDescription(e.target.value)}
           />
         </Field>
-        <div className="section-heading">
+        <div className="distribution-input-row">
           <input
             aria-label={t("Find a skill", "查找技能")}
             placeholder={t("Search this Hub…", "搜索当前 Hub…")}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                setSearch(query.trim());
+              }
+            }}
           />
-          <button type="button" onClick={() => setSearch(query)}>
+          <button
+            type="button"
+            disabled={!query.trim()}
+            onClick={() => setSearch(query.trim())}
+          >
             {t("Search", "搜索")}
           </button>
         </div>
         <ResourceState {...found} retry={found.reload}>
-          {found.value && (
-            <Select
-              aria-label={t("Skill", "技能")}
-              value={selected}
-              onChange={(e) => {
-                setSelected(e.target.value);
-                setRelease("");
-              }}
-            >
-              <option value="">{t("Choose a skill", "选择技能")}</option>
-              {found.value
-                .flatMap((p) => p.skills ?? [])
-                .map((s) => (
-                  <option
-                    key={s.namespace + "/" + s.name}
-                    value={s.namespace + "/" + s.name}
-                  >
-                    {s.namespace}/{s.name}
-                  </option>
-                ))}
-            </Select>
+          {found.value && !found.value.some((page) => page.skills?.length) ? (
+            <p role="status">
+              {t("No skills match your search.", "没有匹配的技能。")}
+            </p>
+          ) : (
+            found.value && (
+              <Select
+                aria-label={t("Skill", "技能")}
+                value={selected}
+                onChange={(e) => {
+                  setSelected(e.target.value);
+                  setRelease("");
+                }}
+              >
+                <option value="">{t("Choose a skill", "选择技能")}</option>
+                {found.value
+                  .flatMap((p) => p.skills ?? [])
+                  .map((s) => (
+                    <option
+                      key={s.namespace + "/" + s.name}
+                      value={s.namespace + "/" + s.name}
+                    >
+                      {s.namespace}/{s.name}
+                    </option>
+                  ))}
+              </Select>
+            )
           )}
         </ResourceState>
         {selected && (
           <ResourceState {...versions} retry={versions.reload}>
-            <div className="section-heading">
+            <div className="distribution-input-row">
               <Select
                 aria-label={t("Version", "版本")}
                 value={release}
@@ -240,9 +257,9 @@ function Composer({ source, close }: { source: string; close: () => void }) {
             </div>
           </ResourceState>
         )}
-        <ul className="stack">
+        <ul className="distribution-list">
           {members.map((m) => (
-            <li key={m.name} className="section-heading">
+            <li key={m.name}>
               <span>
                 {m.namespace}/{m.name} · {m.version}
               </span>
@@ -261,6 +278,7 @@ function Composer({ source, close }: { source: string; close: () => void }) {
         <Field label={t("Start with", "入口技能")}>
           <Select
             required
+            disabled={!members.length}
             value={entry}
             onChange={(e) => setEntry(e.target.value)}
           >

@@ -123,6 +123,15 @@ const pages = [
 ];
 function explain(error: unknown) {
   const text = error instanceof Error ? error.message : String(error);
+  if (
+    /unexpected EOF|unavailable:|deadline.exceeded|connection reset|fetch failed/i.test(
+      text,
+    )
+  )
+    return t(
+      "The Hub connection was interrupted. Try again when the connection is available.",
+      "与 Hub 的连接暂时中断，请在网络恢复后重试。",
+    );
   if (/community quota reached/i.test(text))
     return t(
       "A community limit has been reached. Check your submission usage or contact the Hub operator.",
@@ -237,10 +246,12 @@ export default function App() {
     };
     window.addEventListener(sessionExpiredEvent, expire);
     window.addEventListener("focus", refreshSession);
+    window.addEventListener("online", refreshSession);
     document.addEventListener("visibilitychange", refreshSession);
     return () => {
       window.removeEventListener(sessionExpiredEvent, expire);
       window.removeEventListener("focus", refreshSession);
+      window.removeEventListener("online", refreshSession);
       document.removeEventListener("visibilitychange", refreshSession);
     };
   }, [activeSource]);

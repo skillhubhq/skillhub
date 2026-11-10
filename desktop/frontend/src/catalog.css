@@ -315,11 +315,27 @@
   border-radius: 8px;
   color: var(--ink);
 }
+.document-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin: 0 0 16px;
+}
+.document-actions {
+  margin-left: auto;
+}
+.document-actions button {
+  min-height: 32px;
+  padding: 4px 10px;
+  font-size: 12px;
+}
 .document-modes {
   display: flex;
   gap: 20px;
   border-bottom: 1px solid var(--line);
-  margin: 20px 0 24px;
+  margin: 0;
 }
 .document-modes button {
   border: 0;
