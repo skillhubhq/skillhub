@@ -26,22 +26,24 @@ export function SkillDocument({
   return (
     <div className="skill-document" ref={root}>
       {controls && (
-        <div
-          className="document-modes"
-          role="group"
-          aria-label={t("Document view")}
-        >
-          {actions}
-          <button
-            aria-pressed={!raw && !large}
-            disabled={large}
-            onClick={() => setRaw(false)}
+        <div className="document-toolbar">
+          <div
+            className="document-modes"
+            role="group"
+            aria-label={t("Document view")}
           >
-            {t("Read")}
-          </button>
-          <button aria-pressed={raw || large} onClick={() => setRaw(true)}>
-            {t("Source")}
-          </button>
+            <button
+              aria-pressed={!raw && !large}
+              disabled={large}
+              onClick={() => setRaw(false)}
+            >
+              {t("Read")}
+            </button>
+            <button aria-pressed={raw || large} onClick={() => setRaw(true)}>
+              {t("Source")}
+            </button>
+          </div>
+          {actions && <div className="document-actions">{actions}</div>}
         </div>
       )}
       {raw || large ? (

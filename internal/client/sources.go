@@ -128,7 +128,7 @@ func canonicalURL(value string) (string, error) {
 }
 
 func (c *Client) probe(ctx context.Context, address string) (*registryv1.GetRegistryResponse, error) {
-	api := registryv1connect.NewRegistryServiceClient(c.http, address, connect.WithReadMaxBytes(64<<10))
+	api := registryv1connect.NewRegistryServiceClient(c.http, address, connect.WithReadMaxBytes(64<<10), connect.WithInterceptors(identityRetryInterceptor()))
 	response, err := api.GetRegistry(ctx, connect.NewRequest(&registryv1.GetRegistryRequest{}))
 	if err != nil {
 		return nil, err
@@ -285,7 +285,7 @@ func (c *Client) connectSource(ctx context.Context, alias string, withCredential
 			return next(ctx, req)
 		}
 	})
-	opts := []connect.ClientOption{connect.WithInterceptors(interceptor), connect.WithReadMaxBytes(32 << 20)}
+	opts := []connect.ClientOption{connect.WithInterceptors(identityRetryInterceptor(), interceptor), connect.WithReadMaxBytes(32 << 20)}
 	return &Remote{Evaluation: evaluationv1connect.NewEvaluationServiceClient(c.http, address, opts...), Governance: governancev1connect.NewGovernanceServiceClient(c.http, address, opts...), Capabilities: info.Capabilities, Source: source, Community: communityv1connect.NewCommunityServiceClient(c.http, address, opts...), Auth: authv1connect.NewAuthServiceClient(c.http, address, opts...), Admin: adminv1connect.NewAdminServiceClient(c.http, address, opts...), Catalog: catalogv1connect.NewCatalogServiceClient(c.http, address, opts...), Publishing: publishingv1connect.NewPublishingServiceClient(c.http, address, opts...)}, nil
 }
 

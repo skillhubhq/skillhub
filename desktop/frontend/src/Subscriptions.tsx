@@ -1,13 +1,38 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { API, Modal, useUI } from "./ui";
 import { useResource, ResourceState } from "./community-ui";
 import { t } from "./i18n";
+import "./distribution.css";
+const subscriptionEvent = "skillhub:subscription-changed";
+function subscriptionChanged(coordinate: string) {
+  window.dispatchEvent(
+    new CustomEvent(subscriptionEvent, { detail: coordinate }),
+  );
+}
+function useSubscriptionRevision(coordinate: string, list = false) {
+  const [revision, setRevision] = useState(0);
+  useEffect(() => {
+    const changed = (event: Event) => {
+      const updated = (event as CustomEvent<string>).detail;
+      if (list ? updated.startsWith(`${coordinate}/`) : updated === coordinate)
+        setRevision((value) => value + 1);
+    };
+    window.addEventListener(subscriptionEvent, changed);
+    return () => window.removeEventListener(subscriptionEvent, changed);
+  }, [coordinate, list]);
+  return revision;
+}
 export function SubscribeButton({ coordinate }: { coordinate: string }) {
   const ui = useUI();
-  const state = useResource(() => API.Subscription(coordinate), [coordinate]);
+  const revision = useSubscriptionRevision(coordinate);
+  const state = useResource(
+    () => API.Subscription(coordinate),
+    [coordinate],
+    revision,
+  );
   return (
     <button
-      disabled={ui.busy || state.loading}
+      disabled={ui.busy || state.refreshing}
       aria-pressed={state.value ?? false}
       title={
         state.error ||
@@ -24,7 +49,7 @@ export function SubscribeButton({ coordinate }: { coordinate: string }) {
             !state.value,
             await API.NewRequestID(),
           );
-          state.reload();
+          subscriptionChanged(coordinate);
         });
       }}
     >
@@ -58,25 +83,31 @@ function SubscriptionList({
 }) {
   const ui = useUI();
   const [token, setToken] = useState("");
+  const revision = useSubscriptionRevision(source, true);
   const list = useResource(
     () => API.Subscriptions(source, token),
     [source, token],
+    revision,
   );
   return (
-    <Modal title={t("Following", "我的订阅")} onClose={close} stable>
+    <Modal title={t("Following", "我的订阅")} onClose={close} stable="compact">
       <ResourceState {...list} retry={list.reload}>
         {!list.value?.items?.length && (
-          <p>
-            {t(
-              "Follow skills to receive new-version notifications.",
-              "订阅技能后，可以收到新版本通知。",
-            )}
-          </p>
+          <div className="quiet-empty">
+            <h3>{t("No followed skills yet", "暂无订阅的技能")}</h3>
+            <p>
+              {t(
+                "Follow skills to receive new-version notifications.",
+                "订阅技能后，可以收到新版本通知。",
+              )}
+            </p>
+          </div>
         )}
-        <div className="stack">
+        <ul className="distribution-list">
           {list.value?.items?.map((v) => (
-            <div className="section-heading" key={v.namespace + "/" + v.name}>
+            <li key={v.namespace + "/" + v.name}>
               <button
+                className="distribution-link"
                 disabled={!v.available}
                 onClick={() => {
                   close();
@@ -97,15 +128,15 @@ function SubscriptionList({
                       false,
                       await API.NewRequestID(),
                     );
-                    list.reload();
+                    subscriptionChanged(`${source}/${v.namespace}/${v.name}`);
                   })
                 }
               >
                 {t("Unfollow", "取消订阅")}
               </button>
-            </div>
+            </li>
           ))}
-        </div>
+        </ul>
         <div className="actions">
           {token && (
             <button onClick={() => setToken("")}>

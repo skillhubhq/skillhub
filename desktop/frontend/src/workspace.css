@@ -366,13 +366,33 @@ dialog::backdrop {
 .team-lifecycle-danger {
   margin-top: 1.5rem;
   padding-top: 1.25rem;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--line);
 }
 
-.connection-note { overflow-wrap: anywhere; }
-.connection-server { display: grid; gap: .5rem; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--line); }
-.connection-server p { margin: 0; }
-.connection-server button { justify-self: start; }
-.connection-preferences { margin-block: 1rem; }
-.connection-preferences .actions { justify-content: flex-end; align-items: center; }
-.connection-alias { display: block; margin-top: .5rem; }
+.connection-note {
+  overflow-wrap: anywhere;
+}
+.connection-server {
+  display: grid;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--line);
+}
+.connection-server p {
+  margin: 0;
+}
+.connection-server button {
+  justify-self: start;
+}
+.connection-preferences {
+  margin-block: 1rem;
+}
+.connection-preferences .actions {
+  justify-content: flex-end;
+  align-items: center;
+}
+.connection-alias {
+  display: block;
+  margin-top: 0.5rem;
+}

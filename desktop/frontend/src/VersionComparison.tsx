@@ -56,7 +56,12 @@ function ComparisonDialog({
     [coordinate, baseline, release.id],
   );
   return (
-    <Modal title={t("Compare versions", "比较版本")} onClose={close} stable>
+    <Modal
+      title={t("Compare versions", "比较版本")}
+      onClose={close}
+      stable
+      wide
+    >
       <div className="stack">
         <ResourceState {...versions} retry={versions.reload}>
           {choices.length ? (
