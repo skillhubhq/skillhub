@@ -59,8 +59,12 @@ export function Configuration() {
                 <div>
                   <h2>{skillTitle(item.installation)}</h2>
                   <p>
-                    {item.installation.namespace}/{item.installation.name} ·{" "}
-                    {toolLabel(item.installation.tool)} ·{" "}
+                    {item.installation.namespace
+                      ? `${item.installation.namespace}/`
+                      : ""}
+                    {item.installation.name} ·{" "}
+                    {item.installation.tool &&
+                      `${toolLabel(item.installation.tool)} · `}
                     {item.installed
                       ? t("Installed", "已安装")
                       : t("Retained configuration", "保留的配置")}

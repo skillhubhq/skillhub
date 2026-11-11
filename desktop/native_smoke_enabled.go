@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/skillhubhq/skillhub/internal/appupdate"
+	"github.com/skillhubhq/skillhub/internal/client"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
@@ -48,7 +49,7 @@ func nativeSmokeServices() ([]application.Service, error) {
 }
 
 func (r *NativeSmokeReporter) Finish(report NativeSmokeReport) error {
-	if len(report.Checks) > 256 || len(report.Error) > 4096 || len(report.UserAgent) > 4096 || len(report.Location) > 1024 {
+	if len(report.Checks) > 384 || len(report.Error) > 4096 || len(report.UserAgent) > 4096 || len(report.Location) > 1024 {
 		return errors.New("invalid native smoke report")
 	}
 	report.Platform = runtime.GOOS
@@ -70,3 +71,15 @@ func (r *NativeSmokeReporter) Finish(report NativeSmokeReport) error {
 
 // 仅测试构建可注入操作系统链接事件，经过与生产相同的解析与队列。
 func (r *NativeSmokeReporter) OpenLink(raw string) { queueOpenLink(raw) }
+
+func nativeClientOptions() client.ClientOptions {
+	return client.ClientOptions{Home: filepath.Join(os.Getenv("SKILLHUB_HOME"), "tool-home")}
+}
+
+// 仅记录固定断言名，用于定位超时；不包含页面内容或凭据。
+func (r *NativeSmokeReporter) Progress(label string) error {
+	if len(label) > 2048 {
+		return errors.New("invalid progress label")
+	}
+	return os.WriteFile(filepath.Join(r.root, "native-progress.txt"), []byte(label), 0600)
+}

@@ -81,15 +81,15 @@
 .desktop-shell > main:is(.page-review, .page-submissions)::before {
   content: "";
   display: block;
-  height: 30px;
+  height: 24px;
 }
 @media (max-width: 1100px) {
   .desktop-shell > main:is(.page-review, .page-submissions)::before {
-    height: 26px;
+    height: 24px;
   }
 }
 @media (max-width: 760px) {
   .desktop-shell > main:is(.page-review, .page-submissions)::before {
-    height: 22px;
+    height: 20px;
   }
 }

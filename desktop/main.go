@@ -29,7 +29,7 @@ func main() {
 		slog.Error("desktop test setup failed", "error", err)
 		os.Exit(1)
 	}
-	services = append(services, application.NewService(&DesktopService{}))
+	services = append(services, application.NewService(&DesktopService{options: nativeClientOptions()}))
 	root, err := client.DataDir()
 	if err != nil {
 		slog.Error("client directory unavailable", "error", err)

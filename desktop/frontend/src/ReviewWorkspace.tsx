@@ -1,3 +1,4 @@
+import { Icon } from "./Icon";
 import { revealPageStart } from "./pageScroll";
 import { VersionComparison } from "./VersionComparison";
 import { AccessState } from "./AccessState";
@@ -411,8 +412,14 @@ export function ReviewWorkspace({
               {page?.next_page ? "+" : ""}
             </small>
           </h2>
-          <button disabled={ui.busy} onClick={() => setReload((n) => n + 1)}>
-            {t("Refresh", "刷新")}
+          <button
+            className="icon-button"
+            aria-label={t("Refresh", "刷新")}
+            title={t("Refresh", "刷新")}
+            disabled={ui.busy}
+            onClick={() => setReload((n) => n + 1)}
+          >
+            <Icon name="refresh" />
           </button>
         </div>
         <input

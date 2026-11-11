@@ -23,6 +23,7 @@ type DesktopService struct {
 	logins       map[string]*pendingLogin
 }
 type pendingPlan struct {
+	local   *client.LocalPlan
 	suite   *client.SuiteInstallPlan
 	install *client.InstallPlan
 	project *client.ProjectRestorePlan
@@ -30,6 +31,7 @@ type pendingPlan struct {
 	expires time.Time
 }
 type ChangePlan struct {
+	Local      *client.LocalPlan    `json:"local,omitempty"`
 	Retained   []string             `json:"retained"`
 	LockUpdate bool                 `json:"lock_update"`
 	Handle     string               `json:"handle"`
@@ -91,6 +93,9 @@ func (s *DesktopService) holdPlan(p pendingPlan) (ChangePlan, error) {
 	p.expires = time.Now().Add(5 * time.Minute)
 	s.plans[id] = p
 	changes := []client.InstallPlan{}
+	if p.local != nil {
+		return ChangePlan{Handle: id, ExpiresAt: p.expires.Format(time.RFC3339), Local: p.local, Changes: changes}, nil
+	}
 	if p.install != nil {
 		changes = append(changes, *p.install)
 	} else if p.suite != nil {
@@ -116,6 +121,12 @@ func (s *DesktopService) ApplyPlan(id string) ([]client.ProjectRestoreResult, er
 	s.mu.Unlock()
 	if !ok || time.Now().After(p.expires) {
 		return nil, errors.New("change preview expired; create a new plan")
+	}
+	if p.local != nil {
+		if err := s.core.ApplyLocalPlan(s.ctx, *p.local); err != nil {
+			return nil, err
+		}
+		return []client.ProjectRestoreResult{{Target: p.local.Target, Applied: true}}, nil
 	}
 	if p.suite != nil {
 		return s.core.ApplySuite(s.ctx, p.suite)

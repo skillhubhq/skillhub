@@ -78,3 +78,29 @@
   background: none;
   color: var(--link);
 }
+
+.version-comparison > .field {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 0;
+}
+.version-comparison > .field > span {
+  flex: none;
+  margin: 0;
+}
+.version-comparison > .field > .ui-select {
+  width: 180px;
+  max-width: 100%;
+}
+.version-comparison > p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+@media (max-width: 460px) {
+  .version-comparison > .field {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+}

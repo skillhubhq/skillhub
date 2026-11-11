@@ -28,7 +28,7 @@ func initializeClient(db *sql.DB) error {
 		if err = conn.QueryRowContext(ctx, "SELECT count(*), coalesce(min(version),0) FROM client_schema").Scan(&count, &version); err != nil {
 			return err
 		}
-		if count != 1 || (version != 1 && version != 2 && version != 3) {
+		if count != 1 || (version != 1 && version != 2 && version != 3 && version != 4) {
 			return errors.New("unsupported client database schema")
 		}
 	}
@@ -48,7 +48,16 @@ CREATE TABLE projects (root TEXT PRIMARY KEY);`)
 			return err
 		}
 	}
-	for _, table := range []string{"installations", "install_journals", "sources", "projects", "suite_installations"} {
+	if version < 4 {
+		if _, err = conn.ExecContext(ctx, `CREATE TABLE local_preferences (target TEXT PRIMARY KEY, record TEXT NOT NULL);
+CREATE TABLE local_roots (root TEXT PRIMARY KEY);
+CREATE TABLE local_backups (id TEXT PRIMARY KEY, record TEXT NOT NULL);
+CREATE TABLE local_journals (target TEXT PRIMARY KEY, record TEXT NOT NULL);
+UPDATE client_schema SET version=4;`); err != nil {
+			return err
+		}
+	}
+	for _, table := range []string{"installations", "install_journals", "sources", "projects", "suite_installations", "local_preferences", "local_roots", "local_backups", "local_journals"} {
 		rows, e := conn.QueryContext(ctx, "SELECT * FROM "+table+" LIMIT 0")
 		if e != nil {
 			return errors.New("incomplete client database schema")

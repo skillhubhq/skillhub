@@ -1,0 +1,73 @@
+.action-menu-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex: none;
+}
+.action-menu-trigger.icon-only {
+  width: 40px;
+  padding: 8px;
+}
+.action-menu-panel {
+  position: fixed;
+  z-index: 100;
+  width: min(260px, calc(100vw - 24px));
+  padding: 6px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: 0 8px 30px var(--shadow-color);
+  text-align: left;
+}
+.action-menu-panel[hidden] {
+  display: none;
+}
+.action-menu-panel :is(button, a) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 10px;
+  margin: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  text-decoration: none;
+  white-space: normal;
+}
+.action-menu-panel :is(button, a):is(:hover, :focus-visible) {
+  background: var(--surface-soft);
+  outline: 2px solid transparent;
+  outline-offset: -2px;
+}
+.action-menu-panel :is(button, a):focus-visible {
+  outline-color: var(--focus);
+}
+.action-menu-panel .text-danger {
+  color: var(--danger);
+}
+.action-menu-panel hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 6px 4px;
+}
+.action-menu-panel .menu-label {
+  display: block;
+  padding: 6px 10px;
+  color: var(--muted);
+  font-size: 12px;
+}
+@media (pointer: coarse) {
+  .action-menu-panel :is(button, a) {
+    min-height: 44px;
+  }
+}

@@ -64,6 +64,7 @@ export interface AppInfo {
 }
 
 export interface ChangePlan {
+    "local"?: client$0.LocalPlan | null;
     "retained": string[] | null;
     "lock_update": boolean;
     "handle": string;

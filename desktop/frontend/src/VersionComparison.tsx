@@ -62,7 +62,7 @@ function ComparisonDialog({
       stable
       wide
     >
-      <div className="stack">
+      <div className="stack version-comparison">
         <ResourceState {...versions} retry={versions.reload}>
           {choices.length ? (
             <Field label={t("Compare with", "基线版本")}>

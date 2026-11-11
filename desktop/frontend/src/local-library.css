@@ -1,0 +1,171 @@
+.local-title {
+  border: 0;
+  background: none;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+.local-folder,
+.local-backup {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 0;
+  border-top: 1px solid var(--line);
+}
+.local-folder .path,
+.local-backup .path {
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+.local-editor {
+  width: 100%;
+  min-height: 320px;
+  font-family: monospace;
+  line-height: 1.6;
+}
+.local-plan > details {
+  border-top: 1px solid var(--line);
+  padding: 12px 0;
+}
+.local-diff {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16px;
+  margin-top: 12px;
+}
+.local-diff pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 360px;
+  overflow: auto;
+  padding: 12px;
+  background: var(--surface);
+}
+@media (max-width: 700px) {
+  .local-diff {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .local-folder,
+  .local-backup {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+.community-shell .library-toolbar {
+  gap: 8px;
+  margin: 0 0 12px;
+  padding: 8px 0 16px;
+  border-bottom: 1px solid var(--line);
+}
+.library-toolbar .search-field {
+  flex: 1 1 280px;
+  max-width: 520px;
+}
+.library-toolbar > .ui-select {
+  width: 180px;
+}
+.library-toolbar .library-count {
+  margin-left: auto;
+  padding-inline: 8px;
+  font-size: 12px;
+}
+.library-filter-note {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  color: var(--muted);
+  font-size: 13px;
+  padding-bottom: 8px;
+}
+.community-shell .library-list {
+  gap: 0;
+}
+.community-shell .library-list .installed-row {
+  padding: 16px 0;
+  gap: 24px;
+  align-items: flex-start;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+}
+.library-list .installation-heading {
+  gap: 8px;
+  align-items: center;
+}
+.library-list .installation-heading h2 {
+  font-size: 16px;
+  line-height: 1.4;
+}
+.library-list .local-title {
+  min-height: 28px;
+}
+.library-list .local-title:hover {
+  background: transparent;
+  color: var(--link);
+}
+.library-list .badge {
+  border: 0;
+  font-size: 12px;
+  padding: 2px 6px;
+}
+.library-list .local-description {
+  color: var(--muted);
+  line-height: 1.6;
+  font-size: 14px;
+  margin: 4px 0 8px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.library-list .installation-meta {
+  margin: 0;
+  font-size: 12px;
+}
+.library-list .installation-details {
+  margin-top: 4px;
+}
+.library-list .installation-details summary {
+  padding: 4px 0;
+}
+.library-list .installation-actions {
+  margin: 0;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding-top: 2px;
+}
+.library-list .installation-actions > button {
+  min-height: 36px;
+  padding: 6px 10px;
+  font-size: 13px;
+}
+.library-list .installation-actions > .icon-only {
+  width: 36px;
+  padding: 6px;
+  border-color: transparent;
+}
+@media (max-width: 760px) {
+  .library-toolbar .search-field {
+    max-width: none;
+    flex-basis: 100%;
+  }
+  .library-toolbar > .ui-select {
+    width: 160px;
+  }
+  .library-toolbar .library-count {
+    display: none;
+  }
+  .library-toolbar > .action-menu-trigger {
+    margin-left: auto;
+  }
+  .community-shell .library-list .installed-row {
+    gap: 8px;
+  }
+  .library-list .installation-actions > button {
+    min-height: 44px;
+  }
+}

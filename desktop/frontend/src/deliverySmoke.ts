@@ -108,6 +108,14 @@ export async function runDeliverySmoke(
         .querySelector(".detail-hero h1")
         ?.textContent?.includes("delivery-suite") ?? false,
   );
+  document
+    .querySelector<HTMLButtonElement>(
+      ".detail-action-bar .action-menu-trigger",
+    )!
+    .click();
+  await wait(
+    () => !!document.querySelector(".action-menu-panel:not([hidden])"),
+  );
   const compareButton = () =>
     [...document.querySelectorAll<HTMLButtonElement>("button")].find(
       (button) => button.textContent === "Compare versions" && !button.disabled,
