@@ -343,3 +343,68 @@ func TestLocalBackupCleanupRejectsChangedContents(t *testing.T) {
 		t.Fatal("cleanup changed current files", e)
 	}
 }
+
+func TestLocalDocumentsRejectPathsOutsideSkill(t *testing.T) {
+	ctx := context.Background()
+	c, _, home := localFixture(t)
+	target := filepath.Join(home, ".agents/skills/check")
+	writeLocal(t, target, "Original")
+	outside := filepath.Join(home, "private.txt")
+	if err := os.WriteFile(outside, []byte("private fixture"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	doc, err := c.ReadLocalSkill(ctx, target, "SKILL.md")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, path := range []string{outside, "../../../private.txt", "../check/../private.txt"} {
+		if _, err := c.ReadLocalSkill(ctx, target, path); err == nil {
+			t.Fatalf("read escaped skill: %s", path)
+		}
+		if _, err := c.PlanLocalEdit(ctx, target, path, doc.Fingerprint, "replacement"); err == nil {
+			t.Fatalf("edit escaped skill: %s", path)
+		}
+	}
+	if content, err := os.ReadFile(outside); err != nil || string(content) != "private fixture" {
+		t.Fatal("outside file changed", err)
+	}
+}
+
+func TestLocalBackupRejectsRedirectedDirectory(t *testing.T) {
+	ctx := context.Background()
+	c, s, home := localFixture(t)
+	target := filepath.Join(home, ".agents/skills/check")
+	original := writeLocal(t, target, "Original")
+	doc, err := c.ReadLocalSkill(ctx, target, "SKILL.md")
+	if err != nil {
+		t.Fatal(err)
+	}
+	plan, err := c.PlanLocalEdit(ctx, target, "SKILL.md", doc.Fingerprint, original+"Edit")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err = c.ApplyLocalPlan(ctx, plan); err != nil {
+		t.Fatal(err)
+	}
+	backups, err := s.LocalBackups(ctx)
+	if err != nil || len(backups) != 1 {
+		t.Fatal("backup missing", err)
+	}
+	b := backups[0]
+	saved := b.Directory + "-saved"
+	if err = os.Rename(b.Directory, saved); err != nil {
+		t.Fatal(err)
+	}
+	if err = os.Symlink(saved, b.Directory); err != nil {
+		t.Skip(err)
+	}
+	if _, err = c.PlanLocalRestore(ctx, b.ID); err == nil {
+		t.Fatal("accepted redirected backup")
+	}
+	if err = s.DeleteLocalBackup(ctx, b.ID); err == nil {
+		t.Fatal("deleted redirected backup")
+	}
+	if content, err := os.ReadFile(filepath.Join(saved, "old", "SKILL.md")); err != nil || string(content) != original {
+		t.Fatal("backup target changed", err)
+	}
+}
