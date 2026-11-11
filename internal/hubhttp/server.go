@@ -158,7 +158,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) GetRegistry(ctx context.Context, req *connect.Request[registryv1.GetRegistryRequest]) (*connect.Response[registryv1.GetRegistryResponse], error) {
-	capabilities := []string{"identity.local", "identity.device", "catalog.v1", "publishing.review.v1", "publishing.cleanup.v1", "admin.v1", "namespace.lifecycle.v1", "community.v1", "community.moderation.v1", "catalog.presentation.v1", "catalog.provenance.v1", "governance.v1", "catalog.discovery.v1", "governance.tasks.v1", "evaluation.v1", "catalog.compare.v1", "community.subscriptions.v1", "identity.tokens.v1", "catalog.suites.v1"}
+	capabilities := []string{"identity.refresh.v1", "identity.local", "identity.device", "catalog.v1", "publishing.review.v1", "publishing.cleanup.v1", "admin.v1", "namespace.lifecycle.v1", "community.v1", "community.moderation.v1", "catalog.presentation.v1", "catalog.provenance.v1", "governance.v1", "catalog.discovery.v1", "governance.tasks.v1", "evaluation.v1", "catalog.compare.v1", "community.subscriptions.v1", "identity.tokens.v1", "catalog.suites.v1"}
 
 	if s.config.Policy.IsCommunity() {
 		capabilities = append(capabilities, "community.public.v1")
@@ -293,7 +293,7 @@ func (s *Server) boundary(next http.Handler) http.Handler {
 		if (r.URL.Path == governancev1connect.GovernanceServiceScanReleaseProcedure || r.URL.Path == evaluationv1connect.EvaluationServiceImportEvidenceProcedure) || strings.HasPrefix(r.URL.Path, "/auth/") || strings.HasPrefix(r.URL.Path, "/api.auth.v1.AuthService/") || r.URL.Path == "/authorize" || r.URL.Path == "/login" || r.URL.Path == "/logout" {
 			ip := s.clientAddress(r)
 			limit := 120
-			if (r.URL.Path == governancev1connect.GovernanceServiceScanReleaseProcedure || r.URL.Path == evaluationv1connect.EvaluationServiceImportEvidenceProcedure) || r.URL.Path == authv1connect.AuthServiceLoginProcedure || r.URL.Path == authv1connect.AuthServiceStartDeviceLoginProcedure || ((r.URL.Path == "/authorize" || r.URL.Path == "/login") && r.Method == http.MethodPost) {
+			if (r.URL.Path == governancev1connect.GovernanceServiceScanReleaseProcedure || r.URL.Path == evaluationv1connect.EvaluationServiceImportEvidenceProcedure) || r.URL.Path == authv1connect.AuthServiceRefreshSessionProcedure || r.URL.Path == authv1connect.AuthServiceLoginProcedure || r.URL.Path == authv1connect.AuthServiceStartDeviceLoginProcedure || ((r.URL.Path == "/authorize" || r.URL.Path == "/login") && r.Method == http.MethodPost) {
 				limit = 20
 			}
 			if !s.limiter.allow(ip+"|"+r.URL.Path+"|"+r.Method, limit) {

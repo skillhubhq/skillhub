@@ -71,6 +71,12 @@ export interface ChangePlan {
     "expires_at": string;
 }
 
+export interface DesktopPreferences {
+    "keep_running": boolean;
+    "start_at_login": boolean;
+    "language": string;
+}
+
 export interface DraftInfo {
     "name": string;
     "description": string;

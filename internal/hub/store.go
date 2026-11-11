@@ -21,7 +21,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-const currentSchema = 15
+const currentSchema = 16
 
 var (
 	ErrUnauthenticated = errors.New("authentication required")
@@ -56,9 +56,11 @@ type Identity struct {
 }
 
 type Session struct {
-	Token     string
-	Identity  Identity
-	ExpiresAt time.Time
+	RefreshToken     string
+	RefreshExpiresAt time.Time
+	Token            string
+	Identity         Identity
+	ExpiresAt        time.Time
 }
 
 func Open(root string) (*Store, error) { return OpenDatabase(root, hubdb.Config{}) }
@@ -133,7 +135,7 @@ func (s *Store) initializeContext(ctx context.Context) error {
 	if err = tx.QueryRowContext(ctx, "PRAGMA user_version").Scan(&version); err != nil {
 		return err
 	}
-	if version != 0 && version != 14 && version != currentSchema {
+	if version != 0 && version != 14 && version != 15 && version != currentSchema {
 		return errors.New("unsupported hub database schema")
 	}
 	if version == 0 {
@@ -146,6 +148,11 @@ func (s *Store) initializeContext(ctx context.Context) error {
 	}
 	if version == 0 || version == 14 {
 		if _, err = tx.ExecContext(ctx, distributionSchema); err != nil {
+			return err
+		}
+	}
+	if version != currentSchema {
+		if _, err = tx.ExecContext(ctx, renewableSessionSchema); err != nil {
 			return err
 		}
 	}
@@ -162,11 +169,16 @@ func (s *Store) initializeContext(ctx context.Context) error {
 		return errors.New("incomplete hub database schema")
 	}
 	columns.Close()
+	refreshColumns, refreshErr := tx.QueryContext(ctx, "SELECT s.refresh_hash,s.previous_refresh_hash,s.refresh_request,s.refresh_expires_at,s.absolute_expires_at,s.previous_access_hash,s.previous_access_expires_at,d.renewable FROM sessions s,devices d LIMIT 0")
+	if refreshErr != nil {
+		return errors.New("incomplete hub database schema")
+	}
+	refreshColumns.Close()
 	if err = tx.QueryRowContext(ctx, "SELECT id,secret FROM instance").Scan(&s.registryID, &s.secret); err != nil {
 		return err
 	}
 
-	if _, err = tx.ExecContext(ctx, "PRAGMA user_version=15;"); err != nil {
+	if _, err = tx.ExecContext(ctx, "PRAGMA user_version=16;"); err != nil {
 		return err
 	}
 	return tx.Commit()
@@ -286,7 +298,7 @@ func (s *Store) newSession(ctx context.Context, tx *hubdb.Tx, user Identity) (Se
 	return value, nil
 }
 
-func (s *Store) Login(ctx context.Context, username, password string) (Session, error) {
+func (s *Store) Login(ctx context.Context, username, password string, renewable ...bool) (Session, error) {
 	user, err := s.verifyPassword(ctx, username, password)
 	if err != nil {
 		return Session{}, err
@@ -296,7 +308,7 @@ func (s *Store) Login(ctx context.Context, username, password string) (Session, 
 		return Session{}, err
 	}
 	defer tx.Rollback()
-	if _, err = tx.ExecContext(ctx, "DELETE FROM sessions WHERE expires_at<=?", s.now().Unix()); err != nil {
+	if _, err = tx.ExecContext(ctx, "DELETE FROM sessions WHERE expires_at<=? AND refresh_expires_at<=?", s.now().Unix(), s.now().Unix()); err != nil {
 		return Session{}, err
 	}
 	// 写锁内重验密码，防止并发重置后使用旧密码签发新会话。
@@ -311,6 +323,12 @@ func (s *Store) Login(ctx context.Context, username, password string) (Session, 
 	if err != nil {
 		return Session{}, err
 	}
+	if len(renewable) > 0 && renewable[0] {
+		value, err = s.makeRenewable(ctx, tx, value)
+		if err != nil {
+			return Session{}, err
+		}
+	}
 	return value, tx.Commit()
 }
 
@@ -322,7 +340,7 @@ func (s *Store) Authenticate(ctx context.Context, token string) (Identity, error
 		return Identity{}, ErrUnauthenticated
 	}
 	var user Identity
-	err := s.db.QueryRowContext(ctx, `SELECT u.id,u.username,u.administrator,EXISTS(SELECT 1 FROM external_identities e WHERE e.user_id=u.id) FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=? AND s.expires_at>? AND u.disabled=0`, secretHash(token), s.now().Unix()).Scan(&user.ID, &user.Username, &user.Administrator, &user.Federated)
+	err := s.db.QueryRowContext(ctx, `SELECT u.id,u.username,u.administrator,EXISTS(SELECT 1 FROM external_identities e WHERE e.user_id=u.id) FROM sessions s JOIN users u ON u.id=s.user_id WHERE ((s.token_hash=? AND s.expires_at>?) OR (s.previous_access_hash=? AND s.previous_access_expires_at>?)) AND u.disabled=0`, secretHash(token), s.now().Unix(), secretHash(token), s.now().Unix()).Scan(&user.ID, &user.Username, &user.Administrator, &user.Federated)
 	if errors.Is(err, sql.ErrNoRows) {
 		return Identity{}, ErrUnauthenticated
 	}
@@ -339,7 +357,7 @@ func (s *Store) Logout(ctx context.Context, token string) error {
 		return err
 	}
 	defer tx.Rollback()
-	if _, err = tx.ExecContext(ctx, "DELETE FROM sessions WHERE token_hash=?", secretHash(token)); err != nil {
+	if _, err = tx.ExecContext(ctx, "DELETE FROM sessions WHERE token_hash=? OR previous_access_hash=?", secretHash(token), secretHash(token)); err != nil {
 		return err
 	}
 	if err = audit(ctx, tx, user.ID, "session.revoke", user.ID, s.now()); err != nil {

@@ -44,3 +44,9 @@ Update requests are bounded and timeout-limited. They contain no Hub credentials
 Checksums detect corruption but do not independently authenticate a compromised download source. Verify provenance and any available platform/attestation evidence. Automatic installation, signing-service integration and alternate update feeds are not supported.
 
 Build packaging and release checks are described in [distribution](distribution.md); reproducible regression commands are in [testing](testing.md).
+
+## Desktop lifecycle
+
+Closing the App window keeps SkillHub available in the macOS menu bar or Windows system tray by default. Use its menu to open the window, Inbox, update check or Settings. Quit (including Command-Q on macOS) ends the process. Dock/taskbar activation and opening a second instance restore the existing window.
+
+Settings → Desktop behavior controls **Keep running when the window closes** and **Start at login**. Start at login is off by default and opens in the background when enabled. On macOS it uses a per-user LaunchAgent; on Windows it uses the current user's Run entry. Disabling it removes only SkillHub's own entry. These preferences and saved sessions survive App replacement.

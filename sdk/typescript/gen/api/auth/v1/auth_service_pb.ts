@@ -13,7 +13,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file api/auth/v1/auth_service.proto.
  */
 export const file_api_auth_v1_auth_service: GenFile = /*@__PURE__*/
-  fileDesc("Ch5hcGkvYXV0aC92MS9hdXRoX3NlcnZpY2UucHJvdG8SC2FwaS5hdXRoLnYxIlcKCElkZW50aXR5Eg8KB3VzZXJfaWQYASABKAkSEAoIdXNlcm5hbWUYAiABKAkSFQoNYWRtaW5pc3RyYXRvchgDIAEoCBIRCglmZWRlcmF0ZWQYBCABKAgiSgoMTG9naW5SZXF1ZXN0EhwKCHVzZXJuYW1lGAEgASgJQgq6SAdyBRABGIABEhwKCHBhc3N3b3JkGAIgASgJQgq6SAdyBRABGIAIIn4KDUxvZ2luUmVzcG9uc2USFAoMYWNjZXNzX3Rva2VuGAEgASgJEicKCGlkZW50aXR5GAIgASgLMhUuYXBpLmF1dGgudjEuSWRlbnRpdHkSLgoKZXhwaXJlc19hdBgDIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAiFAoSR2V0SWRlbnRpdHlSZXF1ZXN0Ij4KE0dldElkZW50aXR5UmVzcG9uc2USJwoIaWRlbnRpdHkYASABKAsyFS5hcGkuYXV0aC52MS5JZGVudGl0eSIPCg1Mb2dvdXRSZXF1ZXN0IhAKDkxvZ291dFJlc3BvbnNlIhkKF1N0YXJ0RGV2aWNlTG9naW5SZXF1ZXN0IqYBChhTdGFydERldmljZUxvZ2luUmVzcG9uc2USEwoLZGV2aWNlX2NvZGUYASABKAkSEQoJdXNlcl9jb2RlGAIgASgJEhgKEHZlcmlmaWNhdGlvbl91cmkYAyABKAkSLgoKZXhwaXJlc19hdBgEIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASGAoQaW50ZXJ2YWxfc2Vjb25kcxgFIAEoDSI9ChpDb21wbGV0ZURldmljZUxvZ2luUmVxdWVzdBIfCgtkZXZpY2VfY29kZRgBIAEoCUIKukgHcgUQIBiAAiJZChtDb21wbGV0ZURldmljZUxvZ2luUmVzcG9uc2USDwoHcGVuZGluZxgBIAEoCBIpCgVsb2dpbhgCIAEoCzIaLmFwaS5hdXRoLnYxLkxvZ2luUmVzcG9uc2UiXQoVQ2hhbmdlUGFzc3dvcmRSZXF1ZXN0EiMKEGN1cnJlbnRfcGFzc3dvcmQYASABKAlCCbpIBnIEIAEoSBIfCgxuZXdfcGFzc3dvcmQYAiABKAlCCbpIBnIEIAwoSCIYChZDaGFuZ2VQYXNzd29yZFJlc3BvbnNlIpgBCgtBY2Nlc3NUb2tlbhIKCgJpZBgBIAEoCRIMCgRuYW1lGAIgASgJEg0KBXNjb3BlGAMgASgJEhEKCW5hbWVzcGFjZRgEIAEoCRISCgpleHBpcmVzX2F0GAUgASgDEhIKCmNyZWF0ZWRfYXQYBiABKAMSFAoMbGFzdF91c2VkX2F0GAcgASgDEg8KB3Jldm9rZWQYCCABKAgiWAoYQ3JlYXRlQWNjZXNzVG9rZW5SZXF1ZXN0EgwKBG5hbWUYASABKAkSDQoFc2NvcGUYAiABKAkSEQoJbmFtZXNwYWNlGAMgASgJEgwKBGRheXMYBCABKA0iVAoZQ3JlYXRlQWNjZXNzVG9rZW5SZXNwb25zZRInCgV0b2tlbhgBIAEoCzIYLmFwaS5hdXRoLnYxLkFjY2Vzc1Rva2VuEg4KBnNlY3JldBgCIAEoCSIZChdMaXN0QWNjZXNzVG9rZW5zUmVxdWVzdCJEChhMaXN0QWNjZXNzVG9rZW5zUmVzcG9uc2USKAoGdG9rZW5zGAEgAygLMhguYXBpLmF1dGgudjEuQWNjZXNzVG9rZW4iJgoYUmV2b2tlQWNjZXNzVG9rZW5SZXF1ZXN0EgoKAmlkGAEgASgJIhsKGVJldm9rZUFjY2Vzc1Rva2VuUmVzcG9uc2UysQYKC0F1dGhTZXJ2aWNlEmIKEUNyZWF0ZUFjY2Vzc1Rva2VuEiUuYXBpLmF1dGgudjEuQ3JlYXRlQWNjZXNzVG9rZW5SZXF1ZXN0GiYuYXBpLmF1dGgudjEuQ3JlYXRlQWNjZXNzVG9rZW5SZXNwb25zZRJfChBMaXN0QWNjZXNzVG9rZW5zEiQuYXBpLmF1dGgudjEuTGlzdEFjY2Vzc1Rva2Vuc1JlcXVlc3QaJS5hcGkuYXV0aC52MS5MaXN0QWNjZXNzVG9rZW5zUmVzcG9uc2USYgoRUmV2b2tlQWNjZXNzVG9rZW4SJS5hcGkuYXV0aC52MS5SZXZva2VBY2Nlc3NUb2tlblJlcXVlc3QaJi5hcGkuYXV0aC52MS5SZXZva2VBY2Nlc3NUb2tlblJlc3BvbnNlElkKDkNoYW5nZVBhc3N3b3JkEiIuYXBpLmF1dGgudjEuQ2hhbmdlUGFzc3dvcmRSZXF1ZXN0GiMuYXBpLmF1dGgudjEuQ2hhbmdlUGFzc3dvcmRSZXNwb25zZRI+CgVMb2dpbhIZLmFwaS5hdXRoLnYxLkxvZ2luUmVxdWVzdBoaLmFwaS5hdXRoLnYxLkxvZ2luUmVzcG9uc2USUAoLR2V0SWRlbnRpdHkSHy5hcGkuYXV0aC52MS5HZXRJZGVudGl0eVJlcXVlc3QaIC5hcGkuYXV0aC52MS5HZXRJZGVudGl0eVJlc3BvbnNlEkEKBkxvZ291dBIaLmFwaS5hdXRoLnYxLkxvZ291dFJlcXVlc3QaGy5hcGkuYXV0aC52MS5Mb2dvdXRSZXNwb25zZRJfChBTdGFydERldmljZUxvZ2luEiQuYXBpLmF1dGgudjEuU3RhcnREZXZpY2VMb2dpblJlcXVlc3QaJS5hcGkuYXV0aC52MS5TdGFydERldmljZUxvZ2luUmVzcG9uc2USaAoTQ29tcGxldGVEZXZpY2VMb2dpbhInLmFwaS5hdXRoLnYxLkNvbXBsZXRlRGV2aWNlTG9naW5SZXF1ZXN0GiguYXBpLmF1dGgudjEuQ29tcGxldGVEZXZpY2VMb2dpblJlc3BvbnNlQqgBCg9jb20uYXBpLmF1dGgudjFCEEF1dGhTZXJ2aWNlUHJvdG9QAVo1Z2l0aHViLmNvbS9za2lsbGh1YmhxL3NraWxsaHViL2dlbi9hcGkvYXV0aC92MTthdXRodjGiAgNBQViqAgtBcGkuQXV0aC5WMcoCC0FwaVxBdXRoXFYx4gIXQXBpXEF1dGhcVjFcR1BCTWV0YWRhdGHqAg1BcGk6OkF1dGg6OlYxYgZwcm90bzM", [file_buf_validate_validate, file_google_protobuf_timestamp]);
+  fileDesc("Ch5hcGkvYXV0aC92MS9hdXRoX3NlcnZpY2UucHJvdG8SC2FwaS5hdXRoLnYxIlcKCElkZW50aXR5Eg8KB3VzZXJfaWQYASABKAkSEAoIdXNlcm5hbWUYAiABKAkSFQoNYWRtaW5pc3RyYXRvchgDIAEoCBIRCglmZWRlcmF0ZWQYBCABKAgiXQoMTG9naW5SZXF1ZXN0EhwKCHVzZXJuYW1lGAEgASgJQgq6SAdyBRABGIABEhwKCHBhc3N3b3JkGAIgASgJQgq6SAdyBRABGIAIEhEKCXJlbmV3YWJsZRgDIAEoCCJCChVSZWZyZXNoU2Vzc2lvblJlcXVlc3QSFQoNcmVmcmVzaF90b2tlbhgBIAEoCRISCgpyZXF1ZXN0X2lkGAIgASgJIkMKFlJlZnJlc2hTZXNzaW9uUmVzcG9uc2USKQoFbG9naW4YASABKAsyGi5hcGkuYXV0aC52MS5Mb2dpblJlc3BvbnNlIs0BCg1Mb2dpblJlc3BvbnNlEhQKDGFjY2Vzc190b2tlbhgBIAEoCRInCghpZGVudGl0eRgCIAEoCzIVLmFwaS5hdXRoLnYxLklkZW50aXR5Ei4KCmV4cGlyZXNfYXQYAyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEhUKDXJlZnJlc2hfdG9rZW4YBCABKAkSNgoScmVmcmVzaF9leHBpcmVzX2F0GAUgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcCIUChJHZXRJZGVudGl0eVJlcXVlc3QiPgoTR2V0SWRlbnRpdHlSZXNwb25zZRInCghpZGVudGl0eRgBIAEoCzIVLmFwaS5hdXRoLnYxLklkZW50aXR5IiYKDUxvZ291dFJlcXVlc3QSFQoNcmVmcmVzaF90b2tlbhgBIAEoCSIQCg5Mb2dvdXRSZXNwb25zZSIsChdTdGFydERldmljZUxvZ2luUmVxdWVzdBIRCglyZW5ld2FibGUYASABKAgipgEKGFN0YXJ0RGV2aWNlTG9naW5SZXNwb25zZRITCgtkZXZpY2VfY29kZRgBIAEoCRIRCgl1c2VyX2NvZGUYAiABKAkSGAoQdmVyaWZpY2F0aW9uX3VyaRgDIAEoCRIuCgpleHBpcmVzX2F0GAQgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIYChBpbnRlcnZhbF9zZWNvbmRzGAUgASgNIj0KGkNvbXBsZXRlRGV2aWNlTG9naW5SZXF1ZXN0Eh8KC2RldmljZV9jb2RlGAEgASgJQgq6SAdyBRAgGIACIlkKG0NvbXBsZXRlRGV2aWNlTG9naW5SZXNwb25zZRIPCgdwZW5kaW5nGAEgASgIEikKBWxvZ2luGAIgASgLMhouYXBpLmF1dGgudjEuTG9naW5SZXNwb25zZSJdChVDaGFuZ2VQYXNzd29yZFJlcXVlc3QSIwoQY3VycmVudF9wYXNzd29yZBgBIAEoCUIJukgGcgQgAShIEh8KDG5ld19wYXNzd29yZBgCIAEoCUIJukgGcgQgDChIIhgKFkNoYW5nZVBhc3N3b3JkUmVzcG9uc2UimAEKC0FjY2Vzc1Rva2VuEgoKAmlkGAEgASgJEgwKBG5hbWUYAiABKAkSDQoFc2NvcGUYAyABKAkSEQoJbmFtZXNwYWNlGAQgASgJEhIKCmV4cGlyZXNfYXQYBSABKAMSEgoKY3JlYXRlZF9hdBgGIAEoAxIUCgxsYXN0X3VzZWRfYXQYByABKAMSDwoHcmV2b2tlZBgIIAEoCCJYChhDcmVhdGVBY2Nlc3NUb2tlblJlcXVlc3QSDAoEbmFtZRgBIAEoCRINCgVzY29wZRgCIAEoCRIRCgluYW1lc3BhY2UYAyABKAkSDAoEZGF5cxgEIAEoDSJUChlDcmVhdGVBY2Nlc3NUb2tlblJlc3BvbnNlEicKBXRva2VuGAEgASgLMhguYXBpLmF1dGgudjEuQWNjZXNzVG9rZW4SDgoGc2VjcmV0GAIgASgJIhkKF0xpc3RBY2Nlc3NUb2tlbnNSZXF1ZXN0IkQKGExpc3RBY2Nlc3NUb2tlbnNSZXNwb25zZRIoCgZ0b2tlbnMYASADKAsyGC5hcGkuYXV0aC52MS5BY2Nlc3NUb2tlbiImChhSZXZva2VBY2Nlc3NUb2tlblJlcXVlc3QSCgoCaWQYASABKAkiGwoZUmV2b2tlQWNjZXNzVG9rZW5SZXNwb25zZTKMBwoLQXV0aFNlcnZpY2USWQoOUmVmcmVzaFNlc3Npb24SIi5hcGkuYXV0aC52MS5SZWZyZXNoU2Vzc2lvblJlcXVlc3QaIy5hcGkuYXV0aC52MS5SZWZyZXNoU2Vzc2lvblJlc3BvbnNlEmIKEUNyZWF0ZUFjY2Vzc1Rva2VuEiUuYXBpLmF1dGgudjEuQ3JlYXRlQWNjZXNzVG9rZW5SZXF1ZXN0GiYuYXBpLmF1dGgudjEuQ3JlYXRlQWNjZXNzVG9rZW5SZXNwb25zZRJfChBMaXN0QWNjZXNzVG9rZW5zEiQuYXBpLmF1dGgudjEuTGlzdEFjY2Vzc1Rva2Vuc1JlcXVlc3QaJS5hcGkuYXV0aC52MS5MaXN0QWNjZXNzVG9rZW5zUmVzcG9uc2USYgoRUmV2b2tlQWNjZXNzVG9rZW4SJS5hcGkuYXV0aC52MS5SZXZva2VBY2Nlc3NUb2tlblJlcXVlc3QaJi5hcGkuYXV0aC52MS5SZXZva2VBY2Nlc3NUb2tlblJlc3BvbnNlElkKDkNoYW5nZVBhc3N3b3JkEiIuYXBpLmF1dGgudjEuQ2hhbmdlUGFzc3dvcmRSZXF1ZXN0GiMuYXBpLmF1dGgudjEuQ2hhbmdlUGFzc3dvcmRSZXNwb25zZRI+CgVMb2dpbhIZLmFwaS5hdXRoLnYxLkxvZ2luUmVxdWVzdBoaLmFwaS5hdXRoLnYxLkxvZ2luUmVzcG9uc2USUAoLR2V0SWRlbnRpdHkSHy5hcGkuYXV0aC52MS5HZXRJZGVudGl0eVJlcXVlc3QaIC5hcGkuYXV0aC52MS5HZXRJZGVudGl0eVJlc3BvbnNlEkEKBkxvZ291dBIaLmFwaS5hdXRoLnYxLkxvZ291dFJlcXVlc3QaGy5hcGkuYXV0aC52MS5Mb2dvdXRSZXNwb25zZRJfChBTdGFydERldmljZUxvZ2luEiQuYXBpLmF1dGgudjEuU3RhcnREZXZpY2VMb2dpblJlcXVlc3QaJS5hcGkuYXV0aC52MS5TdGFydERldmljZUxvZ2luUmVzcG9uc2USaAoTQ29tcGxldGVEZXZpY2VMb2dpbhInLmFwaS5hdXRoLnYxLkNvbXBsZXRlRGV2aWNlTG9naW5SZXF1ZXN0GiguYXBpLmF1dGgudjEuQ29tcGxldGVEZXZpY2VMb2dpblJlc3BvbnNlQqgBCg9jb20uYXBpLmF1dGgudjFCEEF1dGhTZXJ2aWNlUHJvdG9QAVo1Z2l0aHViLmNvbS9za2lsbGh1YmhxL3NraWxsaHViL2dlbi9hcGkvYXV0aC92MTthdXRodjGiAgNBQViqAgtBcGkuQXV0aC5WMcoCC0FwaVxBdXRoXFYx4gIXQXBpXEF1dGhcVjFcR1BCTWV0YWRhdGHqAg1BcGk6OkF1dGg6OlYxYgZwcm90bzM", [file_buf_validate_validate, file_google_protobuf_timestamp]);
 
 /**
  * Identity 是当前用户可见的账号摘要。
@@ -76,6 +76,13 @@ export type LoginRequest = Message<"api.auth.v1.LoginRequest"> & {
    * @generated from field: string password = 2;
    */
   password: string;
+
+  /**
+   * 本机客户端请求可续期会话。
+   *
+   * @generated from field: bool renewable = 3;
+   */
+  renewable: boolean;
 };
 
 /**
@@ -84,6 +91,55 @@ export type LoginRequest = Message<"api.auth.v1.LoginRequest"> & {
  */
 export const LoginRequestSchema: GenMessage<LoginRequest> = /*@__PURE__*/
   messageDesc(file_api_auth_v1_auth_service, 1);
+
+/**
+ * RefreshSessionRequest 使用独立秘密及持久化的单次请求标识。
+ *
+ * @generated from message api.auth.v1.RefreshSessionRequest
+ */
+export type RefreshSessionRequest = Message<"api.auth.v1.RefreshSessionRequest"> & {
+  /**
+   * 系统凭据库中的刷新秘密。
+   *
+   * @generated from field: string refresh_token = 1;
+   */
+  refreshToken: string;
+
+  /**
+   * 同一次刷新重试必须复用此 UUID。
+   *
+   * @generated from field: string request_id = 2;
+   */
+  requestId: string;
+};
+
+/**
+ * Describes the message api.auth.v1.RefreshSessionRequest.
+ * Use `create(RefreshSessionRequestSchema)` to create a new message.
+ */
+export const RefreshSessionRequestSchema: GenMessage<RefreshSessionRequest> = /*@__PURE__*/
+  messageDesc(file_api_auth_v1_auth_service, 2);
+
+/**
+ * RefreshSessionResponse 返回轮换后的完整会话。
+ *
+ * @generated from message api.auth.v1.RefreshSessionResponse
+ */
+export type RefreshSessionResponse = Message<"api.auth.v1.RefreshSessionResponse"> & {
+  /**
+   * 新会话。
+   *
+   * @generated from field: api.auth.v1.LoginResponse login = 1;
+   */
+  login?: LoginResponse | undefined;
+};
+
+/**
+ * Describes the message api.auth.v1.RefreshSessionResponse.
+ * Use `create(RefreshSessionResponseSchema)` to create a new message.
+ */
+export const RefreshSessionResponseSchema: GenMessage<RefreshSessionResponse> = /*@__PURE__*/
+  messageDesc(file_api_auth_v1_auth_service, 3);
 
 /**
  * LoginResponse 的凭据仅返回给本次调用方。
@@ -111,6 +167,20 @@ export type LoginResponse = Message<"api.auth.v1.LoginResponse"> & {
    * @generated from field: google.protobuf.Timestamp expires_at = 3;
    */
   expiresAt?: Timestamp | undefined;
+
+  /**
+   * 仅本机登录返回，必须存入系统凭据库。
+   *
+   * @generated from field: string refresh_token = 4;
+   */
+  refreshToken: string;
+
+  /**
+   * 刷新凭据到期时间。
+   *
+   * @generated from field: google.protobuf.Timestamp refresh_expires_at = 5;
+   */
+  refreshExpiresAt?: Timestamp | undefined;
 };
 
 /**
@@ -118,7 +188,7 @@ export type LoginResponse = Message<"api.auth.v1.LoginResponse"> & {
  * Use `create(LoginResponseSchema)` to create a new message.
  */
 export const LoginResponseSchema: GenMessage<LoginResponse> = /*@__PURE__*/
-  messageDesc(file_api_auth_v1_auth_service, 2);
+  messageDesc(file_api_auth_v1_auth_service, 4);
 
 /**
  * GetIdentityRequest 从认证头解析主体。
@@ -133,7 +203,7 @@ export type GetIdentityRequest = Message<"api.auth.v1.GetIdentityRequest"> & {
  * Use `create(GetIdentityRequestSchema)` to create a new message.
  */
 export const GetIdentityRequestSchema: GenMessage<GetIdentityRequest> = /*@__PURE__*/
-  messageDesc(file_api_auth_v1_auth_service, 3);
+  messageDesc(file_api_auth_v1_auth_service, 5);
 
 /**
  * GetIdentityResponse 返回当前有效主体。
@@ -154,7 +224,7 @@ export type GetIdentityResponse = Message<"api.auth.v1.GetIdentityResponse"> & {
  * Use `create(GetIdentityResponseSchema)` to create a new message.
  */
 export const GetIdentityResponseSchema: GenMessage<GetIdentityResponse> = /*@__PURE__*/
-  messageDesc(file_api_auth_v1_auth_service, 4);
+  messageDesc(file_api_auth_v1_auth_service, 6);
 
 /**
  * LogoutRequest 撤销认证头中的凭据。
@@ -162,6 +232,12 @@ export const GetIdentityResponseSchema: GenMessage<GetIdentityResponse> = /*@__P
  * @generated from message api.auth.v1.LogoutRequest
  */
 export type LogoutRequest = Message<"api.auth.v1.LogoutRequest"> & {
+  /**
+   * 本机可用刷新秘密撤销整个会话，包括过期的访问凭据。
+   *
+   * @generated from field: string refresh_token = 1;
+   */
+  refreshToken: string;
 };
 
 /**
@@ -169,7 +245,7 @@ export type LogoutRequest = Message<"api.auth.v1.LogoutRequest"> & {
  * Use `create(LogoutRequestSchema)` to create a new message.
  */
 export const LogoutRequestSchema: GenMessage<LogoutRequest> = /*@__PURE__*/
-  messageDesc(file_api_auth_v1_auth_service, 5);
+  messageDesc(file_api_auth_v1_auth_service, 7);
 
 /**
  * LogoutResponse 表示凭据已撤销。
@@ -184,7 +260,7 @@ export type LogoutResponse = Message<"api.auth.v1.LogoutResponse"> & {
  * Use `create(LogoutResponseSchema)` to create a new message.
  */
 export const LogoutResponseSchema: GenMessage<LogoutResponse> = /*@__PURE__*/
-  messageDesc(file_api_auth_v1_auth_service, 6);
+  messageDesc(file_api_auth_v1_auth_service, 8);
 
 /**
  * StartDeviceLoginRequest 为独立本地客户端申请授权。
@@ -192,6 +268,12 @@ export const LogoutResponseSchema: GenMessage<LogoutResponse> = /*@__PURE__*/
  * @generated from message api.auth.v1.StartDeviceLoginRequest
  */
 export type StartDeviceLoginRequest = Message<"api.auth.v1.StartDeviceLoginRequest"> & {
+  /**
+   * 本机客户端请求可续期会话。
+   *
+   * @generated from field: bool renewable = 1;
+   */
+  renewable: boolean;
 };
 
 /**
@@ -199,7 +281,7 @@ export type StartDeviceLoginRequest = Message<"api.auth.v1.StartDeviceLoginReque
  * Use `create(StartDeviceLoginRequestSchema)` to create a new message.
  */
 export const StartDeviceLoginRequestSchema: GenMessage<StartDeviceLoginRequest> = /*@__PURE__*/
-  messageDesc(file_api_auth_v1_auth_service, 7);
+  messageDesc(file_api_auth_v1_auth_service, 9);
 
 /**
  * StartDeviceLoginResponse 返回浏览器入口与轮询凭据。
@@ -248,7 +330,7 @@ export type StartDeviceLoginResponse = Message<"api.auth.v1.StartDeviceLoginResp
  * Use `create(StartDeviceLoginResponseSchema)` to create a new message.
  */
 export const StartDeviceLoginResponseSchema: GenMessage<StartDeviceLoginResponse> = /*@__PURE__*/
-  messageDesc(file_api_auth_v1_auth_service, 8);
+  messageDesc(file_api_auth_v1_auth_service, 10);
 
 /**
  * CompleteDeviceLoginRequest 不能以短代码领取凭据。
@@ -269,7 +351,7 @@ export type CompleteDeviceLoginRequest = Message<"api.auth.v1.CompleteDeviceLogi
  * Use `create(CompleteDeviceLoginRequestSchema)` to create a new message.
  */
 export const CompleteDeviceLoginRequestSchema: GenMessage<CompleteDeviceLoginRequest> = /*@__PURE__*/
-  messageDesc(file_api_auth_v1_auth_service, 9);
+  messageDesc(file_api_auth_v1_auth_service, 11);
 
 /**
  * CompleteDeviceLoginResponse 仅在用户批准后包含凭据。
@@ -297,7 +379,7 @@ export type CompleteDeviceLoginResponse = Message<"api.auth.v1.CompleteDeviceLog
  * Use `create(CompleteDeviceLoginResponseSchema)` to create a new message.
  */
 export const CompleteDeviceLoginResponseSchema: GenMessage<CompleteDeviceLoginResponse> = /*@__PURE__*/
-  messageDesc(file_api_auth_v1_auth_service, 10);
+  messageDesc(file_api_auth_v1_auth_service, 12);
 
 /**
  * ChangePasswordRequest 仅用于本地账号，企业账号由身份提供者管理。
@@ -325,7 +407,7 @@ export type ChangePasswordRequest = Message<"api.auth.v1.ChangePasswordRequest">
  * Use `create(ChangePasswordRequestSchema)` to create a new message.
  */
 export const ChangePasswordRequestSchema: GenMessage<ChangePasswordRequest> = /*@__PURE__*/
-  messageDesc(file_api_auth_v1_auth_service, 11);
+  messageDesc(file_api_auth_v1_auth_service, 13);
 
 /**
  * ChangePasswordResponse 表示所有客户端都需要重新登录。
@@ -340,7 +422,7 @@ export type ChangePasswordResponse = Message<"api.auth.v1.ChangePasswordResponse
  * Use `create(ChangePasswordResponseSchema)` to create a new message.
  */
 export const ChangePasswordResponseSchema: GenMessage<ChangePasswordResponse> = /*@__PURE__*/
-  messageDesc(file_api_auth_v1_auth_service, 12);
+  messageDesc(file_api_auth_v1_auth_service, 14);
 
 /**
  * AccessToken 描述当前操作的数据。
@@ -410,7 +492,7 @@ export type AccessToken = Message<"api.auth.v1.AccessToken"> & {
  * Use `create(AccessTokenSchema)` to create a new message.
  */
 export const AccessTokenSchema: GenMessage<AccessToken> = /*@__PURE__*/
-  messageDesc(file_api_auth_v1_auth_service, 13);
+  messageDesc(file_api_auth_v1_auth_service, 15);
 
 /**
  * CreateAccessTokenRequest 描述当前操作的数据。
@@ -452,7 +534,7 @@ export type CreateAccessTokenRequest = Message<"api.auth.v1.CreateAccessTokenReq
  * Use `create(CreateAccessTokenRequestSchema)` to create a new message.
  */
 export const CreateAccessTokenRequestSchema: GenMessage<CreateAccessTokenRequest> = /*@__PURE__*/
-  messageDesc(file_api_auth_v1_auth_service, 14);
+  messageDesc(file_api_auth_v1_auth_service, 16);
 
 /**
  * CreateAccessTokenResponse 描述当前操作的数据。
@@ -480,7 +562,7 @@ export type CreateAccessTokenResponse = Message<"api.auth.v1.CreateAccessTokenRe
  * Use `create(CreateAccessTokenResponseSchema)` to create a new message.
  */
 export const CreateAccessTokenResponseSchema: GenMessage<CreateAccessTokenResponse> = /*@__PURE__*/
-  messageDesc(file_api_auth_v1_auth_service, 15);
+  messageDesc(file_api_auth_v1_auth_service, 17);
 
 /**
  * ListAccessTokensRequest 描述当前操作的数据。
@@ -495,7 +577,7 @@ export type ListAccessTokensRequest = Message<"api.auth.v1.ListAccessTokensReque
  * Use `create(ListAccessTokensRequestSchema)` to create a new message.
  */
 export const ListAccessTokensRequestSchema: GenMessage<ListAccessTokensRequest> = /*@__PURE__*/
-  messageDesc(file_api_auth_v1_auth_service, 16);
+  messageDesc(file_api_auth_v1_auth_service, 18);
 
 /**
  * ListAccessTokensResponse 描述当前操作的数据。
@@ -516,7 +598,7 @@ export type ListAccessTokensResponse = Message<"api.auth.v1.ListAccessTokensResp
  * Use `create(ListAccessTokensResponseSchema)` to create a new message.
  */
 export const ListAccessTokensResponseSchema: GenMessage<ListAccessTokensResponse> = /*@__PURE__*/
-  messageDesc(file_api_auth_v1_auth_service, 17);
+  messageDesc(file_api_auth_v1_auth_service, 19);
 
 /**
  * RevokeAccessTokenRequest 描述当前操作的数据。
@@ -537,7 +619,7 @@ export type RevokeAccessTokenRequest = Message<"api.auth.v1.RevokeAccessTokenReq
  * Use `create(RevokeAccessTokenRequestSchema)` to create a new message.
  */
 export const RevokeAccessTokenRequestSchema: GenMessage<RevokeAccessTokenRequest> = /*@__PURE__*/
-  messageDesc(file_api_auth_v1_auth_service, 18);
+  messageDesc(file_api_auth_v1_auth_service, 20);
 
 /**
  * RevokeAccessTokenResponse 描述当前操作的数据。
@@ -552,7 +634,7 @@ export type RevokeAccessTokenResponse = Message<"api.auth.v1.RevokeAccessTokenRe
  * Use `create(RevokeAccessTokenResponseSchema)` to create a new message.
  */
 export const RevokeAccessTokenResponseSchema: GenMessage<RevokeAccessTokenResponse> = /*@__PURE__*/
-  messageDesc(file_api_auth_v1_auth_service, 19);
+  messageDesc(file_api_auth_v1_auth_service, 21);
 
 /**
  * AuthService 管理当前 Hub 的独立身份和凭据。
@@ -560,6 +642,16 @@ export const RevokeAccessTokenResponseSchema: GenMessage<RevokeAccessTokenRespon
  * @generated from service api.auth.v1.AuthService
  */
 export const AuthService: GenService<{
+  /**
+   * RefreshSession 轮换本机刷新凭据并签发短期访问凭据。
+   *
+   * @generated from rpc api.auth.v1.AuthService.RefreshSession
+   */
+  refreshSession: {
+    methodKind: "unary";
+    input: typeof RefreshSessionRequestSchema;
+    output: typeof RefreshSessionResponseSchema;
+  },
   /**
    * 创建只展示一次的自动化令牌。
    *

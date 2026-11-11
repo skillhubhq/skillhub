@@ -41,7 +41,7 @@ Maintainers can edit skill presentation independently, with revision checks and 
 
 ## Navigation and preferences
 
-App navigation separates Community, My library and Studio. Studio and its publication, review and management entries follow the signed-in account’s effective Hub permissions. Expired sessions clear account-dependent navigation and private content together; returning to the window revalidates the session. The selected Hub connection determines community identity, publication, review and administration. Local installations and projects aggregate origins and have no global Hub selector. Each operation retains its specific source.
+App navigation separates Community, My library and Studio. Studio and its publication, review and management entries follow the signed-in account’s effective Hub permissions. Native sessions renew automatically through the OS credential store, with revocation and bounded lifetimes; see [identity and access](identity-and-access.md#native-client-sessions). Expired sessions clear account-dependent navigation and private content together; returning to the window revalidates the session. The selected Hub connection determines community identity, publication, review and administration. Local installations and projects aggregate origins and have no global Hub selector. Each operation retains its specific source.
 
 App discovery searches the current Hub by default; users can explicitly search all connections. Results remain separated by source, identity, permissions and errors. Web searches only its hosting Hub and groups the site name with its home logo. It has no multi-Hub selector.
 

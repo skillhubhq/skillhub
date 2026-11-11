@@ -58,6 +58,20 @@ export async function runNativeSmoke() {
         !!document.querySelector(".quick-theme .ui-select"),
       "task navigation and persistent preference shortcuts rendered",
     );
+    const desktopPreferences = await API.DesktopPreferences();
+    check(
+      desktopPreferences.keep_running && !desktopPreferences.start_at_login,
+      "desktop close-to-background defaults without enabling startup",
+    );
+    await API.SetDesktopPreferences({
+      ...desktopPreferences,
+      keep_running: false,
+    });
+    check(
+      !(await API.DesktopPreferences()).keep_running,
+      "desktop close behavior persists through native bridge",
+    );
+    await API.SetDesktopPreferences(desktopPreferences);
     await runSelectSmoke(check);
     // 等待上一组菜单的焦点恢复完成，避免干扰弹窗滚动断言。
     await new Promise(requestAnimationFrame);

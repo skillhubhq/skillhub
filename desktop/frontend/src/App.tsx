@@ -1,3 +1,4 @@
+import { DesktopLifecycle } from "./DesktopLifecycle";
 import { sessionExpiredEvent } from "./sessionEvents";
 import {
   loadWorkspaceAccess,
@@ -408,7 +409,12 @@ export default function App() {
       <div
         className={`shell community-shell ${isWeb ? "web-shell" : "desktop-shell"}`}
       >
-        {!isWeb && <OpenSkillLink />}
+        {!isWeb && (
+          <>
+            <OpenSkillLink />
+            <DesktopLifecycle />
+          </>
+        )}
         <Navigation page={page} />
         <main className={`page-${page}`}>
           <header

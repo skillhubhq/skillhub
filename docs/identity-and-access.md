@@ -50,3 +50,13 @@ Local accounts do not automatically become enterprise accounts. Invitation claim
 Use non-administrator accounts to verify role combinations, group revocation, independent review and inaccessible-resource isolation. An administrator demonstration is not a permission test. See [testing](testing.md) and the [deployment checklist](deployment-checklist.md).
 
 Community mode changes first-admission and publication defaults without adding a second user or role system. See [community hosting](community-hosting.md).
+
+## Native client sessions
+
+App and CLI password/device sign-in request a renewable Hub session. The OS credential store holds the access token, refresh token, expiry times and any pending refresh request ID together. No secret enters the client metadata database, frontend bindings or logs. Each connection remains independent.
+
+Access tokens last 15 minutes. Refresh sessions expire after 30 days without renewal and at most 90 days after sign-in. Requests refresh within the last minute of access validity; opening or resuming the App rechecks identity. CLI and App serialize renewal with a cross-process connection lock. A persisted request ID recovers a lost refresh response without minting multiple sessions. Rotated access tokens overlap for at most one minute for in-flight requests; reusing the previous refresh token with a different request ID revokes the session.
+
+Network failures retain credentials and can be retried. Revocation, password changes, account disablement and refresh expiry require sign-in. Every request still checks current account permissions. Third-party tokens are not stored; these lifetimes concern the Hub session, not an Entra or GitHub session. Identity-provider account disablement is not automatically synchronized: Hub administrators must disable the corresponding Hub account.
+
+Existing non-renewable credentials continue until expiry. Sign in again against an upgraded Hub to obtain a renewable session. Environment-provided automation tokens retain their own expiry and never renew. Browser cookie sessions keep their existing lifetime.

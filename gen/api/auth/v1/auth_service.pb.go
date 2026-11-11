@@ -102,7 +102,9 @@ type LoginRequest struct {
 	// 本地账号名。
 	Username string `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"`
 	// 本地密码。
-	Password      string `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
+	Password string `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
+	// 本机客户端请求可续期会话。
+	Renewable     bool `protobuf:"varint,3,opt,name=renewable,proto3" json:"renewable,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -151,6 +153,114 @@ func (x *LoginRequest) GetPassword() string {
 	return ""
 }
 
+func (x *LoginRequest) GetRenewable() bool {
+	if x != nil {
+		return x.Renewable
+	}
+	return false
+}
+
+// RefreshSessionRequest 使用独立秘密及持久化的单次请求标识。
+type RefreshSessionRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 系统凭据库中的刷新秘密。
+	RefreshToken string `protobuf:"bytes,1,opt,name=refresh_token,json=refreshToken,proto3" json:"refresh_token,omitempty"`
+	// 同一次刷新重试必须复用此 UUID。
+	RequestId     string `protobuf:"bytes,2,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RefreshSessionRequest) Reset() {
+	*x = RefreshSessionRequest{}
+	mi := &file_api_auth_v1_auth_service_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RefreshSessionRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RefreshSessionRequest) ProtoMessage() {}
+
+func (x *RefreshSessionRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_auth_v1_auth_service_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RefreshSessionRequest.ProtoReflect.Descriptor instead.
+func (*RefreshSessionRequest) Descriptor() ([]byte, []int) {
+	return file_api_auth_v1_auth_service_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *RefreshSessionRequest) GetRefreshToken() string {
+	if x != nil {
+		return x.RefreshToken
+	}
+	return ""
+}
+
+func (x *RefreshSessionRequest) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+// RefreshSessionResponse 返回轮换后的完整会话。
+type RefreshSessionResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 新会话。
+	Login         *LoginResponse `protobuf:"bytes,1,opt,name=login,proto3" json:"login,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RefreshSessionResponse) Reset() {
+	*x = RefreshSessionResponse{}
+	mi := &file_api_auth_v1_auth_service_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RefreshSessionResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RefreshSessionResponse) ProtoMessage() {}
+
+func (x *RefreshSessionResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_api_auth_v1_auth_service_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RefreshSessionResponse.ProtoReflect.Descriptor instead.
+func (*RefreshSessionResponse) Descriptor() ([]byte, []int) {
+	return file_api_auth_v1_auth_service_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *RefreshSessionResponse) GetLogin() *LoginResponse {
+	if x != nil {
+		return x.Login
+	}
+	return nil
+}
+
 // LoginResponse 的凭据仅返回给本次调用方。
 type LoginResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -159,14 +269,18 @@ type LoginResponse struct {
 	// 当前主体。
 	Identity *Identity `protobuf:"bytes,2,opt,name=identity,proto3" json:"identity,omitempty"`
 	// 凭据到期时间。
-	ExpiresAt     *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	ExpiresAt *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
+	// 仅本机登录返回，必须存入系统凭据库。
+	RefreshToken string `protobuf:"bytes,4,opt,name=refresh_token,json=refreshToken,proto3" json:"refresh_token,omitempty"`
+	// 刷新凭据到期时间。
+	RefreshExpiresAt *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=refresh_expires_at,json=refreshExpiresAt,proto3" json:"refresh_expires_at,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *LoginResponse) Reset() {
 	*x = LoginResponse{}
-	mi := &file_api_auth_v1_auth_service_proto_msgTypes[2]
+	mi := &file_api_auth_v1_auth_service_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -178,7 +292,7 @@ func (x *LoginResponse) String() string {
 func (*LoginResponse) ProtoMessage() {}
 
 func (x *LoginResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_auth_v1_auth_service_proto_msgTypes[2]
+	mi := &file_api_auth_v1_auth_service_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -191,7 +305,7 @@ func (x *LoginResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LoginResponse.ProtoReflect.Descriptor instead.
 func (*LoginResponse) Descriptor() ([]byte, []int) {
-	return file_api_auth_v1_auth_service_proto_rawDescGZIP(), []int{2}
+	return file_api_auth_v1_auth_service_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *LoginResponse) GetAccessToken() string {
@@ -215,6 +329,20 @@ func (x *LoginResponse) GetExpiresAt() *timestamppb.Timestamp {
 	return nil
 }
 
+func (x *LoginResponse) GetRefreshToken() string {
+	if x != nil {
+		return x.RefreshToken
+	}
+	return ""
+}
+
+func (x *LoginResponse) GetRefreshExpiresAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.RefreshExpiresAt
+	}
+	return nil
+}
+
 // GetIdentityRequest 从认证头解析主体。
 type GetIdentityRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -224,7 +352,7 @@ type GetIdentityRequest struct {
 
 func (x *GetIdentityRequest) Reset() {
 	*x = GetIdentityRequest{}
-	mi := &file_api_auth_v1_auth_service_proto_msgTypes[3]
+	mi := &file_api_auth_v1_auth_service_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -236,7 +364,7 @@ func (x *GetIdentityRequest) String() string {
 func (*GetIdentityRequest) ProtoMessage() {}
 
 func (x *GetIdentityRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_auth_v1_auth_service_proto_msgTypes[3]
+	mi := &file_api_auth_v1_auth_service_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -249,7 +377,7 @@ func (x *GetIdentityRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetIdentityRequest.ProtoReflect.Descriptor instead.
 func (*GetIdentityRequest) Descriptor() ([]byte, []int) {
-	return file_api_auth_v1_auth_service_proto_rawDescGZIP(), []int{3}
+	return file_api_auth_v1_auth_service_proto_rawDescGZIP(), []int{5}
 }
 
 // GetIdentityResponse 返回当前有效主体。
@@ -263,7 +391,7 @@ type GetIdentityResponse struct {
 
 func (x *GetIdentityResponse) Reset() {
 	*x = GetIdentityResponse{}
-	mi := &file_api_auth_v1_auth_service_proto_msgTypes[4]
+	mi := &file_api_auth_v1_auth_service_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -275,7 +403,7 @@ func (x *GetIdentityResponse) String() string {
 func (*GetIdentityResponse) ProtoMessage() {}
 
 func (x *GetIdentityResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_auth_v1_auth_service_proto_msgTypes[4]
+	mi := &file_api_auth_v1_auth_service_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -288,7 +416,7 @@ func (x *GetIdentityResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetIdentityResponse.ProtoReflect.Descriptor instead.
 func (*GetIdentityResponse) Descriptor() ([]byte, []int) {
-	return file_api_auth_v1_auth_service_proto_rawDescGZIP(), []int{4}
+	return file_api_auth_v1_auth_service_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *GetIdentityResponse) GetIdentity() *Identity {
@@ -300,14 +428,16 @@ func (x *GetIdentityResponse) GetIdentity() *Identity {
 
 // LogoutRequest 撤销认证头中的凭据。
 type LogoutRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 本机可用刷新秘密撤销整个会话，包括过期的访问凭据。
+	RefreshToken  string `protobuf:"bytes,1,opt,name=refresh_token,json=refreshToken,proto3" json:"refresh_token,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *LogoutRequest) Reset() {
 	*x = LogoutRequest{}
-	mi := &file_api_auth_v1_auth_service_proto_msgTypes[5]
+	mi := &file_api_auth_v1_auth_service_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -319,7 +449,7 @@ func (x *LogoutRequest) String() string {
 func (*LogoutRequest) ProtoMessage() {}
 
 func (x *LogoutRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_auth_v1_auth_service_proto_msgTypes[5]
+	mi := &file_api_auth_v1_auth_service_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -332,7 +462,14 @@ func (x *LogoutRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LogoutRequest.ProtoReflect.Descriptor instead.
 func (*LogoutRequest) Descriptor() ([]byte, []int) {
-	return file_api_auth_v1_auth_service_proto_rawDescGZIP(), []int{5}
+	return file_api_auth_v1_auth_service_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *LogoutRequest) GetRefreshToken() string {
+	if x != nil {
+		return x.RefreshToken
+	}
+	return ""
 }
 
 // LogoutResponse 表示凭据已撤销。
@@ -344,7 +481,7 @@ type LogoutResponse struct {
 
 func (x *LogoutResponse) Reset() {
 	*x = LogoutResponse{}
-	mi := &file_api_auth_v1_auth_service_proto_msgTypes[6]
+	mi := &file_api_auth_v1_auth_service_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -356,7 +493,7 @@ func (x *LogoutResponse) String() string {
 func (*LogoutResponse) ProtoMessage() {}
 
 func (x *LogoutResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_auth_v1_auth_service_proto_msgTypes[6]
+	mi := &file_api_auth_v1_auth_service_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -369,19 +506,21 @@ func (x *LogoutResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LogoutResponse.ProtoReflect.Descriptor instead.
 func (*LogoutResponse) Descriptor() ([]byte, []int) {
-	return file_api_auth_v1_auth_service_proto_rawDescGZIP(), []int{6}
+	return file_api_auth_v1_auth_service_proto_rawDescGZIP(), []int{8}
 }
 
 // StartDeviceLoginRequest 为独立本地客户端申请授权。
 type StartDeviceLoginRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 本机客户端请求可续期会话。
+	Renewable     bool `protobuf:"varint,1,opt,name=renewable,proto3" json:"renewable,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *StartDeviceLoginRequest) Reset() {
 	*x = StartDeviceLoginRequest{}
-	mi := &file_api_auth_v1_auth_service_proto_msgTypes[7]
+	mi := &file_api_auth_v1_auth_service_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -393,7 +532,7 @@ func (x *StartDeviceLoginRequest) String() string {
 func (*StartDeviceLoginRequest) ProtoMessage() {}
 
 func (x *StartDeviceLoginRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_auth_v1_auth_service_proto_msgTypes[7]
+	mi := &file_api_auth_v1_auth_service_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -406,7 +545,14 @@ func (x *StartDeviceLoginRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StartDeviceLoginRequest.ProtoReflect.Descriptor instead.
 func (*StartDeviceLoginRequest) Descriptor() ([]byte, []int) {
-	return file_api_auth_v1_auth_service_proto_rawDescGZIP(), []int{7}
+	return file_api_auth_v1_auth_service_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *StartDeviceLoginRequest) GetRenewable() bool {
+	if x != nil {
+		return x.Renewable
+	}
+	return false
 }
 
 // StartDeviceLoginResponse 返回浏览器入口与轮询凭据。
@@ -428,7 +574,7 @@ type StartDeviceLoginResponse struct {
 
 func (x *StartDeviceLoginResponse) Reset() {
 	*x = StartDeviceLoginResponse{}
-	mi := &file_api_auth_v1_auth_service_proto_msgTypes[8]
+	mi := &file_api_auth_v1_auth_service_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -440,7 +586,7 @@ func (x *StartDeviceLoginResponse) String() string {
 func (*StartDeviceLoginResponse) ProtoMessage() {}
 
 func (x *StartDeviceLoginResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_auth_v1_auth_service_proto_msgTypes[8]
+	mi := &file_api_auth_v1_auth_service_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -453,7 +599,7 @@ func (x *StartDeviceLoginResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StartDeviceLoginResponse.ProtoReflect.Descriptor instead.
 func (*StartDeviceLoginResponse) Descriptor() ([]byte, []int) {
-	return file_api_auth_v1_auth_service_proto_rawDescGZIP(), []int{8}
+	return file_api_auth_v1_auth_service_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *StartDeviceLoginResponse) GetDeviceCode() string {
@@ -502,7 +648,7 @@ type CompleteDeviceLoginRequest struct {
 
 func (x *CompleteDeviceLoginRequest) Reset() {
 	*x = CompleteDeviceLoginRequest{}
-	mi := &file_api_auth_v1_auth_service_proto_msgTypes[9]
+	mi := &file_api_auth_v1_auth_service_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -514,7 +660,7 @@ func (x *CompleteDeviceLoginRequest) String() string {
 func (*CompleteDeviceLoginRequest) ProtoMessage() {}
 
 func (x *CompleteDeviceLoginRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_auth_v1_auth_service_proto_msgTypes[9]
+	mi := &file_api_auth_v1_auth_service_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -527,7 +673,7 @@ func (x *CompleteDeviceLoginRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CompleteDeviceLoginRequest.ProtoReflect.Descriptor instead.
 func (*CompleteDeviceLoginRequest) Descriptor() ([]byte, []int) {
-	return file_api_auth_v1_auth_service_proto_rawDescGZIP(), []int{9}
+	return file_api_auth_v1_auth_service_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *CompleteDeviceLoginRequest) GetDeviceCode() string {
@@ -550,7 +696,7 @@ type CompleteDeviceLoginResponse struct {
 
 func (x *CompleteDeviceLoginResponse) Reset() {
 	*x = CompleteDeviceLoginResponse{}
-	mi := &file_api_auth_v1_auth_service_proto_msgTypes[10]
+	mi := &file_api_auth_v1_auth_service_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -562,7 +708,7 @@ func (x *CompleteDeviceLoginResponse) String() string {
 func (*CompleteDeviceLoginResponse) ProtoMessage() {}
 
 func (x *CompleteDeviceLoginResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_auth_v1_auth_service_proto_msgTypes[10]
+	mi := &file_api_auth_v1_auth_service_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -575,7 +721,7 @@ func (x *CompleteDeviceLoginResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CompleteDeviceLoginResponse.ProtoReflect.Descriptor instead.
 func (*CompleteDeviceLoginResponse) Descriptor() ([]byte, []int) {
-	return file_api_auth_v1_auth_service_proto_rawDescGZIP(), []int{10}
+	return file_api_auth_v1_auth_service_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *CompleteDeviceLoginResponse) GetPending() bool {
@@ -605,7 +751,7 @@ type ChangePasswordRequest struct {
 
 func (x *ChangePasswordRequest) Reset() {
 	*x = ChangePasswordRequest{}
-	mi := &file_api_auth_v1_auth_service_proto_msgTypes[11]
+	mi := &file_api_auth_v1_auth_service_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -617,7 +763,7 @@ func (x *ChangePasswordRequest) String() string {
 func (*ChangePasswordRequest) ProtoMessage() {}
 
 func (x *ChangePasswordRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_auth_v1_auth_service_proto_msgTypes[11]
+	mi := &file_api_auth_v1_auth_service_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -630,7 +776,7 @@ func (x *ChangePasswordRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChangePasswordRequest.ProtoReflect.Descriptor instead.
 func (*ChangePasswordRequest) Descriptor() ([]byte, []int) {
-	return file_api_auth_v1_auth_service_proto_rawDescGZIP(), []int{11}
+	return file_api_auth_v1_auth_service_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *ChangePasswordRequest) GetCurrentPassword() string {
@@ -656,7 +802,7 @@ type ChangePasswordResponse struct {
 
 func (x *ChangePasswordResponse) Reset() {
 	*x = ChangePasswordResponse{}
-	mi := &file_api_auth_v1_auth_service_proto_msgTypes[12]
+	mi := &file_api_auth_v1_auth_service_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -668,7 +814,7 @@ func (x *ChangePasswordResponse) String() string {
 func (*ChangePasswordResponse) ProtoMessage() {}
 
 func (x *ChangePasswordResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_auth_v1_auth_service_proto_msgTypes[12]
+	mi := &file_api_auth_v1_auth_service_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -681,7 +827,7 @@ func (x *ChangePasswordResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChangePasswordResponse.ProtoReflect.Descriptor instead.
 func (*ChangePasswordResponse) Descriptor() ([]byte, []int) {
-	return file_api_auth_v1_auth_service_proto_rawDescGZIP(), []int{12}
+	return file_api_auth_v1_auth_service_proto_rawDescGZIP(), []int{14}
 }
 
 // AccessToken 描述当前操作的数据。
@@ -709,7 +855,7 @@ type AccessToken struct {
 
 func (x *AccessToken) Reset() {
 	*x = AccessToken{}
-	mi := &file_api_auth_v1_auth_service_proto_msgTypes[13]
+	mi := &file_api_auth_v1_auth_service_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -721,7 +867,7 @@ func (x *AccessToken) String() string {
 func (*AccessToken) ProtoMessage() {}
 
 func (x *AccessToken) ProtoReflect() protoreflect.Message {
-	mi := &file_api_auth_v1_auth_service_proto_msgTypes[13]
+	mi := &file_api_auth_v1_auth_service_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -734,7 +880,7 @@ func (x *AccessToken) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AccessToken.ProtoReflect.Descriptor instead.
 func (*AccessToken) Descriptor() ([]byte, []int) {
-	return file_api_auth_v1_auth_service_proto_rawDescGZIP(), []int{13}
+	return file_api_auth_v1_auth_service_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *AccessToken) GetId() string {
@@ -810,7 +956,7 @@ type CreateAccessTokenRequest struct {
 
 func (x *CreateAccessTokenRequest) Reset() {
 	*x = CreateAccessTokenRequest{}
-	mi := &file_api_auth_v1_auth_service_proto_msgTypes[14]
+	mi := &file_api_auth_v1_auth_service_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -822,7 +968,7 @@ func (x *CreateAccessTokenRequest) String() string {
 func (*CreateAccessTokenRequest) ProtoMessage() {}
 
 func (x *CreateAccessTokenRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_auth_v1_auth_service_proto_msgTypes[14]
+	mi := &file_api_auth_v1_auth_service_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -835,7 +981,7 @@ func (x *CreateAccessTokenRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateAccessTokenRequest.ProtoReflect.Descriptor instead.
 func (*CreateAccessTokenRequest) Descriptor() ([]byte, []int) {
-	return file_api_auth_v1_auth_service_proto_rawDescGZIP(), []int{14}
+	return file_api_auth_v1_auth_service_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *CreateAccessTokenRequest) GetName() string {
@@ -879,7 +1025,7 @@ type CreateAccessTokenResponse struct {
 
 func (x *CreateAccessTokenResponse) Reset() {
 	*x = CreateAccessTokenResponse{}
-	mi := &file_api_auth_v1_auth_service_proto_msgTypes[15]
+	mi := &file_api_auth_v1_auth_service_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -891,7 +1037,7 @@ func (x *CreateAccessTokenResponse) String() string {
 func (*CreateAccessTokenResponse) ProtoMessage() {}
 
 func (x *CreateAccessTokenResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_auth_v1_auth_service_proto_msgTypes[15]
+	mi := &file_api_auth_v1_auth_service_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -904,7 +1050,7 @@ func (x *CreateAccessTokenResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateAccessTokenResponse.ProtoReflect.Descriptor instead.
 func (*CreateAccessTokenResponse) Descriptor() ([]byte, []int) {
-	return file_api_auth_v1_auth_service_proto_rawDescGZIP(), []int{15}
+	return file_api_auth_v1_auth_service_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *CreateAccessTokenResponse) GetToken() *AccessToken {
@@ -930,7 +1076,7 @@ type ListAccessTokensRequest struct {
 
 func (x *ListAccessTokensRequest) Reset() {
 	*x = ListAccessTokensRequest{}
-	mi := &file_api_auth_v1_auth_service_proto_msgTypes[16]
+	mi := &file_api_auth_v1_auth_service_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -942,7 +1088,7 @@ func (x *ListAccessTokensRequest) String() string {
 func (*ListAccessTokensRequest) ProtoMessage() {}
 
 func (x *ListAccessTokensRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_auth_v1_auth_service_proto_msgTypes[16]
+	mi := &file_api_auth_v1_auth_service_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -955,7 +1101,7 @@ func (x *ListAccessTokensRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAccessTokensRequest.ProtoReflect.Descriptor instead.
 func (*ListAccessTokensRequest) Descriptor() ([]byte, []int) {
-	return file_api_auth_v1_auth_service_proto_rawDescGZIP(), []int{16}
+	return file_api_auth_v1_auth_service_proto_rawDescGZIP(), []int{18}
 }
 
 // ListAccessTokensResponse 描述当前操作的数据。
@@ -969,7 +1115,7 @@ type ListAccessTokensResponse struct {
 
 func (x *ListAccessTokensResponse) Reset() {
 	*x = ListAccessTokensResponse{}
-	mi := &file_api_auth_v1_auth_service_proto_msgTypes[17]
+	mi := &file_api_auth_v1_auth_service_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -981,7 +1127,7 @@ func (x *ListAccessTokensResponse) String() string {
 func (*ListAccessTokensResponse) ProtoMessage() {}
 
 func (x *ListAccessTokensResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_auth_v1_auth_service_proto_msgTypes[17]
+	mi := &file_api_auth_v1_auth_service_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -994,7 +1140,7 @@ func (x *ListAccessTokensResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAccessTokensResponse.ProtoReflect.Descriptor instead.
 func (*ListAccessTokensResponse) Descriptor() ([]byte, []int) {
-	return file_api_auth_v1_auth_service_proto_rawDescGZIP(), []int{17}
+	return file_api_auth_v1_auth_service_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *ListAccessTokensResponse) GetTokens() []*AccessToken {
@@ -1015,7 +1161,7 @@ type RevokeAccessTokenRequest struct {
 
 func (x *RevokeAccessTokenRequest) Reset() {
 	*x = RevokeAccessTokenRequest{}
-	mi := &file_api_auth_v1_auth_service_proto_msgTypes[18]
+	mi := &file_api_auth_v1_auth_service_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1027,7 +1173,7 @@ func (x *RevokeAccessTokenRequest) String() string {
 func (*RevokeAccessTokenRequest) ProtoMessage() {}
 
 func (x *RevokeAccessTokenRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_auth_v1_auth_service_proto_msgTypes[18]
+	mi := &file_api_auth_v1_auth_service_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1040,7 +1186,7 @@ func (x *RevokeAccessTokenRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RevokeAccessTokenRequest.ProtoReflect.Descriptor instead.
 func (*RevokeAccessTokenRequest) Descriptor() ([]byte, []int) {
-	return file_api_auth_v1_auth_service_proto_rawDescGZIP(), []int{18}
+	return file_api_auth_v1_auth_service_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *RevokeAccessTokenRequest) GetId() string {
@@ -1059,7 +1205,7 @@ type RevokeAccessTokenResponse struct {
 
 func (x *RevokeAccessTokenResponse) Reset() {
 	*x = RevokeAccessTokenResponse{}
-	mi := &file_api_auth_v1_auth_service_proto_msgTypes[19]
+	mi := &file_api_auth_v1_auth_service_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1071,7 +1217,7 @@ func (x *RevokeAccessTokenResponse) String() string {
 func (*RevokeAccessTokenResponse) ProtoMessage() {}
 
 func (x *RevokeAccessTokenResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_auth_v1_auth_service_proto_msgTypes[19]
+	mi := &file_api_auth_v1_auth_service_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1084,7 +1230,7 @@ func (x *RevokeAccessTokenResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RevokeAccessTokenResponse.ProtoReflect.Descriptor instead.
 func (*RevokeAccessTokenResponse) Descriptor() ([]byte, []int) {
-	return file_api_auth_v1_auth_service_proto_rawDescGZIP(), []int{19}
+	return file_api_auth_v1_auth_service_proto_rawDescGZIP(), []int{21}
 }
 
 var File_api_auth_v1_auth_service_proto protoreflect.FileDescriptor
@@ -1096,23 +1242,34 @@ const file_api_auth_v1_auth_service_proto_rawDesc = "" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x12$\n" +
 	"\radministrator\x18\x03 \x01(\bR\radministrator\x12\x1c\n" +
-	"\tfederated\x18\x04 \x01(\bR\tfederated\"^\n" +
+	"\tfederated\x18\x04 \x01(\bR\tfederated\"|\n" +
 	"\fLoginRequest\x12&\n" +
 	"\busername\x18\x01 \x01(\tB\n" +
 	"\xbaH\ar\x05\x10\x01\x18\x80\x01R\busername\x12&\n" +
 	"\bpassword\x18\x02 \x01(\tB\n" +
-	"\xbaH\ar\x05\x10\x01\x18\x80\bR\bpassword\"\xa0\x01\n" +
+	"\xbaH\ar\x05\x10\x01\x18\x80\bR\bpassword\x12\x1c\n" +
+	"\trenewable\x18\x03 \x01(\bR\trenewable\"[\n" +
+	"\x15RefreshSessionRequest\x12#\n" +
+	"\rrefresh_token\x18\x01 \x01(\tR\frefreshToken\x12\x1d\n" +
+	"\n" +
+	"request_id\x18\x02 \x01(\tR\trequestId\"J\n" +
+	"\x16RefreshSessionResponse\x120\n" +
+	"\x05login\x18\x01 \x01(\v2\x1a.api.auth.v1.LoginResponseR\x05login\"\x8f\x02\n" +
 	"\rLoginResponse\x12!\n" +
 	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\x121\n" +
 	"\bidentity\x18\x02 \x01(\v2\x15.api.auth.v1.IdentityR\bidentity\x129\n" +
 	"\n" +
-	"expires_at\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\texpiresAt\"\x14\n" +
+	"expires_at\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\texpiresAt\x12#\n" +
+	"\rrefresh_token\x18\x04 \x01(\tR\frefreshToken\x12H\n" +
+	"\x12refresh_expires_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\x10refreshExpiresAt\"\x14\n" +
 	"\x12GetIdentityRequest\"H\n" +
 	"\x13GetIdentityResponse\x121\n" +
-	"\bidentity\x18\x01 \x01(\v2\x15.api.auth.v1.IdentityR\bidentity\"\x0f\n" +
-	"\rLogoutRequest\"\x10\n" +
-	"\x0eLogoutResponse\"\x19\n" +
-	"\x17StartDeviceLoginRequest\"\xe9\x01\n" +
+	"\bidentity\x18\x01 \x01(\v2\x15.api.auth.v1.IdentityR\bidentity\"4\n" +
+	"\rLogoutRequest\x12#\n" +
+	"\rrefresh_token\x18\x01 \x01(\tR\frefreshToken\"\x10\n" +
+	"\x0eLogoutResponse\"7\n" +
+	"\x17StartDeviceLoginRequest\x12\x1c\n" +
+	"\trenewable\x18\x01 \x01(\bR\trenewable\"\xe9\x01\n" +
 	"\x18StartDeviceLoginResponse\x12\x1f\n" +
 	"\vdevice_code\x18\x01 \x01(\tR\n" +
 	"deviceCode\x12\x1b\n" +
@@ -1157,8 +1314,9 @@ const file_api_auth_v1_auth_service_proto_rawDesc = "" +
 	"\x06tokens\x18\x01 \x03(\v2\x18.api.auth.v1.AccessTokenR\x06tokens\"*\n" +
 	"\x18RevokeAccessTokenRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"\x1b\n" +
-	"\x19RevokeAccessTokenResponse2\xb1\x06\n" +
-	"\vAuthService\x12b\n" +
+	"\x19RevokeAccessTokenResponse2\x8c\a\n" +
+	"\vAuthService\x12Y\n" +
+	"\x0eRefreshSession\x12\".api.auth.v1.RefreshSessionRequest\x1a#.api.auth.v1.RefreshSessionResponse\x12b\n" +
 	"\x11CreateAccessToken\x12%.api.auth.v1.CreateAccessTokenRequest\x1a&.api.auth.v1.CreateAccessTokenResponse\x12_\n" +
 	"\x10ListAccessTokens\x12$.api.auth.v1.ListAccessTokensRequest\x1a%.api.auth.v1.ListAccessTokensResponse\x12b\n" +
 	"\x11RevokeAccessToken\x12%.api.auth.v1.RevokeAccessTokenRequest\x1a&.api.auth.v1.RevokeAccessTokenResponse\x12Y\n" +
@@ -1182,61 +1340,67 @@ func file_api_auth_v1_auth_service_proto_rawDescGZIP() []byte {
 	return file_api_auth_v1_auth_service_proto_rawDescData
 }
 
-var file_api_auth_v1_auth_service_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
+var file_api_auth_v1_auth_service_proto_msgTypes = make([]protoimpl.MessageInfo, 22)
 var file_api_auth_v1_auth_service_proto_goTypes = []any{
 	(*Identity)(nil),                    // 0: api.auth.v1.Identity
 	(*LoginRequest)(nil),                // 1: api.auth.v1.LoginRequest
-	(*LoginResponse)(nil),               // 2: api.auth.v1.LoginResponse
-	(*GetIdentityRequest)(nil),          // 3: api.auth.v1.GetIdentityRequest
-	(*GetIdentityResponse)(nil),         // 4: api.auth.v1.GetIdentityResponse
-	(*LogoutRequest)(nil),               // 5: api.auth.v1.LogoutRequest
-	(*LogoutResponse)(nil),              // 6: api.auth.v1.LogoutResponse
-	(*StartDeviceLoginRequest)(nil),     // 7: api.auth.v1.StartDeviceLoginRequest
-	(*StartDeviceLoginResponse)(nil),    // 8: api.auth.v1.StartDeviceLoginResponse
-	(*CompleteDeviceLoginRequest)(nil),  // 9: api.auth.v1.CompleteDeviceLoginRequest
-	(*CompleteDeviceLoginResponse)(nil), // 10: api.auth.v1.CompleteDeviceLoginResponse
-	(*ChangePasswordRequest)(nil),       // 11: api.auth.v1.ChangePasswordRequest
-	(*ChangePasswordResponse)(nil),      // 12: api.auth.v1.ChangePasswordResponse
-	(*AccessToken)(nil),                 // 13: api.auth.v1.AccessToken
-	(*CreateAccessTokenRequest)(nil),    // 14: api.auth.v1.CreateAccessTokenRequest
-	(*CreateAccessTokenResponse)(nil),   // 15: api.auth.v1.CreateAccessTokenResponse
-	(*ListAccessTokensRequest)(nil),     // 16: api.auth.v1.ListAccessTokensRequest
-	(*ListAccessTokensResponse)(nil),    // 17: api.auth.v1.ListAccessTokensResponse
-	(*RevokeAccessTokenRequest)(nil),    // 18: api.auth.v1.RevokeAccessTokenRequest
-	(*RevokeAccessTokenResponse)(nil),   // 19: api.auth.v1.RevokeAccessTokenResponse
-	(*timestamppb.Timestamp)(nil),       // 20: google.protobuf.Timestamp
+	(*RefreshSessionRequest)(nil),       // 2: api.auth.v1.RefreshSessionRequest
+	(*RefreshSessionResponse)(nil),      // 3: api.auth.v1.RefreshSessionResponse
+	(*LoginResponse)(nil),               // 4: api.auth.v1.LoginResponse
+	(*GetIdentityRequest)(nil),          // 5: api.auth.v1.GetIdentityRequest
+	(*GetIdentityResponse)(nil),         // 6: api.auth.v1.GetIdentityResponse
+	(*LogoutRequest)(nil),               // 7: api.auth.v1.LogoutRequest
+	(*LogoutResponse)(nil),              // 8: api.auth.v1.LogoutResponse
+	(*StartDeviceLoginRequest)(nil),     // 9: api.auth.v1.StartDeviceLoginRequest
+	(*StartDeviceLoginResponse)(nil),    // 10: api.auth.v1.StartDeviceLoginResponse
+	(*CompleteDeviceLoginRequest)(nil),  // 11: api.auth.v1.CompleteDeviceLoginRequest
+	(*CompleteDeviceLoginResponse)(nil), // 12: api.auth.v1.CompleteDeviceLoginResponse
+	(*ChangePasswordRequest)(nil),       // 13: api.auth.v1.ChangePasswordRequest
+	(*ChangePasswordResponse)(nil),      // 14: api.auth.v1.ChangePasswordResponse
+	(*AccessToken)(nil),                 // 15: api.auth.v1.AccessToken
+	(*CreateAccessTokenRequest)(nil),    // 16: api.auth.v1.CreateAccessTokenRequest
+	(*CreateAccessTokenResponse)(nil),   // 17: api.auth.v1.CreateAccessTokenResponse
+	(*ListAccessTokensRequest)(nil),     // 18: api.auth.v1.ListAccessTokensRequest
+	(*ListAccessTokensResponse)(nil),    // 19: api.auth.v1.ListAccessTokensResponse
+	(*RevokeAccessTokenRequest)(nil),    // 20: api.auth.v1.RevokeAccessTokenRequest
+	(*RevokeAccessTokenResponse)(nil),   // 21: api.auth.v1.RevokeAccessTokenResponse
+	(*timestamppb.Timestamp)(nil),       // 22: google.protobuf.Timestamp
 }
 var file_api_auth_v1_auth_service_proto_depIdxs = []int32{
-	0,  // 0: api.auth.v1.LoginResponse.identity:type_name -> api.auth.v1.Identity
-	20, // 1: api.auth.v1.LoginResponse.expires_at:type_name -> google.protobuf.Timestamp
-	0,  // 2: api.auth.v1.GetIdentityResponse.identity:type_name -> api.auth.v1.Identity
-	20, // 3: api.auth.v1.StartDeviceLoginResponse.expires_at:type_name -> google.protobuf.Timestamp
-	2,  // 4: api.auth.v1.CompleteDeviceLoginResponse.login:type_name -> api.auth.v1.LoginResponse
-	13, // 5: api.auth.v1.CreateAccessTokenResponse.token:type_name -> api.auth.v1.AccessToken
-	13, // 6: api.auth.v1.ListAccessTokensResponse.tokens:type_name -> api.auth.v1.AccessToken
-	14, // 7: api.auth.v1.AuthService.CreateAccessToken:input_type -> api.auth.v1.CreateAccessTokenRequest
-	16, // 8: api.auth.v1.AuthService.ListAccessTokens:input_type -> api.auth.v1.ListAccessTokensRequest
-	18, // 9: api.auth.v1.AuthService.RevokeAccessToken:input_type -> api.auth.v1.RevokeAccessTokenRequest
-	11, // 10: api.auth.v1.AuthService.ChangePassword:input_type -> api.auth.v1.ChangePasswordRequest
-	1,  // 11: api.auth.v1.AuthService.Login:input_type -> api.auth.v1.LoginRequest
-	3,  // 12: api.auth.v1.AuthService.GetIdentity:input_type -> api.auth.v1.GetIdentityRequest
-	5,  // 13: api.auth.v1.AuthService.Logout:input_type -> api.auth.v1.LogoutRequest
-	7,  // 14: api.auth.v1.AuthService.StartDeviceLogin:input_type -> api.auth.v1.StartDeviceLoginRequest
-	9,  // 15: api.auth.v1.AuthService.CompleteDeviceLogin:input_type -> api.auth.v1.CompleteDeviceLoginRequest
-	15, // 16: api.auth.v1.AuthService.CreateAccessToken:output_type -> api.auth.v1.CreateAccessTokenResponse
-	17, // 17: api.auth.v1.AuthService.ListAccessTokens:output_type -> api.auth.v1.ListAccessTokensResponse
-	19, // 18: api.auth.v1.AuthService.RevokeAccessToken:output_type -> api.auth.v1.RevokeAccessTokenResponse
-	12, // 19: api.auth.v1.AuthService.ChangePassword:output_type -> api.auth.v1.ChangePasswordResponse
-	2,  // 20: api.auth.v1.AuthService.Login:output_type -> api.auth.v1.LoginResponse
-	4,  // 21: api.auth.v1.AuthService.GetIdentity:output_type -> api.auth.v1.GetIdentityResponse
-	6,  // 22: api.auth.v1.AuthService.Logout:output_type -> api.auth.v1.LogoutResponse
-	8,  // 23: api.auth.v1.AuthService.StartDeviceLogin:output_type -> api.auth.v1.StartDeviceLoginResponse
-	10, // 24: api.auth.v1.AuthService.CompleteDeviceLogin:output_type -> api.auth.v1.CompleteDeviceLoginResponse
-	16, // [16:25] is the sub-list for method output_type
-	7,  // [7:16] is the sub-list for method input_type
-	7,  // [7:7] is the sub-list for extension type_name
-	7,  // [7:7] is the sub-list for extension extendee
-	0,  // [0:7] is the sub-list for field type_name
+	4,  // 0: api.auth.v1.RefreshSessionResponse.login:type_name -> api.auth.v1.LoginResponse
+	0,  // 1: api.auth.v1.LoginResponse.identity:type_name -> api.auth.v1.Identity
+	22, // 2: api.auth.v1.LoginResponse.expires_at:type_name -> google.protobuf.Timestamp
+	22, // 3: api.auth.v1.LoginResponse.refresh_expires_at:type_name -> google.protobuf.Timestamp
+	0,  // 4: api.auth.v1.GetIdentityResponse.identity:type_name -> api.auth.v1.Identity
+	22, // 5: api.auth.v1.StartDeviceLoginResponse.expires_at:type_name -> google.protobuf.Timestamp
+	4,  // 6: api.auth.v1.CompleteDeviceLoginResponse.login:type_name -> api.auth.v1.LoginResponse
+	15, // 7: api.auth.v1.CreateAccessTokenResponse.token:type_name -> api.auth.v1.AccessToken
+	15, // 8: api.auth.v1.ListAccessTokensResponse.tokens:type_name -> api.auth.v1.AccessToken
+	2,  // 9: api.auth.v1.AuthService.RefreshSession:input_type -> api.auth.v1.RefreshSessionRequest
+	16, // 10: api.auth.v1.AuthService.CreateAccessToken:input_type -> api.auth.v1.CreateAccessTokenRequest
+	18, // 11: api.auth.v1.AuthService.ListAccessTokens:input_type -> api.auth.v1.ListAccessTokensRequest
+	20, // 12: api.auth.v1.AuthService.RevokeAccessToken:input_type -> api.auth.v1.RevokeAccessTokenRequest
+	13, // 13: api.auth.v1.AuthService.ChangePassword:input_type -> api.auth.v1.ChangePasswordRequest
+	1,  // 14: api.auth.v1.AuthService.Login:input_type -> api.auth.v1.LoginRequest
+	5,  // 15: api.auth.v1.AuthService.GetIdentity:input_type -> api.auth.v1.GetIdentityRequest
+	7,  // 16: api.auth.v1.AuthService.Logout:input_type -> api.auth.v1.LogoutRequest
+	9,  // 17: api.auth.v1.AuthService.StartDeviceLogin:input_type -> api.auth.v1.StartDeviceLoginRequest
+	11, // 18: api.auth.v1.AuthService.CompleteDeviceLogin:input_type -> api.auth.v1.CompleteDeviceLoginRequest
+	3,  // 19: api.auth.v1.AuthService.RefreshSession:output_type -> api.auth.v1.RefreshSessionResponse
+	17, // 20: api.auth.v1.AuthService.CreateAccessToken:output_type -> api.auth.v1.CreateAccessTokenResponse
+	19, // 21: api.auth.v1.AuthService.ListAccessTokens:output_type -> api.auth.v1.ListAccessTokensResponse
+	21, // 22: api.auth.v1.AuthService.RevokeAccessToken:output_type -> api.auth.v1.RevokeAccessTokenResponse
+	14, // 23: api.auth.v1.AuthService.ChangePassword:output_type -> api.auth.v1.ChangePasswordResponse
+	4,  // 24: api.auth.v1.AuthService.Login:output_type -> api.auth.v1.LoginResponse
+	6,  // 25: api.auth.v1.AuthService.GetIdentity:output_type -> api.auth.v1.GetIdentityResponse
+	8,  // 26: api.auth.v1.AuthService.Logout:output_type -> api.auth.v1.LogoutResponse
+	10, // 27: api.auth.v1.AuthService.StartDeviceLogin:output_type -> api.auth.v1.StartDeviceLoginResponse
+	12, // 28: api.auth.v1.AuthService.CompleteDeviceLogin:output_type -> api.auth.v1.CompleteDeviceLoginResponse
+	19, // [19:29] is the sub-list for method output_type
+	9,  // [9:19] is the sub-list for method input_type
+	9,  // [9:9] is the sub-list for extension type_name
+	9,  // [9:9] is the sub-list for extension extendee
+	0,  // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_api_auth_v1_auth_service_proto_init() }
@@ -1250,7 +1414,7 @@ func file_api_auth_v1_auth_service_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_auth_v1_auth_service_proto_rawDesc), len(file_api_auth_v1_auth_service_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   20,
+			NumMessages:   22,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

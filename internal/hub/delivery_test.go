@@ -32,6 +32,7 @@ func testDeliverySchemaUpgrade(t *testing.T, cfg hubdb.Config) {
 	if _, e = s.db.Exec("DROP TABLE subscriptions; DROP TABLE access_tokens;"); e != nil {
 		t.Fatal(e)
 	}
+	dropRenewableSchema(t, s)
 	if _, e = s.db.Exec("PRAGMA user_version=14;"); e != nil {
 		t.Fatal(e)
 	}

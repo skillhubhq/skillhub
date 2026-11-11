@@ -30,6 +30,17 @@ export function ApplicationUpdates() {
       setChecking(false);
     }
   };
+  useEffect(() => {
+    const requested = () => {
+      if (sessionStorage.getItem("skillhub-check-update")) {
+        sessionStorage.removeItem("skillhub-check-update");
+        void check();
+      }
+    };
+    requested();
+    window.addEventListener("skillhub-check-update", requested);
+    return () => window.removeEventListener("skillhub-check-update", requested);
+  }, []);
   const messages: Record<string, string> = {
     available: t("An update is ready to download.", "发现可下载的新版本。"),
     up_to_date: t(

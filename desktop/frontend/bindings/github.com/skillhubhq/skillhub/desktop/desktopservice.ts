@@ -212,6 +212,10 @@ export function DeleteSubmission(source: string, id: string, coordinate: string,
     return $Call.ByID(772976710, source, id, coordinate, requestID);
 }
 
+export function DesktopPreferences(): $CancellablePromise<$models.DesktopPreferences> {
+    return $Call.ByID(2327465407);
+}
+
 export function DiscardPlan(id: string): $CancellablePromise<void> {
     return $Call.ByID(2974110414, id);
 }
@@ -455,6 +459,10 @@ export function Search(source: string, query: string, category: string, tags: st
     return $Call.ByID(2758417193, source, query, category, tags, token, order, featured);
 }
 
+export function SetDesktopPreferences(v: $models.DesktopPreferences): $CancellablePromise<void> {
+    return $Call.ByID(138514961, v);
+}
+
 export function SetFeaturedSkill(source: string, $namespace: string, name: string, featured: boolean, key: string): $CancellablePromise<void> {
     return $Call.ByID(837992514, source, $namespace, name, featured, key);
 }
@@ -497,6 +505,10 @@ export function Subscriptions(source: string, token: string): $CancellablePromis
 
 export function Suites(): $CancellablePromise<client$0.SuiteInstallation[] | null> {
     return $Call.ByID(1547103844);
+}
+
+export function TakeDesktopAction(): $CancellablePromise<string> {
+    return $Call.ByID(1925662484);
 }
 
 export function UnsetSkillConfiguration(target: string, name: string): $CancellablePromise<void> {
