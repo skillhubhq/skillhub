@@ -8,8 +8,9 @@ export async function runLocalLibrarySmoke(
   const source = installed.find((i) => i.name === "release-check");
   if (!source) throw new Error("local library fixture installation missing");
   const project = ((await API.ListProjects()) ?? [])[0];
-  const target = `${project}/independent/${source.name}`;
-  const copied = await API.PlanLocalAction(source.target, "copy", target);
+  const destination = `${project}/independent/${source.name}`;
+  const copied = await API.PlanLocalAction(source.target, "copy", destination);
+  const target = copied.local!.target;
   await API.ApplyPlan(copied.handle);
   const original = await API.ReadLocalSkill(target, "SKILL.md");
   const inventory = await API.LocalInventory();
@@ -71,6 +72,7 @@ export async function runLocalLibrarySmoke(
   document
     .querySelector<HTMLButtonElement>("dialog[open] .modal-head > button")!
     .click();
+  await wait(() => !document.querySelector("dialog[open]"));
   const edited = await API.ReadLocalSkill(target, "SKILL.md");
   check(
     edited.file.content.includes("Local editor acceptance."),
@@ -127,6 +129,7 @@ export async function runLocalLibrarySmoke(
   document
     .querySelector<HTMLButtonElement>("dialog[open] .modal-head > button")!
     .click();
+  await wait(() => !document.querySelector("dialog[open]"));
   check(
     (await API.ReadLocalSkill(target, "SKILL.md")).fingerprint ===
       original.fingerprint,
