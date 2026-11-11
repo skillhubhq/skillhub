@@ -33,6 +33,9 @@ const (
 // reflection-formatted method names, remove the leading slash and convert the remaining slash to a
 // period.
 const (
+	// AuthServiceRefreshSessionProcedure is the fully-qualified name of the AuthService's
+	// RefreshSession RPC.
+	AuthServiceRefreshSessionProcedure = "/api.auth.v1.AuthService/RefreshSession"
 	// AuthServiceCreateAccessTokenProcedure is the fully-qualified name of the AuthService's
 	// CreateAccessToken RPC.
 	AuthServiceCreateAccessTokenProcedure = "/api.auth.v1.AuthService/CreateAccessToken"
@@ -61,6 +64,8 @@ const (
 
 // AuthServiceClient is a client for the api.auth.v1.AuthService service.
 type AuthServiceClient interface {
+	// RefreshSession 轮换本机刷新凭据并签发短期访问凭据。
+	RefreshSession(context.Context, *connect.Request[v1.RefreshSessionRequest]) (*connect.Response[v1.RefreshSessionResponse], error)
 	// 创建只展示一次的自动化令牌。
 	CreateAccessToken(context.Context, *connect.Request[v1.CreateAccessTokenRequest]) (*connect.Response[v1.CreateAccessTokenResponse], error)
 	// 读取本人令牌元数据。
@@ -92,6 +97,12 @@ func NewAuthServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 	baseURL = strings.TrimRight(baseURL, "/")
 	authServiceMethods := v1.File_api_auth_v1_auth_service_proto.Services().ByName("AuthService").Methods()
 	return &authServiceClient{
+		refreshSession: connect.NewClient[v1.RefreshSessionRequest, v1.RefreshSessionResponse](
+			httpClient,
+			baseURL+AuthServiceRefreshSessionProcedure,
+			connect.WithSchema(authServiceMethods.ByName("RefreshSession")),
+			connect.WithClientOptions(opts...),
+		),
 		createAccessToken: connect.NewClient[v1.CreateAccessTokenRequest, v1.CreateAccessTokenResponse](
 			httpClient,
 			baseURL+AuthServiceCreateAccessTokenProcedure,
@@ -151,6 +162,7 @@ func NewAuthServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 
 // authServiceClient implements AuthServiceClient.
 type authServiceClient struct {
+	refreshSession      *connect.Client[v1.RefreshSessionRequest, v1.RefreshSessionResponse]
 	createAccessToken   *connect.Client[v1.CreateAccessTokenRequest, v1.CreateAccessTokenResponse]
 	listAccessTokens    *connect.Client[v1.ListAccessTokensRequest, v1.ListAccessTokensResponse]
 	revokeAccessToken   *connect.Client[v1.RevokeAccessTokenRequest, v1.RevokeAccessTokenResponse]
@@ -160,6 +172,11 @@ type authServiceClient struct {
 	logout              *connect.Client[v1.LogoutRequest, v1.LogoutResponse]
 	startDeviceLogin    *connect.Client[v1.StartDeviceLoginRequest, v1.StartDeviceLoginResponse]
 	completeDeviceLogin *connect.Client[v1.CompleteDeviceLoginRequest, v1.CompleteDeviceLoginResponse]
+}
+
+// RefreshSession calls api.auth.v1.AuthService.RefreshSession.
+func (c *authServiceClient) RefreshSession(ctx context.Context, req *connect.Request[v1.RefreshSessionRequest]) (*connect.Response[v1.RefreshSessionResponse], error) {
+	return c.refreshSession.CallUnary(ctx, req)
 }
 
 // CreateAccessToken calls api.auth.v1.AuthService.CreateAccessToken.
@@ -209,6 +226,8 @@ func (c *authServiceClient) CompleteDeviceLogin(ctx context.Context, req *connec
 
 // AuthServiceHandler is an implementation of the api.auth.v1.AuthService service.
 type AuthServiceHandler interface {
+	// RefreshSession 轮换本机刷新凭据并签发短期访问凭据。
+	RefreshSession(context.Context, *connect.Request[v1.RefreshSessionRequest]) (*connect.Response[v1.RefreshSessionResponse], error)
 	// 创建只展示一次的自动化令牌。
 	CreateAccessToken(context.Context, *connect.Request[v1.CreateAccessTokenRequest]) (*connect.Response[v1.CreateAccessTokenResponse], error)
 	// 读取本人令牌元数据。
@@ -236,6 +255,12 @@ type AuthServiceHandler interface {
 // and JSON codecs. They also support gzip compression.
 func NewAuthServiceHandler(svc AuthServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
 	authServiceMethods := v1.File_api_auth_v1_auth_service_proto.Services().ByName("AuthService").Methods()
+	authServiceRefreshSessionHandler := connect.NewUnaryHandler(
+		AuthServiceRefreshSessionProcedure,
+		svc.RefreshSession,
+		connect.WithSchema(authServiceMethods.ByName("RefreshSession")),
+		connect.WithHandlerOptions(opts...),
+	)
 	authServiceCreateAccessTokenHandler := connect.NewUnaryHandler(
 		AuthServiceCreateAccessTokenProcedure,
 		svc.CreateAccessToken,
@@ -292,6 +317,8 @@ func NewAuthServiceHandler(svc AuthServiceHandler, opts ...connect.HandlerOption
 	)
 	return "/api.auth.v1.AuthService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
+		case AuthServiceRefreshSessionProcedure:
+			authServiceRefreshSessionHandler.ServeHTTP(w, r)
 		case AuthServiceCreateAccessTokenProcedure:
 			authServiceCreateAccessTokenHandler.ServeHTTP(w, r)
 		case AuthServiceListAccessTokensProcedure:
@@ -318,6 +345,10 @@ func NewAuthServiceHandler(svc AuthServiceHandler, opts ...connect.HandlerOption
 
 // UnimplementedAuthServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedAuthServiceHandler struct{}
+
+func (UnimplementedAuthServiceHandler) RefreshSession(context.Context, *connect.Request[v1.RefreshSessionRequest]) (*connect.Response[v1.RefreshSessionResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("api.auth.v1.AuthService.RefreshSession is not implemented"))
+}
 
 func (UnimplementedAuthServiceHandler) CreateAccessToken(context.Context, *connect.Request[v1.CreateAccessTokenRequest]) (*connect.Response[v1.CreateAccessTokenResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("api.auth.v1.AuthService.CreateAccessToken is not implemented"))

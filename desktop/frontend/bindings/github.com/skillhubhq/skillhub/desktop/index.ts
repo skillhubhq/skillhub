@@ -12,6 +12,7 @@ export type {
     AdminRow,
     AppInfo,
     ChangePlan,
+    DesktopPreferences,
     DraftInfo,
     IdentityView,
     LoginPoll,

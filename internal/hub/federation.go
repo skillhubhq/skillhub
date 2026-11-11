@@ -22,7 +22,7 @@ func (s *Store) FederatedLogin(ctx context.Context, issuer, subject, displayName
 	}
 	defer tx.Rollback()
 	// 先取得写锁，串行化首次登录与禁用操作。
-	if _, err = tx.ExecContext(ctx, "DELETE FROM sessions WHERE expires_at<=?", s.now().Unix()); err != nil {
+	if _, err = tx.ExecContext(ctx, "DELETE FROM sessions WHERE expires_at<=? AND refresh_expires_at<=?", s.now().Unix(), s.now().Unix()); err != nil {
 		return Session{}, err
 	}
 	var user Identity

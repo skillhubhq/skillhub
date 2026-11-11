@@ -1,3 +1,4 @@
+import { DesktopBehavior } from "./DesktopLifecycle";
 import { ProjectLink, projectURL } from "./Downloads";
 import { LocalCache } from "./Sources";
 import { Select } from "./Select";
@@ -74,6 +75,7 @@ export function Settings() {
           )}
         </div>
       </section>
+      {!isWeb && <DesktopBehavior />}
       <AccountSecurity key={ui.activeSource} />
       {!isWeb && <LocalCache />}
       {!isWeb && <ApplicationUpdates />}

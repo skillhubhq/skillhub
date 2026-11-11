@@ -11,6 +11,11 @@ import "./governance.css";
 export function ReviewInbox({ source }: { source: string }) {
   const [open, setOpen] = useState(false);
   const ui = useUI();
+  useEffect(() => {
+    const show = () => setOpen(true);
+    window.addEventListener("skillhub-open-inbox", show);
+    return () => window.removeEventListener("skillhub-open-inbox", show);
+  }, []);
   const tasks = useResource(
     () =>
       ui.workspaceAccess?.review

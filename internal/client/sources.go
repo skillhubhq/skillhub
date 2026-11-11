@@ -263,24 +263,33 @@ func (c *Client) connectSource(ctx context.Context, alias string, withCredential
 	if info.RegistryId != source.RegistryID {
 		return nil, ErrRegistryChanged
 	}
-	token := ""
-	if withCredential {
-		var injected bool
-		token, injected = os.LookupEnv(tokenEnvironment(alias))
-		if !injected && source.HasCredential {
-			token, err = c.credentials.Get(source.CredentialRef)
-			if err != nil {
-				return nil, err
-			}
+	token, injected := os.LookupEnv(tokenEnvironment(alias))
+	if withCredential && injected && len(token) != 43 && !(len(token) == 47 && strings.HasPrefix(token, "sht_")) {
+		return nil, errors.New("invalid source credential")
+	}
+	if withCredential && !injected && source.HasCredential {
+		raw, err := c.credentials.Get(source.CredentialRef)
+		if err != nil {
+			return nil, err
 		}
-		if (injected || (source.HasCredential && err == nil)) && len(token) != 43 && !(len(token) == 47 && strings.HasPrefix(token, "sht_")) {
-			return nil, errors.New("invalid source credential")
+		if _, err = decodeSession(raw); err != nil {
+			return nil, err
 		}
 	}
 	interceptor := connect.UnaryInterceptorFunc(func(next connect.UnaryFunc) connect.UnaryFunc {
 		return func(ctx context.Context, req connect.AnyRequest) (connect.AnyResponse, error) {
-			if token != "" {
-				req.Header().Set("Authorization", "Bearer "+token)
+			if withCredential {
+				currentToken := token
+				if !injected {
+					var err error
+					currentToken, err = c.sourceAccess(ctx, source)
+					if err != nil {
+						return nil, err
+					}
+				}
+				if currentToken != "" {
+					req.Header().Set("Authorization", "Bearer "+currentToken)
+				}
 			}
 			return next(ctx, req)
 		}
@@ -309,7 +318,11 @@ func (c *Client) saveSession(ctx context.Context, remote *Remote, response *auth
 			current.CredentialRef = uuid.NewString()
 		}
 		current.AccountID = response.Identity.UserId
-		if err = c.credentials.Set(current.CredentialRef, response.AccessToken); err != nil {
+		credential, err := sessionCredential(response)
+		if err != nil {
+			return err
+		}
+		if err = c.credentials.Set(current.CredentialRef, credential); err != nil {
 			return err
 		}
 		current.HasCredential = true
@@ -341,7 +354,7 @@ func (c *Client) LoginPassword(ctx context.Context, alias, username, password st
 	if err != nil {
 		return nil, err
 	}
-	response, err := remote.Auth.Login(ctx, connect.NewRequest(&authv1.LoginRequest{Username: username, Password: password}))
+	response, err := remote.Auth.Login(ctx, connect.NewRequest(&authv1.LoginRequest{Username: username, Password: password, Renewable: true}))
 	if err != nil {
 		return nil, err
 	}
@@ -365,7 +378,7 @@ func (c *Client) StartLogin(ctx context.Context, alias string) (DeviceLogin, err
 	if err != nil {
 		return DeviceLogin{}, err
 	}
-	response, err := remote.Auth.StartDeviceLogin(ctx, connect.NewRequest(&authv1.StartDeviceLoginRequest{}))
+	response, err := remote.Auth.StartDeviceLogin(ctx, connect.NewRequest(&authv1.StartDeviceLoginRequest{Renewable: true}))
 	if err != nil {
 		return DeviceLogin{}, err
 	}
@@ -410,9 +423,19 @@ func (c *Client) logout(ctx context.Context, alias string) error {
 	if err != nil {
 		return err
 	}
-	remote, remoteErr := c.Remote(ctx, alias)
-	if remoteErr == nil {
-		_, remoteErr = remote.Auth.Logout(ctx, connect.NewRequest(&authv1.LogoutRequest{}))
+	remote, remoteErr := c.connectSource(ctx, alias, false)
+	if remoteErr == nil && source.HasCredential {
+		raw, err := c.credentials.Get(source.CredentialRef)
+		if err != nil {
+			return err
+		}
+		saved, err := decodeSession(raw)
+		if err != nil {
+			return err
+		}
+		req := connect.NewRequest(&authv1.LogoutRequest{RefreshToken: saved.Refresh})
+		req.Header().Set("Authorization", "Bearer "+saved.Access)
+		_, remoteErr = remote.Auth.Logout(ctx, req)
 	}
 	if source.HasCredential {
 		if err = c.credentials.Delete(source.CredentialRef); err != nil {

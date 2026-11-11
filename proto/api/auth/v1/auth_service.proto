@@ -7,6 +7,8 @@ import "google/protobuf/timestamp.proto";
 
 // AuthService 管理当前 Hub 的独立身份和凭据。
 service AuthService {
+  // RefreshSession 轮换本机刷新凭据并签发短期访问凭据。
+  rpc RefreshSession(RefreshSessionRequest) returns (RefreshSessionResponse);
   // 创建只展示一次的自动化令牌。
   rpc CreateAccessToken(CreateAccessTokenRequest) returns (CreateAccessTokenResponse);
   // 读取本人令牌元数据。
@@ -51,6 +53,21 @@ message LoginRequest {
     min_len: 1
     max_len: 1024
   }];
+  // 本机客户端请求可续期会话。
+  bool renewable = 3;
+}
+
+// RefreshSessionRequest 使用独立秘密及持久化的单次请求标识。
+message RefreshSessionRequest {
+  // 系统凭据库中的刷新秘密。
+  string refresh_token = 1;
+  // 同一次刷新重试必须复用此 UUID。
+  string request_id = 2;
+}
+// RefreshSessionResponse 返回轮换后的完整会话。
+message RefreshSessionResponse {
+  // 新会话。
+  LoginResponse login = 1;
 }
 
 // LoginResponse 的凭据仅返回给本次调用方。
@@ -61,6 +78,10 @@ message LoginResponse {
   Identity identity = 2;
   // 凭据到期时间。
   google.protobuf.Timestamp expires_at = 3;
+  // 仅本机登录返回，必须存入系统凭据库。
+  string refresh_token = 4;
+  // 刷新凭据到期时间。
+  google.protobuf.Timestamp refresh_expires_at = 5;
 }
 
 // GetIdentityRequest 从认证头解析主体。
@@ -73,13 +94,19 @@ message GetIdentityResponse {
 }
 
 // LogoutRequest 撤销认证头中的凭据。
-message LogoutRequest {}
+message LogoutRequest {
+  // 本机可用刷新秘密撤销整个会话，包括过期的访问凭据。
+  string refresh_token = 1;
+}
 
 // LogoutResponse 表示凭据已撤销。
 message LogoutResponse {}
 
 // StartDeviceLoginRequest 为独立本地客户端申请授权。
-message StartDeviceLoginRequest {}
+message StartDeviceLoginRequest {
+  // 本机客户端请求可续期会话。
+  bool renewable = 1;
+}
 
 // StartDeviceLoginResponse 返回浏览器入口与轮询凭据。
 message StartDeviceLoginResponse {

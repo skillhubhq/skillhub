@@ -16,7 +16,7 @@ type DeviceAuthorization struct {
 	ExpiresAt  time.Time
 }
 
-func (s *Store) StartDevice(ctx context.Context) (DeviceAuthorization, error) {
+func (s *Store) StartDevice(ctx context.Context, renewable ...bool) (DeviceAuthorization, error) {
 	value := DeviceAuthorization{DeviceCode: randomSecret(), UserCode: strings.ToUpper(secretHash(randomSecret())[:8]), ExpiresAt: s.now().Add(10 * time.Minute)}
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -33,7 +33,7 @@ func (s *Store) StartDevice(ctx context.Context) (DeviceAuthorization, error) {
 	if count >= 10000 {
 		return DeviceAuthorization{}, ErrRateLimited
 	}
-	_, err = tx.ExecContext(ctx, "INSERT INTO devices(device_hash,user_code,expires_at) VALUES(?,?,?)", secretHash(value.DeviceCode), value.UserCode, value.ExpiresAt.Unix())
+	_, err = tx.ExecContext(ctx, "INSERT INTO devices(device_hash,user_code,expires_at,renewable) VALUES(?,?,?,?)", secretHash(value.DeviceCode), value.UserCode, value.ExpiresAt.Unix(), len(renewable) > 0 && renewable[0])
 	if err != nil {
 		return DeviceAuthorization{}, err
 	}
@@ -123,7 +123,8 @@ func (s *Store) CompleteDevice(ctx context.Context, secret string) (*Session, er
 	}
 	var userID sql.NullString
 	var lastPoll int64
-	err = tx.QueryRowContext(ctx, "SELECT user_id,last_poll FROM devices WHERE device_hash=? AND expires_at>?", secretHash(secret), s.now().Unix()).Scan(&userID, &lastPoll)
+	var renewable bool
+	err = tx.QueryRowContext(ctx, "SELECT user_id,last_poll,renewable FROM devices WHERE device_hash=? AND expires_at>?", secretHash(secret), s.now().Unix()).Scan(&userID, &lastPoll, &renewable)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrUnauthenticated
 	}
@@ -150,6 +151,12 @@ func (s *Store) CompleteDevice(ctx context.Context, secret string) (*Session, er
 	value, err := s.newSession(ctx, tx, user)
 	if err != nil {
 		return nil, err
+	}
+	if renewable {
+		value, err = s.makeRenewable(ctx, tx, value)
+		if err != nil {
+			return nil, err
+		}
 	}
 	if _, err = tx.ExecContext(ctx, "DELETE FROM devices WHERE device_hash=?", secretHash(secret)); err != nil {
 		return nil, err

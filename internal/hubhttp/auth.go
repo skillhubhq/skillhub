@@ -19,11 +19,11 @@ func identityDTO(user hub.Identity) *authv1.Identity {
 	return &authv1.Identity{UserId: user.ID, Username: user.Username, Administrator: user.Administrator, Federated: user.Federated}
 }
 func sessionDTO(value hub.Session) *authv1.LoginResponse {
-	return &authv1.LoginResponse{AccessToken: value.Token, Identity: identityDTO(value.Identity), ExpiresAt: timestamppb.New(value.ExpiresAt)}
+	return &authv1.LoginResponse{AccessToken: value.Token, Identity: identityDTO(value.Identity), ExpiresAt: timestamppb.New(value.ExpiresAt), RefreshToken: value.RefreshToken, RefreshExpiresAt: timestamppb.New(value.RefreshExpiresAt)}
 }
 
 func (s *Server) Login(ctx context.Context, req *connect.Request[authv1.LoginRequest]) (*connect.Response[authv1.LoginResponse], error) {
-	value, err := s.store.Login(ctx, req.Msg.Username, req.Msg.Password)
+	value, err := s.store.Login(ctx, req.Msg.Username, req.Msg.Password, req.Msg.Renewable)
 	if err != nil {
 		return nil, err
 	}
@@ -37,6 +37,12 @@ func (s *Server) GetIdentity(ctx context.Context, req *connect.Request[authv1.Ge
 	return connect.NewResponse(&authv1.GetIdentityResponse{Identity: identityDTO(user)}), nil
 }
 func (s *Server) Logout(ctx context.Context, req *connect.Request[authv1.LogoutRequest]) (*connect.Response[authv1.LogoutResponse], error) {
+	if req.Msg.RefreshToken != "" {
+		if err := s.store.RevokeRefreshSession(ctx, req.Msg.RefreshToken); err != nil {
+			return nil, err
+		}
+		return connect.NewResponse(&authv1.LogoutResponse{}), nil
+	}
 	token, err := bearer(req.Header())
 	if err != nil {
 		return nil, err
@@ -47,7 +53,7 @@ func (s *Server) Logout(ctx context.Context, req *connect.Request[authv1.LogoutR
 	return connect.NewResponse(&authv1.LogoutResponse{}), nil
 }
 func (s *Server) StartDeviceLogin(ctx context.Context, req *connect.Request[authv1.StartDeviceLoginRequest]) (*connect.Response[authv1.StartDeviceLoginResponse], error) {
-	value, err := s.store.StartDevice(ctx)
+	value, err := s.store.StartDevice(ctx, req.Msg.Renewable)
 	if err != nil {
 		return nil, err
 	}
@@ -149,4 +155,12 @@ func (s *Server) ChangePassword(ctx context.Context, req *connect.Request[authv1
 		return nil, err
 	}
 	return connect.NewResponse(&authv1.ChangePasswordResponse{}), nil
+}
+
+func (s *Server) RefreshSession(ctx context.Context, req *connect.Request[authv1.RefreshSessionRequest]) (*connect.Response[authv1.RefreshSessionResponse], error) {
+	value, err := s.store.RefreshSession(ctx, req.Msg.RefreshToken, req.Msg.RequestId)
+	if err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(&authv1.RefreshSessionResponse{Login: sessionDTO(value)}), nil
 }

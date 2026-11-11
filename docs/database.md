@@ -36,7 +36,7 @@ The directory contains a custom-format `hub.dump`, referenced immutable `package
 
 ### Replace the server binary
 
-Stop the Hub and make a verified backup with the current executable. Retain that executable and configuration. Start the replacement only after checking that it supports the database schema. The current Hub initializes schema 15 and upgrades schema 14 in one transaction, adding subscriptions and hashed automation tokens without changing existing accounts, permissions or releases. Unsupported versions are rejected without changing their tables. There is no cross-driver conversion command. Verify readiness, login, permissions and package downloads before reopening traffic.
+Stop the Hub and make a verified backup with the current executable. Retain that executable and configuration. Start the replacement only after checking that it supports the database schema. The current Hub initializes schema 16 and upgrades schemas 14 and 15 in one transaction, adding renewable native sessions while preserving existing accounts, permissions, sessions and releases. Unsupported versions are rejected without changing their tables. There is no cross-driver conversion command. Verify readiness, login, permissions and package downloads before reopening traffic.
 
 ### Restore / rollback
 
@@ -59,4 +59,4 @@ Before reopening traffic, verify login, old-token rejection, non-admin audience 
 
 ## Schema contract
 
-The binary, database snapshot and protocol version must match. Initialization creates the complete schema atomically; startup and restore reject unsupported schema versions without modifying them. The supported schema 14 → 15 upgrade is transactional and additive; other schema versions are rejected. Retain a matching executable for every recovery snapshot.
+The binary, database snapshot and protocol version must match. Initialization creates the complete schema atomically; startup and restore reject unsupported schema versions without modifying them. The supported schema 14/15 → 16 upgrade is transactional and additive; other schema versions are rejected. Retain a matching executable for every recovery snapshot.

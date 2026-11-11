@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"slices"
 	"sync/atomic"
 
 	"github.com/skillhubhq/skillhub/internal/client"
@@ -34,6 +35,11 @@ func main() {
 		slog.Error("client directory unavailable", "error", err)
 		os.Exit(1)
 	}
+	preferences, err := readDesktopPreferences()
+	if err != nil {
+		slog.Error("desktop preferences unavailable", "error", err)
+		os.Exit(1)
+	}
 	var window atomic.Pointer[application.WebviewWindow]
 	handleLink := func(raw string) {
 		queueOpenLink(raw)
@@ -49,6 +55,7 @@ func main() {
 	app := application.New(application.Options{
 		Name: "SkillHub",
 		SingleInstance: &application.SingleInstanceOptions{UniqueID: fmt.Sprintf("io.github.skillhubhq.skillhub.%x", sha256.Sum256([]byte(root))), OnSecondInstanceLaunch: func(data application.SecondInstanceData) {
+			showDesktop("")
 			for _, arg := range data.Args {
 				handleLink(arg)
 			}
@@ -57,12 +64,14 @@ func main() {
 		Description: "Your skills, across sources and tools",
 		Services:    services,
 		Assets:      application.AssetOptions{Handler: application.BundledAssetFileServer(assets)},
-		Mac:         application.MacOptions{ApplicationShouldTerminateAfterLastWindowClosed: true},
+		Mac:         application.MacOptions{ApplicationShouldTerminateAfterLastWindowClosed: false},
 	})
 	app.Event.OnApplicationEvent(events.Common.ApplicationLaunchedWithUrl, func(event *application.ApplicationEvent) { handleLink(event.Context().URL()) })
 	window.Store(app.Window.NewWithOptions(application.WebviewWindowOptions{
-		Name: "main", Title: "SkillHub", Width: 1120, Height: 760, MinWidth: 840, MinHeight: 560, URL: "/",
+		Hidden: slices.Contains(os.Args[1:], "--background"),
+		Name:   "main", Title: "SkillHub", Width: 1120, Height: 760, MinWidth: 840, MinHeight: 560, URL: "/",
 	}))
+	configureLifecycle(app, window.Load(), preferences)
 	if err := app.Run(); err != nil {
 		slog.Error("desktop stopped", "error", err)
 		os.Exit(1)
