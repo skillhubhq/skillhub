@@ -153,12 +153,12 @@ export async function runNativeSmoke() {
     const clickButton = async (label: string) => {
       await waitForUI(() =>
         Array.from(document.querySelectorAll("button")).some(
-          (b) => b.textContent?.trim() === label && !b.disabled,
+          (b) => b.textContent?.trim() === label && !b.matches(":disabled"),
         ),
       );
       (
         Array.from(document.querySelectorAll("button")).find(
-          (b) => b.textContent?.trim() === label && !b.disabled,
+          (b) => b.textContent?.trim() === label && !b.matches(":disabled"),
         ) as HTMLButtonElement
       ).click();
     };
@@ -237,7 +237,10 @@ export async function runNativeSmoke() {
       const findButton = () =>
         Array.from(
           document.querySelectorAll<HTMLButtonElement>(".tabs button"),
-        ).find((button) => button.textContent === label && !button.disabled);
+        ).find(
+          (button) =>
+            button.textContent === label && !button.matches(":disabled"),
+        );
       await waitForUI(() => !!findButton());
       findButton()!.click();
     };
@@ -292,9 +295,9 @@ export async function runNativeSmoke() {
         !!document.querySelector<HTMLButtonElement>(
           ".skill-social-actions button",
         ) &&
-        !document.querySelector<HTMLButtonElement>(
-          ".skill-social-actions button",
-        )!.disabled,
+        !document
+          .querySelector<HTMLButtonElement>(".skill-social-actions button")!
+          .matches(":disabled"),
     );
     check(
       document.querySelectorAll(".skill-social-actions button").length === 3,
@@ -420,9 +423,9 @@ export async function runNativeSmoke() {
     destination.dispatchEvent(new Event("input", { bubbles: true }));
     await waitForUI(
       () =>
-        !document.querySelector<HTMLButtonElement>(
-          "dialog[open] button.primary",
-        )!.disabled,
+        !document
+          .querySelector<HTMLButtonElement>("dialog[open] button.primary")!
+          .matches(":disabled"),
     );
     document
       .querySelector<HTMLFormElement>("dialog[open] form")!
@@ -992,7 +995,8 @@ export async function runNativeSmoke() {
             row.textContent?.includes("lifecycle-smoke") &&
             Array.from(row.querySelectorAll("button")).some(
               (button) =>
-                button.textContent === "Team lifecycle" && !button.disabled,
+                button.textContent === "Team lifecycle" &&
+                !button.matches(":disabled"),
             ),
         ),
       );
@@ -1036,7 +1040,7 @@ export async function runNativeSmoke() {
       (b) => b.textContent === "Permanently delete team",
     ) as HTMLButtonElement;
     check(
-      purgeButton.disabled,
+      purgeButton.matches(":disabled"),
       "native team purge requires typed namespace confirmation",
     );
     const confirmInput = document.querySelector<HTMLInputElement>(
@@ -1047,7 +1051,7 @@ export async function runNativeSmoke() {
       "value",
     )!.set!.call(confirmInput, "lifecycle-smoke");
     confirmInput.dispatchEvent(new Event("input", { bubbles: true }));
-    await waitForUI(() => !purgeButton.disabled);
+    await waitForUI(() => !purgeButton.matches(":disabled"));
     purgeButton.click();
     await waitForUI(
       () =>
@@ -1158,7 +1162,7 @@ export async function runNativeSmoke() {
           const close = document.querySelector<HTMLButtonElement>(
             "dialog[open] .modal-head button",
           );
-          return !!close && !close.disabled;
+          return !!close && !close.matches(":disabled");
         });
         document
           .querySelector<HTMLButtonElement>("dialog[open] .modal-head button")!
@@ -1180,7 +1184,7 @@ export async function runNativeSmoke() {
     );
     (
       Array.from(document.querySelectorAll("button")).find(
-        (b) => b.textContent === "Add role grant" && !b.disabled,
+        (b) => b.textContent === "Add role grant" && !b.matches(":disabled"),
       ) as HTMLButtonElement
     ).click();
     await waitForUI(
@@ -1209,9 +1213,9 @@ export async function runNativeSmoke() {
     ).click();
     await waitForUI(
       () =>
-        document.querySelectorAll<HTMLInputElement>(
-          ".editor input[role=combobox]",
-        )[1]?.disabled === false,
+        document
+          .querySelectorAll<HTMLInputElement>(".editor input[role=combobox]")[1]
+          ?.matches(":disabled") === false,
     );
     const userInput = document.querySelectorAll<HTMLInputElement>(
       ".editor input[role=combobox]",
@@ -1366,9 +1370,9 @@ export async function runNativeSmoke() {
     configurationInput.dispatchEvent(new Event("input", { bubbles: true }));
     await waitForUI(
       () =>
-        !document.querySelector<HTMLButtonElement>(
-          ".configuration-editor .primary",
-        )?.disabled,
+        !document
+          .querySelector<HTMLButtonElement>(".configuration-editor .primary")
+          ?.matches(":disabled"),
     );
     document
       .querySelector<HTMLButtonElement>(".configuration-editor .primary")!
@@ -1383,10 +1387,12 @@ export async function runNativeSmoke() {
       configured.ready && !JSON.stringify(configured).includes("test-region"),
       "App saves shared local configuration and diagnostics omit values",
     );
-    Array.from(document.querySelectorAll<HTMLButtonElement>("dialog button"))
-      .find((button) => button.textContent === "Use in terminal")!
-      .click();
-    await waitForUI(() => !!document.querySelector(".configuration-guide pre"));
+    await clickButton("Use in terminal");
+    await waitForUI(() =>
+      Array.from(document.querySelectorAll(".configuration-guide pre")).some(
+        (block) => block.textContent?.includes("skillhub_env use"),
+      ),
+    );
     const guide = document.querySelector(".configuration-guide")!;
     check(
       guide.textContent!.includes("skillhub_env use") &&
@@ -1404,9 +1410,7 @@ export async function runNativeSmoke() {
     const guideHeight = document
       .querySelector("dialog")!
       .getBoundingClientRect().height;
-    Array.from(document.querySelectorAll<HTMLButtonElement>("dialog button"))
-      .find((button) => button.textContent === "Back to configuration")!
-      .click();
+    await clickButton("Back to configuration");
     await waitForUI(() => !!document.querySelector(".configuration-variable"));
     check(
       Math.abs(
@@ -1462,7 +1466,9 @@ export async function runNativeSmoke() {
     check(
       !!Array.from(
         document.querySelectorAll<HTMLButtonElement>("dialog[open] button"),
-      ).find((b) => b.textContent === "Save to manifest")?.disabled,
+      )
+        .find((b) => b.textContent === "Save to manifest")
+        ?.matches(":disabled"),
       "project save stays disabled until a skill version is selected",
     );
     document
@@ -1484,7 +1490,7 @@ export async function runNativeSmoke() {
       .querySelector("dialog[open]")!
       .getBoundingClientRect();
     check(
-      !projectSave.disabled &&
+      !projectSave.matches(":disabled") &&
         projectSave.getBoundingClientRect().bottom <= projectDialog.bottom,
       "selected project version keeps the save action visible and enabled",
     );
@@ -1509,9 +1515,9 @@ export async function runNativeSmoke() {
         !!document.querySelector<HTMLButtonElement>(
           '[data-testid="check-app-update"]',
         ) &&
-        !document.querySelector<HTMLButtonElement>(
-          '[data-testid="check-app-update"]',
-        )!.disabled,
+        !document
+          .querySelector<HTMLButtonElement>('[data-testid="check-app-update"]')!
+          .matches(":disabled"),
     );
     check(
       !document.querySelector(".app-update-result"),
@@ -1639,9 +1645,11 @@ export async function runNativeSmoke() {
     connectionField.dispatchEvent(new Event("input", { bubbles: true }));
     await waitForUI(
       () =>
-        !document.querySelector<HTMLButtonElement>(
-          ".connection-preferences button.primary",
-        )!.disabled,
+        !document
+          .querySelector<HTMLButtonElement>(
+            ".connection-preferences button.primary",
+          )!
+          .matches(":disabled"),
     );
     let identityDisappeared = false;
     const accountObserver = new MutationObserver(() => {
@@ -1715,7 +1723,7 @@ export async function runNativeSmoke() {
     );
     await waitForUI(() =>
       Array.from(document.querySelectorAll<HTMLButtonElement>("button")).some(
-        (b) => b.textContent === "Connect hub" && !b.disabled,
+        (b) => b.textContent === "Connect hub" && !b.matches(":disabled"),
       ),
     );
     (
@@ -2165,7 +2173,7 @@ export async function runNativeSmoke() {
       inputValue(fields[1], sources.find((s) => s.alias === origin)!.url);
       await waitForUI(() =>
         Array.from(document.querySelectorAll<HTMLButtonElement>("button")).some(
-          (b) => b.textContent === "Connect hub" && !b.disabled,
+          (b) => b.textContent === "Connect hub" && !b.matches(":disabled"),
         ),
       );
       Array.from(document.querySelectorAll<HTMLButtonElement>("button"))
