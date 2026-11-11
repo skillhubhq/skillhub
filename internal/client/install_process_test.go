@@ -161,8 +161,19 @@ func TestInstallUpdateRemoveRecoverAfterProcessExit(t *testing.T) {
 				if err = s.db.QueryRow("SELECT COUNT(*) FROM install_journals").Scan(&journals); err != nil || journals != 0 {
 					t.Fatal("recovery left a persistent journal")
 				}
-				if matches, err := filepath.Glob(filepath.Join(filepath.Dir(target), ".skillhub-txn-*")); err != nil || len(matches) != 0 {
-					t.Fatal("recovery left transaction directories")
+				backups, err := s.LocalBackups(ctx)
+				if err != nil {
+					t.Fatal(err)
+				}
+				wantBackups := 0
+				if point == "committed" && action != "install" {
+					wantBackups = 1
+				}
+				if len(backups) != wantBackups {
+					t.Fatalf("recovery points: got %d, want %d", len(backups), wantBackups)
+				}
+				if matches, err := filepath.Glob(filepath.Join(filepath.Dir(target), ".skillhub-txn-*")); err != nil || len(matches) != wantBackups {
+					t.Fatal("recovery left untracked transaction directories", err)
 				}
 			})
 		}

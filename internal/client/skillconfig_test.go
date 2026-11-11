@@ -89,7 +89,7 @@ func TestLocalConfigurationIsolationRedactionAndUpgrade(t *testing.T) {
 	ctx := context.Background()
 	s := testStore(t)
 	vault := &configCredentials{values: map[string]string{}}
-	c := NewClient(s, ClientOptions{Credentials: vault, HTTPClient: &http.Client{Transport: configNoNetwork{t}}})
+	c := NewClient(s, ClientOptions{Home: t.TempDir(), Credentials: vault, HTTPClient: &http.Client{Transport: configNoNetwork{t}}})
 	first := installConfigFixture(t, s, filepath.Join(t.TempDir(), "check"), "1.0.0")
 	second := installConfigFixture(t, s, filepath.Join(t.TempDir(), "check"), "1.0.0")
 	secret := "test-only-sensitive-config-value"
@@ -134,7 +134,7 @@ func TestLocalConfigurationIsolationRedactionAndUpgrade(t *testing.T) {
 		t.Fatal("cross-project configuration shared")
 	}
 	// 新客户端复用同一系统凭据库，与 CLI/App 进程模型一致。
-	reopened := NewClient(s, ClientOptions{Credentials: vault, HTTPClient: &http.Client{Transport: configNoNetwork{t}}})
+	reopened := NewClient(s, ClientOptions{Home: t.TempDir(), Credentials: vault, HTTPClient: &http.Client{Transport: configNoNetwork{t}}})
 	if r, e := reopened.SkillConfiguration(ctx, first.Target); e != nil || !r.Ready {
 		t.Fatal("configuration did not survive reopening", e)
 	}
@@ -193,7 +193,7 @@ func TestLocalConfigurationRejectsUnavailableStoreAndTampering(t *testing.T) {
 	ctx := context.Background()
 	s := testStore(t)
 	vault := &configCredentials{values: map[string]string{}, unavailable: true}
-	c := NewClient(s, ClientOptions{Credentials: vault})
+	c := NewClient(s, ClientOptions{Home: t.TempDir(), Credentials: vault})
 	i := installConfigFixture(t, s, filepath.Join(t.TempDir(), "check"), "1.0.0")
 	if err := c.SetSkillConfiguration(ctx, i.Target, "DEMO_TOKEN", "keychain", "private-fixture"); !errors.Is(err, ErrCredentialStore) || strings.Contains(err.Error(), "private-fixture") {
 		t.Fatal("unsafe keychain failure", err)
@@ -213,8 +213,8 @@ func TestLocalConfigurationRejectsUnavailableStoreAndTampering(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(i.Target, SkillConfigFile), []byte(`{"version":1,"variables":[]}`), 0600); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := c.SkillConfiguration(ctx, i.Target); err == nil {
-		t.Fatal("modified declaration trusted")
+	if state, err := c.SkillConfiguration(ctx, i.Target); err != nil || !state.Changed || state.Ready {
+		t.Fatal("modified declaration retained credential authorization", err)
 	}
 	if err := c.ClearSkillConfiguration(ctx, i.Target); err != nil {
 		t.Fatal("cannot clear after file modification", err)
@@ -232,7 +232,7 @@ func TestLocalConfigurationUnsetPreservesOtherValues(t *testing.T) {
 	ctx := context.Background()
 	s := testStore(t)
 	vault := &configCredentials{values: map[string]string{}}
-	c := NewClient(s, ClientOptions{Credentials: vault})
+	c := NewClient(s, ClientOptions{Home: t.TempDir(), Credentials: vault})
 	i := installConfigFixture(t, s, filepath.Join(t.TempDir(), "check"), "1.0.0")
 	for _, v := range []struct{ name, mode, value string }{{"DEMO_TOKEN", "keychain", "fixture-secret"}, {"DEMO_REGION", "value", "region"}} {
 		if err := c.SetSkillConfiguration(ctx, i.Target, v.name, v.mode, v.value); err != nil {
@@ -274,7 +274,7 @@ func TestConfigurationRenewalDoesNotCrossAccounts(t *testing.T) {
 	ctx := context.Background()
 	store := testStore(t)
 	vault := &configCredentials{values: map[string]string{}}
-	core := NewClient(store, ClientOptions{Credentials: vault})
+	core := NewClient(store, ClientOptions{Home: t.TempDir(), Credentials: vault})
 	first := installConfigFixture(t, store, filepath.Join(t.TempDir(), "check"), "1.0.0")
 	if e := core.SetSkillConfiguration(ctx, first.Target, "DEMO_TOKEN", "keychain", "fixture-secret"); e != nil {
 		t.Fatal(e)

@@ -1,3 +1,4 @@
+import { ActionMenu } from "./ActionMenu";
 import { SubscriptionsButton } from "./Subscriptions";
 import { connectionName } from "./ConnectionPreferences";
 import { useEffect, useState } from "react";
@@ -111,26 +112,28 @@ function InboxDialog({
           <p className="inbox-context">
             <strong>{connectionName(hub) || source}</strong>
           </p>
-          <div
-            className="inbox-tabs"
-            role="group"
-            aria-label={t("Inbox views", "通知分类")}
-          >
-            {ui.workspaceAccess?.review && (
-              <button
-                aria-pressed={tab === "tasks"}
-                onClick={() => setTab("tasks")}
-              >
-                {t("Needs your review", "待你审核")}
-              </button>
-            )}
-            <button
-              aria-pressed={tab === "outcomes"}
-              onClick={() => setTab("outcomes")}
+          {ui.workspaceAccess?.review && (
+            <div
+              className="inbox-tabs"
+              role="group"
+              aria-label={t("Inbox views", "通知分类")}
             >
-              {t("Updates", "动态")}
-            </button>
-          </div>
+              {ui.workspaceAccess?.review && (
+                <button
+                  aria-pressed={tab === "tasks"}
+                  onClick={() => setTab("tasks")}
+                >
+                  {t("Needs your review", "待你审核")}
+                </button>
+              )}
+              <button
+                aria-pressed={tab === "outcomes"}
+                onClick={() => setTab("outcomes")}
+              >
+                {t("Updates", "动态")}
+              </button>
+            </div>
+          )}
         </div>
       }
     >
@@ -161,23 +164,31 @@ function ReviewOutcomes({
   );
   return (
     <section aria-label={t("Updates", "动态")}>
-      <div className="section-heading">
+      <div className="section-heading inbox-heading">
         <h3>{t("Latest updates", "最近更新")}</h3>
-        <SubscriptionsButton source={source} />
+        <ActionMenu label={t("Inbox options", "通知选项")} iconOnly>
+          <SubscriptionsButton source={source} />
+          <button
+            disabled={inbox.loading || !inbox.value?.unread}
+            onClick={() =>
+              void ui.run(async () => {
+                await API.MarkAllNotificationsRead(source);
+                inbox.reload();
+                ui.refresh();
+              })
+            }
+          >
+            {t("Mark all read", "全部已读")}
+          </button>
+        </ActionMenu>
         <button
-          disabled={inbox.loading || !inbox.value?.unread}
-          onClick={() =>
-            void ui.run(async () => {
-              await API.MarkAllNotificationsRead(source);
-              inbox.reload();
-              ui.refresh();
-            })
-          }
+          className="icon-button"
+          aria-label={t("Refresh")}
+          title={t("Refresh")}
+          disabled={inbox.loading}
+          onClick={inbox.reload}
         >
-          {t("Mark all read", "全部已读")}
-        </button>
-        <button disabled={inbox.loading} onClick={inbox.reload}>
-          {t("Refresh")}
+          <Icon name="refresh" />
         </button>
       </div>
       {inbox.loading ? (

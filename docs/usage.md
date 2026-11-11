@@ -318,3 +318,56 @@ skillhub tokens revoke TOKEN_ID --source company
 The secret is shown once in the App/Web, or written to a new owner-only file by the CLI. Store it in your CI secret manager and inject it as `SKILLHUB_TOKEN_COMPANY` for the `company` source. Hyphens in aliases become underscores. Do not put the token in command arguments or project files.
 
 Read tokens can discover, compare and download accessible skills. Publish tokens additionally submit to one namespace using normal review rules. Tokens cannot approve submissions, administer a Hub, mint credentials, or change community data. Current account and namespace permissions always apply. Tokens expire in 1–90 days, can be revoked immediately, and have a limit of 20 active tokens per user. Account security changes and backup restoration revoke tokens. Skill runtime secrets remain separate and local to your device.
+
+## Skills already on your device
+
+**My library** discovers skills in supported tools' global folders, saved projects,
+and folders you add. Codex's `.agents/skills` and `.codex/skills` are both inspected.
+Discovery reads `SKILL.md`; it does not run scripts or upload files. Shared symbolic
+links appear as locations of one skill. Separate copies remain separate entries.
+
+You can read files, edit text with a change preview, configure declared variables,
+hide entries, or make an independent copy. Git and other detected package managers
+keep ownership of their directories: use their workflow or make a copy first.
+A hidden skill remains available to its tool. Removing a scan folder stops discovery
+of that folder without deleting files.
+
+To receive Hub updates, choose **Associate source**, then select a connection,
+skill and exact version. Matching content records that version without reinstalling.
+Different content can be kept with an unverified version, or replaced after reviewing
+the file differences. A name match alone never establishes provenance. Every source
+association or replacement checks current Hub access again when applied.
+
+Edits, replacements and uninstalls retain a recovery point beside the original folder.
+Recovery points remain until explicitly deleted with **Delete backup** or `skillhub local backup-delete BACKUP_ID --yes`. Suite recovery points cannot be applied individually; reinstall the suite to restore its coordinated members.
+Use **Backups → Review restore** to recover files; restoring also preserves the content
+it replaces. Removing a symbolic link preserves its destination. Changes to shared
+content affect every linked tool, which the preview lists. Suites use their suite-wide
+update and uninstall workflow. Saved configuration stays local; content changes require
+renewed authorization before existing credentials can be used.
+
+CLI uses the same inventory and previews:
+
+```sh
+skillhub local list
+skillhub local add-folder /path/to/skills
+skillhub local read /path/to/skills/example SKILL.md
+skillhub local associate /path/to/skills/example team/design/example@1.0.0 --dry-run
+skillhub local associate /path/to/skills/example team/design/example@1.0.0 --yes
+# Add --replace to preview or apply a backed-up replacement.
+skillhub local detach /path/to/skills/example --yes
+skillhub local hide /path/to/skills/example
+skillhub local show /path/to/skills/example
+skillhub local copy /path/to/skills/example /path/to/copy/example --yes
+skillhub local remove /path/to/copy/example --yes
+skillhub local backups
+skillhub local restore BACKUP_ID --yes
+```
+
+`local edit TARGET FILE --fingerprint FINGERPRINT` reads replacement UTF-8 text from
+stdin. Obtain the fingerprint using `local read`, preview the changes, then repeat
+with `--yes`. All file operations check that files and source records still match
+the preview. Inspection is bounded by package file/count limits; interior symlinks
+are rejected. Scanning visits direct skill folders only, up to 4,096 entries per
+folder and 64 additional roots. The website provides installation instructions and
+App handoff; local discovery runs in App or CLI.

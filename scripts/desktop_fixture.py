@@ -125,6 +125,9 @@ def main():
                     env["SKILLHUB_TOKEN_COMPANY"] = company_admin
             project = root / "demo-project"
             project.mkdir()
+            conflict = project / "existing-files" / ".agents" / "skills" / "release-check"
+            conflict.mkdir(parents=True)
+            (conflict / "notes.txt").write_text("Keep these unmanaged files.\n", encoding="utf-8")
             cli("project", "init", "--project", str(project))
             for tool, coordinate in (("codex", "company/platform/release-check@1.0.0"),
                                      ("claude-code", "public/platform/incident-brief@1.0.0")):
@@ -138,7 +141,12 @@ def main():
             print(json.dumps({"fixture_root": str(root), "project": str(project), "hubs": origins}, indent=2), flush=True)
             app = subprocess.Popen([str(Path(args.app).resolve())], env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             processes.append(app)
-            app.wait(timeout=120 if args.automated else None)
+            try:
+                app.wait(timeout=120 if args.automated else None)
+            except subprocess.TimeoutExpired as exc:
+                progress = root / "client" / "native-progress.txt"
+                last = progress.read_text() if progress.exists() else "before first assertion"
+                raise RuntimeError(f"native runtime timed out after: {last}") from exc
             if args.automated:
                 report_file = root / "client" / "native-smoke.json"
                 if not report_file.is_file():
@@ -154,6 +162,8 @@ def main():
                 if "Native draft editor verification." in (root / "incident-brief" / "SKILL.md").read_text(encoding="utf-8"):
                     raise RuntimeError("native draft editor modified the original package")
                 installed = cli("list")
+                if (conflict / "notes.txt").read_text(encoding="utf-8") != "Keep these unmanaged files.\n":
+                    raise RuntimeError("installation conflict changed unmanaged files")
                 if len(installed) != 1 or installed[0]["name"] != "release-check" or installed[0]["version"] != "1.1.0":
                     raise RuntimeError("CLI did not observe the native runtime's final installation")
                 if cli("cache", "info")["entries"] != 0:

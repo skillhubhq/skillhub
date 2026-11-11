@@ -1,6 +1,5 @@
 import toolAdapters from "../../../internal/client/tools.json";
 import { skillAppURL } from "./official";
-import { ReportButton } from "./Moderation";
 import { Select } from "./Select";
 import { ProjectLink, releasesURL } from "./Downloads";
 import { signInURL } from "./auth";
@@ -76,7 +75,6 @@ export function SkillActions({
         {t("Comment", "评论")}
         <span>{summary?.comment_count ?? "—"}</span>
       </button>
-      {summary?.can_interact && <ReportButton source={source} release={id} />}
     </div>
   );
 }

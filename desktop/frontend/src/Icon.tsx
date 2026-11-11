@@ -1,4 +1,6 @@
 const paths: Record<string, string> = {
+  more: "M5 12h.01M12 12h.01M19 12h.01",
+  refresh: "M20 7v5h-5M4 17v-5h5M6 6a8 8 0 0 1 13 3M18 18a8 8 0 0 1-13-3",
   inbox: "M4 3h16l2 12v6H2v-6L4 3ZM2 15h6l2 3h4l2-3h6M8 7h8M8 11h8",
   skill: "M12 3 3 8l9 5 9-5-9-5ZM3 12l9 5 9-5M3 16l9 5 9-5",
   code: "m8 6-6 6 6 6m8-12 6 6-6 6m-3-14-2 16",

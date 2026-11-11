@@ -161,7 +161,7 @@ func writeConfigState(dir *os.Root, s configState) error {
 	return syncDirectory(dir.Name())
 }
 func (c *Client) configInstallation(ctx context.Context, target string) (Installation, ConfigDeclaration, bool, error) {
-	i, err := c.store.checkedInstallation(ctx, target)
+	i, err := c.localConfigurationInstallation(ctx, target)
 	if err != nil {
 		return Installation{}, ConfigDeclaration{}, false, errors.New("check installation integrity before configuring this skill")
 	}
@@ -169,6 +169,12 @@ func (c *Client) configInstallation(ctx context.Context, target string) (Install
 		return Installation{}, ConfigDeclaration{}, false, errors.New("installation not found")
 	}
 	files, err := packageformat.ReadDirectory(target)
+	if err == nil && packageformat.Fingerprint(files) != i.Fingerprint {
+		// 内容变动使旧授权失效；界面仍可展示新声明以便重新确认。
+		i.Fingerprint = packageformat.Fingerprint(files)
+		i.Digest = i.Fingerprint
+		i.Version = ""
+	}
 	if err != nil {
 		return *i, ConfigDeclaration{}, false, errors.New("cannot read configuration declaration")
 	}
@@ -194,7 +200,7 @@ func (c *Client) SkillConfiguration(ctx context.Context, target string) (SkillCo
 			if err != nil {
 				return err
 			}
-			stored, err := c.store.installation(ctx, target)
+			stored, err := c.localConfigurationInstallation(ctx, target)
 			if err != nil {
 				return err
 			}
@@ -360,7 +366,19 @@ func (c *Client) ConfigurationTargets(ctx context.Context) ([]ConfigTarget, erro
 	if err != nil {
 		return nil, err
 	}
+	inventory, err := c.LocalInventory(ctx)
+	if err != nil {
+		return nil, err
+	}
 	byTarget := map[string]ConfigTarget{}
+	for _, item := range inventory.Skills {
+		if item.Hidden || item.State == "unavailable" {
+			continue
+		}
+		if i, e := c.localConfigurationInstallation(ctx, item.Target); e == nil && i != nil {
+			byTarget[item.Target] = ConfigTarget{Installation: *i, Installed: true}
+		}
+	}
 	for _, i := range items {
 		byTarget[i.Target] = ConfigTarget{Installation: i, Installed: true}
 	}

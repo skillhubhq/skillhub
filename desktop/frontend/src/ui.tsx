@@ -1,3 +1,4 @@
+import { createPortal } from "react-dom";
 import toolAdapters from "../../../internal/client/tools.json";
 import { lockModalScroll } from "./modalScroll";
 import { Select } from "./Select";
@@ -34,6 +35,8 @@ export type UI = {
   accountID?: string;
   busy: boolean;
   error: string;
+  errorScope?: string;
+  registerModal?: (id: string) => () => void;
   revision: number;
   sources: Source[];
   activeSource: string;
@@ -41,7 +44,7 @@ export type UI = {
   run: <T>(task: () => Promise<T>) => Promise<T | undefined>;
   changed: (message: string) => void;
   refresh: () => void;
-  plan: (task: () => Promise<ChangePlan>) => void;
+  plan: (task: () => Promise<ChangePlan>) => Promise<boolean>;
   preview: (task: () => Promise<ReleasePreview>) => void;
   confirm: (
     title: string,
@@ -209,6 +212,7 @@ export function Modal({
   wide = false,
   stable = false,
   toolbar,
+  footer,
 }: {
   title: string;
   children: ReactNode;
@@ -216,16 +220,19 @@ export function Modal({
   wide?: boolean;
   stable?: boolean | "compact";
   toolbar?: ReactNode;
+  footer?: ReactNode;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   const id = useId();
-  const { busy, error } = useUI();
+  const { busy, error, errorScope, registerModal } = useUI();
   useLayoutEffect(() => {
+    const unregister = registerModal?.(id);
     const dialog = ref.current!;
     const trigger = document.activeElement;
     const unlock = lockModalScroll();
     dialog.showModal();
     return () => {
+      unregister?.();
       // 在 React 移除 dialog 前关闭，避免 Chromium 丢失原始焦点目标。
       dialog.close();
       // 等待节点移除和顶层模态状态解除，再恢复滚动与焦点。
@@ -239,8 +246,8 @@ export function Modal({
         unlock();
       });
     };
-  }, []);
-  return (
+  }, [id, registerModal]);
+  return createPortal(
     <dialog
       ref={ref}
       className={`app-modal${wide ? " wide" : ""}${stable ? " modal-stable" : ""}${stable === "compact" ? " modal-compact" : ""}`}
@@ -264,14 +271,20 @@ export function Modal({
       </div>
       {toolbar && <div className="modal-toolbar">{toolbar}</div>}
       <div className="modal-body">
-        {error && (
+        {error && errorScope === id && (
           <div className="notice error" role="alert">
             {error}
           </div>
         )}
         <fieldset disabled={busy}>{children}</fieldset>
       </div>
-    </dialog>
+      {footer && (
+        <div className="modal-footer">
+          <fieldset disabled={busy}>{footer}</fieldset>
+        </div>
+      )}
+    </dialog>,
+    document.body,
   );
 }
 export function PreviewBody({

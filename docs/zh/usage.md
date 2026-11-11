@@ -245,3 +245,46 @@ skillhub tokens revoke TOKEN_ID --source company
 App/Web 只展示一次密钥，CLI 写入仅当前用户可读的新文件。将密钥保存在 CI 的密钥管理功能中，为 `company` 连接注入 `SKILLHUB_TOKEN_COMPANY` 环境变量；别名中的连字符转换为下划线。不要放入命令参数或项目文件。
 
 只读令牌可发现、比较和下载有权访问的技能；投稿令牌额外允许向指定团队提交，并遵循正常审核规则。令牌不能审核、管理 Hub、创建凭据或修改社区数据，始终受当前账号与团队权限约束。有效期 1–90 天，可立即撤销，每人最多 20 个有效令牌。账号安全变更和备份恢复会撤销令牌。技能运行时密钥与访问令牌分开管理，仍保存在本机。
+
+## 管理设备上已有的技能
+
+**本地技能**自动发现支持工具的全局目录、已添加项目及指定目录中的技能，同时识别
+Codex 的 `.agents/skills` 和 `.codex/skills`。扫描仅读取 `SKILL.md`，不会执行脚本
+或上传文件。多个符号链接指向同一目录时合并展示位置，独立副本则分别显示。
+
+可以查看文件、预览并编辑文本、配置声明的变量、隐藏条目或创建独立副本。识别为 Git
+或其他包管理工具维护的目录，继续通过对应工具修改，或先创建副本。隐藏不会停用技能；
+移除扫描目录不会删除文件。
+
+需要跟踪 Hub 更新时，选择**关联来源**，再选择连接、技能与确切版本。内容一致时直接
+登记版本；存在差异时可以保留本地内容并标记版本未核实，或预览文件差异后备份替换。
+同名不会自动认定来源。执行来源关联和替换时会重新检查 Hub 访问权限。
+
+编辑、替换和卸载会在原目录旁保留恢复点，可通过“删除备份”或 `skillhub local backup-delete BACKUP_ID --yes` 显式清理。套装恢复点不能单独应用，请通过重新安装套装恢复配套成员。通过**备份 → 预览恢复**恢复；恢复也会保留
+当前被替换的内容。移除符号链接保留目标目录；修改共享目录会影响预览中列出的所有工具。
+套装通过整套更新和卸载流程管理。已保存配置留在本机，技能内容变化后需要重新确认授权，
+才能继续使用已有凭据。
+
+CLI 使用相同清单和预览流程：
+
+```sh
+skillhub local list
+skillhub local add-folder /path/to/skills
+skillhub local read /path/to/skills/example SKILL.md
+skillhub local associate /path/to/skills/example team/design/example@1.0.0 --dry-run
+skillhub local associate /path/to/skills/example team/design/example@1.0.0 --yes
+# 增加 --replace 预览或执行备份替换。
+skillhub local detach /path/to/skills/example --yes
+skillhub local hide /path/to/skills/example
+skillhub local show /path/to/skills/example
+skillhub local copy /path/to/skills/example /path/to/copy/example --yes
+skillhub local remove /path/to/copy/example --yes
+skillhub local backups
+skillhub local restore BACKUP_ID --yes
+```
+
+`local edit TARGET FILE --fingerprint FINGERPRINT` 从标准输入读取替换文本。通过
+`local read` 获取指纹，先预览，再加 `--yes` 确认。执行时会重新检查内容和来源记录是否
+仍与预览一致。文件检查遵循技能包的大小及数量限制，不处理技能内部的符号链接。
+扫描只遍历直接技能目录，每个目录最多 4,096 个条目，最多 64 个额外扫描目录。
+网页提供安装说明及 App 打开入口，本地扫描由 App 或 CLI 执行。

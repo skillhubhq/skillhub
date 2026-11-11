@@ -38,7 +38,7 @@
 }
 .skill-social-actions > button {
   background: transparent;
-  border-color: var(--line);
+  border-color: transparent;
   font-size: 13px;
 }
 .skill-social-actions > button > span {
@@ -47,7 +47,7 @@
 }
 .skill-social-actions > button[aria-pressed="true"] {
   color: var(--link);
-  border-color: var(--accent);
+  border-color: transparent;
   background: var(--accent-light);
 }
 .skill-social-actions > button[aria-pressed="true"] .icon {
@@ -364,8 +364,8 @@
   height: 22px;
 }
 .community-shell .detail-hero .eyebrow {
-  font-size: 10px;
-  letter-spacing: 0.08em;
+  font-size: 12px;
+  letter-spacing: 0;
 }
 .community-shell .detail-hero h1 {
   font-size: clamp(25px, 2.5vw, 32px);
@@ -378,8 +378,8 @@
   max-width: 850px;
 }
 .community-shell .detail-action-bar {
-  gap: 14px;
-  padding-bottom: 16px;
+  gap: 8px;
+  padding-bottom: 20px;
 }
 .community-shell .detail-action-bar > button,
 .community-shell .detail-action-bar > .skill-social-actions > button {
@@ -680,11 +680,11 @@
   margin-bottom: 18px;
 }
 .community-shell .review-workspace {
-  grid-template-columns: 280px minmax(0, 1fr);
+  grid-template-columns: 248px minmax(0, 1fr);
 }
 .community-shell .review-queue {
-  padding: 14px;
-  gap: 10px;
+  padding: 8px;
+  gap: 4px;
 }
 .community-shell .review-queue > * {
   flex-shrink: 0;
@@ -711,8 +711,7 @@
   min-height: 64px;
   background: transparent;
   border: 0;
-  border-bottom: 1px solid var(--line);
-  border-radius: 0;
+  border-radius: 8px;
   font-size: 13px;
 }
 .community-shell .review-queue .queue-item strong {
@@ -722,7 +721,8 @@
 }
 .community-shell .review-queue .queue-item.active {
   background: var(--accent-light);
-  box-shadow: inset 2px 0 var(--accent);
+  box-shadow: none;
+  color: var(--link);
 }
 .community-shell .review-queue .queue-item:hover {
   background: var(--surface-soft);
@@ -733,13 +733,13 @@
   align-items: baseline;
   justify-content: space-between;
   gap: 4px 8px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 400;
   color: var(--muted);
 }
 .community-shell .queue-status {
   white-space: nowrap;
-  font-size: 11px;
+  font-size: 12px;
 }
 .community-shell .queue-status::before {
   content: "";
@@ -768,8 +768,8 @@
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 6px 14px;
-  padding: 10px 20px;
+  gap: 6px 16px;
+  padding: 12px 24px 8px;
   border-bottom: 0;
 }
 .community-shell .review-heading h2 {
@@ -779,7 +779,7 @@
   overflow-wrap: anywhere;
 }
 .community-shell .release-progress {
-  padding: 12px 20px;
+  padding: 12px 24px 8px;
   background: var(--surface);
 }
 .community-shell .release-status-row {
@@ -805,10 +805,10 @@
   align-items: baseline;
   gap: 8px;
   min-height: 0;
-  padding: 6px 10px;
+  padding: 6px 0;
   font-size: 13px;
   line-height: 1.5;
-  background: var(--surface-soft);
+  background: transparent;
   border-radius: 5px;
   list-style: none;
 }
@@ -856,7 +856,7 @@
   font-size: 12px;
 }
 .community-shell .review-content {
-  padding: 10px 20px 20px;
+  padding: 16px 24px 24px;
 }
 .community-shell .review-content .document-toolbar {
   margin-bottom: 8px;
@@ -1152,7 +1152,8 @@
   max-width: 900px;
 }
 .preferences-page .preference-section {
-  padding: 20px 0;
+  padding: 0 0 20px;
+  margin-bottom: 24px;
 }
 .preferences-page .preference-section > h2 {
   font-size: 18px;
@@ -1313,13 +1314,14 @@
   font-size: 14px;
   margin: 0 0 8px;
 }
+.connection-hub-name,
 .connection-alias {
-  display: inline-block;
+  display: block;
   font-size: 12px;
   color: var(--muted);
 }
 .connection-account p {
-  margin: 8px 0 0;
+  margin: 8px 0 4px;
   font-size: 14px;
 }
 .connection-account small {
@@ -1512,7 +1514,7 @@
 .community-shell .review-workspace {
   grid-template-rows: auto 1fr;
   min-height: 0;
-  background: var(--surface-soft);
+  background: var(--surface);
 }
 .community-shell .review-workspace .review-queue {
   border-radius: 0 0 0 12px;
@@ -1524,7 +1526,7 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 12px;
-  padding: 14px 16px;
+  padding: 12px 16px;
   border-bottom: 1px solid var(--line);
   background: var(--surface);
   border-radius: 12px 12px 0 0;
@@ -1542,7 +1544,7 @@
 .review-toolbar > input {
   width: min(280px, 100%);
   min-width: 150px;
-  flex: 1 1 200px;
+  flex: 0 1 320px;
 }
 .review-toolbar > .ui-select {
   width: 180px;
@@ -1589,4 +1591,42 @@
 .connection-custom-name > summary {
   cursor: pointer;
   color: var(--muted);
+}
+
+/* 文档动作与内容的层级分开；读取区域保持单一纸面。 */
+.community-shell .review-document {
+  background: var(--surface);
+}
+.community-shell .review-heading .queue-identity {
+  font-size: 18px;
+}
+.community-shell .review-heading > .muted {
+  margin-left: auto;
+  font-size: 12px;
+}
+.community-shell .release-status-row {
+  font-size: 12px;
+}
+.community-shell .release-status-row .badge {
+  border: 0;
+}
+.community-shell .review-checks {
+  background: var(--surface);
+}
+.community-shell .review-queue .queue-item:hover:not(.active) {
+  background: var(--surface);
+}
+.detail-action-bar > .action-menu-trigger {
+  margin-left: auto;
+}
+.detail-action-bar .skill-social-actions {
+  gap: 2px;
+}
+@media (max-width: 760px) {
+  .review-toolbar > input {
+    flex: 1 1 180px;
+  }
+  .detail-action-bar > .action-menu-trigger {
+    margin-left: 0;
+  }
 }

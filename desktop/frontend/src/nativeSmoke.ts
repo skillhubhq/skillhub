@@ -1,3 +1,4 @@
+import { runLocalLibrarySmoke } from "./localLibrarySmoke";
 import { runDeliverySmoke } from "./deliverySmoke";
 import { notifySessionExpired } from "./sessionEvents";
 import { pageScroller } from "./pageScroll";
@@ -31,6 +32,10 @@ export async function runNativeSmoke() {
   const check = (condition: unknown, label: string) => {
     if (!condition) throw new Error(label);
     checks.push(label);
+    void Call.ByName(
+      "main.NativeSmokeReporter.Progress",
+      `${checks.length}: ${label}`,
+    ).catch(() => {});
   };
   try {
     const deadline = Date.now() + 15000;
@@ -292,17 +297,25 @@ export async function runNativeSmoke() {
         )!.disabled,
     );
     check(
-      document.querySelectorAll(".skill-social-actions button").length === 4,
-      "like save comment and report are visible beside installation",
+      document.querySelectorAll(".skill-social-actions button").length === 3,
+      "like save and comment remain visible beside installation",
     );
     check(
       getComputedStyle(document.querySelector(".skill-install-aside")!)
         .position === "static",
       "desktop version information shares the document scroll flow",
     );
+    document
+      .querySelector<HTMLButtonElement>(
+        ".detail-action-bar .action-menu-trigger",
+      )!
+      .click();
+    await waitForUI(
+      () => !!document.querySelector(".action-menu-panel:not([hidden])"),
+    );
     Array.from(
       document.querySelectorAll<HTMLButtonElement>(
-        ".skill-social-actions button",
+        ".action-menu-panel:not([hidden]) button",
       ),
     )
       .find((b) => b.textContent === "Report")!
@@ -340,6 +353,14 @@ export async function runNativeSmoke() {
     check(
       reportModal.getBoundingClientRect().height <= 441,
       "report form uses a compact stable dialog",
+    );
+    const reportFooter = reportModal.querySelector(".modal-footer")!;
+    check(
+      reportFooter.getBoundingClientRect().bottom <=
+        reportModal.getBoundingClientRect().bottom &&
+        reportFooter.querySelector("button.primary")!.getBoundingClientRect()
+          .bottom <= reportModal.getBoundingClientRect().bottom,
+      "report actions stay visible outside the scrolling form",
     );
     document
       .querySelector<HTMLButtonElement>(
@@ -387,9 +408,79 @@ export async function runNativeSmoke() {
         ?.textContent?.includes("Only available in the project"),
       "installation explains project destination before planning",
     );
+    const fixtureProject = (await API.ListProjects())![0];
+    const destination = document.querySelector<HTMLInputElement>(
+      'dialog[open] input[aria-label="Project folder"]',
+    )!;
+    const setInput = Object.getOwnPropertyDescriptor(
+      HTMLInputElement.prototype,
+      "value",
+    )!.set!;
+    setInput.call(destination, `${fixtureProject}/existing-files`);
+    destination.dispatchEvent(new Event("input", { bubbles: true }));
+    await waitForUI(
+      () =>
+        !document.querySelector<HTMLButtonElement>(
+          "dialog[open] button.primary",
+        )!.disabled,
+    );
+    document
+      .querySelector<HTMLFormElement>("dialog[open] form")!
+      .requestSubmit();
+    await waitForUI(
+      () => !!document.querySelector("dialog[open] .install-conflict"),
+    );
+    check(
+      document
+        .querySelector("dialog[open] .install-conflict")!
+        .textContent!.includes("existing-files") &&
+        document
+          .querySelector("dialog[open] .install-conflict")!
+          .textContent!.includes("Choose another project or tool") &&
+        destination.value.endsWith("/existing-files") &&
+        !document.querySelector("main > .notice.error"),
+      "installation conflict stays in the dialog with an actionable destination choice",
+    );
+    setInput.call(destination, fixtureProject);
+    destination.dispatchEvent(new Event("input", { bubbles: true }));
+    await new Promise(requestAnimationFrame);
+    document
+      .querySelector<HTMLFormElement>("dialog[open] form")!
+      .requestSubmit();
+    await waitForUI(() => !!document.querySelector("dialog[open] .plan-list"));
+    check(
+      !document.querySelector("dialog[open] .notice.error") &&
+        document.querySelectorAll("dialog[open]").length === 1,
+      "changing the destination recovers installation without a stale error or stacked dialogs",
+    );
     document
       .querySelector<HTMLButtonElement>("dialog[open] .modal-head > button")!
       .click();
+    await waitForUI(() => !document.querySelector("dialog[open]"));
+    document
+      .querySelector<HTMLButtonElement>(
+        ".detail-action-bar .action-menu-trigger",
+      )!
+      .click();
+    await waitForUI(
+      () => !!document.querySelector(".action-menu-panel:not([hidden])"),
+    );
+    Array.from(
+      document.querySelectorAll<HTMLButtonElement>(
+        ".action-menu-panel:not([hidden]) button",
+      ),
+    )
+      .find((button) => button.textContent === "Report")!
+      .click();
+    await waitForUI(() => !!document.querySelector("dialog[open] textarea"));
+    check(
+      !document.querySelector("dialog[open] .notice.error"),
+      "report dialog never inherits an installation error",
+    );
+    document
+      .querySelector<HTMLButtonElement>("dialog[open] .modal-head > button")!
+      .click();
+    await waitForUI(() => !document.querySelector("dialog[open]"));
     document
       .querySelector<HTMLButtonElement>(
         ".skill-detail > .section-heading button",
@@ -1239,8 +1330,9 @@ export async function runNativeSmoke() {
         "发布就绪检查",
     );
     check(
-      document.querySelector(".installation-content .skill-coordinate")
-        ?.textContent === "platform/release-check",
+      document
+        .querySelector(".installation-content .skill-coordinate")
+        ?.textContent?.includes("platform/release-check"),
       "local language switch preserves stable coordinate",
     );
     setLanguage("en");
@@ -2048,6 +2140,7 @@ export async function runNativeSmoke() {
     );
     setLanguage("en");
     await runDeliverySmoke(check, waitForUI);
+    await runLocalLibrarySmoke(check, waitForUI);
     await API.ClearCache();
     for (const [alias, origin] of [
       ["signed-out", "company"],

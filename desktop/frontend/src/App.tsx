@@ -1,4 +1,5 @@
 import { DesktopLifecycle } from "./DesktopLifecycle";
+import { useActionFeedback } from "./actionFeedback";
 import { sessionExpiredEvent } from "./sessionEvents";
 import {
   loadWorkspaceAccess,
@@ -30,6 +31,7 @@ import type {
 import { API, Modal, PreviewBody, UIContext, toolLabel, type UI } from "./ui";
 import { Sources } from "./Sources";
 import { Discover } from "./Discover";
+import { LocalPlanDetails } from "./LocalLibrary";
 import { Installed, Projects } from "./Local";
 import { Configuration } from "./Configuration";
 import { Management } from "./Management";
@@ -124,6 +126,18 @@ const pages = [
 ];
 function explain(error: unknown) {
   const text = error instanceof Error ? error.message : String(error);
+  const unmanaged = "target already exists and is not managed";
+  if (text.includes(unmanaged)) {
+    const target = text
+      .slice(text.indexOf(unmanaged) + unmanaged.length)
+      .replace(/^:\s*/, "");
+    return (
+      t(
+        "This folder already contains files that SkillHub does not manage. Choose another tool or project, or move the existing folder and try again. No files were changed.",
+        "目标文件夹已有内容，尚未由 SkillHub 管理。请选择其他工具或项目，或移动现有文件夹后重试。本次没有修改任何文件。",
+      ) + (target ? `\n${target}` : "")
+    );
+  }
   if (
     /unexpected EOF|unavailable:|deadline.exceeded|connection reset|fetch failed/i.test(
       text,
@@ -179,9 +193,9 @@ export default function App() {
     ),
     [sources, setSources] = useState<Source[]>([]),
     [revision, setRevision] = useState(0),
-    [pending, setPending] = useState(0),
-    [error, setError] = useState(""),
     [message, setMessage] = useState("");
+  const { pending, error, errorScope, setError, run, registerModal } =
+    useActionFeedback(explain);
   const page = route.split("?")[0];
   const routeSource = new URLSearchParams(route.split("?")[1] ?? "").get(
     "source",
@@ -308,21 +322,6 @@ export default function App() {
     action: () => Promise<unknown>;
     tone: "primary" | "danger";
   } | null>(null);
-  const run = useCallback(
-    async <T,>(task: () => Promise<T>): Promise<T | undefined> => {
-      setPending((n) => n + 1);
-      setError("");
-      try {
-        return await task();
-      } catch (e) {
-        setError(explain(e));
-        return undefined;
-      } finally {
-        setPending((n) => n - 1);
-      }
-    },
-    [],
-  );
   const changed = useCallback((text: string) => {
     setMessage(text);
     setRevision((n) => n + 1);
@@ -356,6 +355,8 @@ export default function App() {
   const ui: UI = {
     busy: pending > 0,
     error,
+    errorScope,
+    registerModal,
     revision,
     sources,
     activeSource,
@@ -389,13 +390,16 @@ export default function App() {
         });
       else change();
     },
-    plan: (task) => {
-      void run(async () => {
-        const value = await task();
-        setOutcome(null);
-        setConsumed(false);
-        setPlan(value);
-      });
+    plan: async (task) => {
+      return (
+        (await run(async () => {
+          const value = await task();
+          setOutcome(null);
+          setConsumed(false);
+          setPlan(value);
+          return true;
+        })) === true
+      );
     },
     preview: (task) => {
       void run(async () => setPreview(await task()));
@@ -450,7 +454,7 @@ export default function App() {
               {t(appearanceError, "窗口外观更新失败。")}
             </p>
           )}
-          {error && (
+          {error && !errorScope && (
             <div role="alert" className="notice error">
               {t(error)}
               <button
@@ -561,7 +565,9 @@ export default function App() {
           title={
             outcome?.every((r) => r.applied)
               ? t("Changes complete", "更改已完成")
-              : t("Review installation")
+              : plan.local
+                ? t("Review changes", "预览更改")
+                : t("Review installation")
           }
           onClose={closePlan}
           wide
@@ -581,6 +587,7 @@ export default function App() {
             </p>
           )}
           <div className="plan-list">
+            {plan.local && <LocalPlanDetails plan={plan.local} />}
             {(plan.retained ?? []).length > 0 && (
               <p>
                 {t("Kept installed", "保留安装")}: {plan.retained?.join(", ")}
@@ -643,7 +650,9 @@ export default function App() {
             {!consumed && (
               <button
                 className="primary"
-                disabled={ui.busy || (plan.changes ?? []).length === 0}
+                disabled={
+                  ui.busy || (!plan.local && (plan.changes ?? []).length === 0)
+                }
                 onClick={() =>
                   void run(async () => {
                     setConsumed(true);
@@ -657,7 +666,9 @@ export default function App() {
                     setOutcome(results);
                     changed(
                       results.every((r) => r.applied)
-                        ? t("Installation complete.")
+                        ? plan.local
+                          ? t("Changes complete", "更改已完成")
+                          : t("Installation complete.")
                         : t(
                             "Some targets could not be updated. Check their results before retrying.",
                           ),
@@ -665,7 +676,8 @@ export default function App() {
                   })
                 }
               >
-                {(plan.changes ?? []).every(
+                {!plan.local &&
+                (plan.changes ?? []).every(
                   (change) => change.action === "install",
                 )
                   ? t("Install now", "确认安装")

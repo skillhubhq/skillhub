@@ -246,7 +246,7 @@ export function Sources() {
                   {source.url}
                 </p>
                 {source.label && (
-                  <small>
+                  <small className="connection-hub-name">
                     {t("Hub name", "站点名称")}: {source.display_name}
                   </small>
                 )}
@@ -260,7 +260,6 @@ export function Sources() {
                     ? t("Private community", "私有社区")
                     : t("Public community", "公开社区")}
                 </span>
-                <small>{t("Signed-in account", "登录账号")}</small>
                 <p>
                   {identities[source.alias]
                     ? identities[source.alias].username

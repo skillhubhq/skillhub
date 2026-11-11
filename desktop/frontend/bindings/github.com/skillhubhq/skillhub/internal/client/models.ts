@@ -132,6 +132,81 @@ export interface Installation {
     "target": string;
 }
 
+export interface LocalBackup {
+    "suite": boolean;
+    "id": string;
+    "target": string;
+    "created_at": string;
+    "action": string;
+    "fingerprint": string;
+    "directory": string;
+    "link": string;
+    "installation"?: Installation | null;
+    "preference": localPreference;
+}
+
+export interface LocalDifference {
+    "path": string;
+    "change": string;
+    "before": string;
+    "after": string;
+    "text": boolean;
+}
+
+export interface LocalDocument {
+    "target": string;
+    "fingerprint": string;
+    "files": PreviewFile[] | null;
+    "file": PreviewContent;
+}
+
+export interface LocalInventory {
+    "skills": LocalSkill[] | null;
+    "roots": string[] | null;
+    "warnings": string[] | null;
+}
+
+/**
+ * 本地清单独立于安装记录：发现文件不授予覆盖权限，也不推断 Hub 身份。
+ */
+export interface LocalLocation {
+    "path": string;
+    "tool": string;
+    "scope": string;
+    "project": string;
+    "linked": boolean;
+}
+
+export interface LocalPlan {
+    "action": string;
+    "target": string;
+    "expected": string;
+    "result": string;
+    "locations": LocalLocation[] | null;
+    "differences": LocalDifference[] | null;
+    "before"?: Installation | null;
+    "after"?: Installation | null;
+    "association"?: Installation | null;
+    "before_preference": localPreference;
+    "link": string;
+    "backup_id": string;
+}
+
+export interface LocalSkill {
+    "id": string;
+    "target": string;
+    "name": string;
+    "description": string;
+    "locations": LocalLocation[] | null;
+    "installation"?: Installation | null;
+    "association"?: Installation | null;
+    "manager": string;
+    "state": string;
+    "problem": string;
+    "hidden": boolean;
+    "fingerprint": string;
+}
+
 export interface LockedSkill {
     "source": string;
     "namespace": string;
@@ -385,4 +460,9 @@ export interface UpdateCheck {
     "available_digest"?: string;
     "error"?: string;
     "connection_required"?: boolean;
+}
+
+export interface localPreference {
+    "hidden": boolean;
+    "association"?: Installation | null;
 }

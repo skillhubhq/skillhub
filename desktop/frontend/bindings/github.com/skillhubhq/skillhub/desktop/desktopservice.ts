@@ -208,6 +208,10 @@ export function CreateDraft(directory: string, target: client$0.PreviewTarget): 
     return $Call.ByID(2934989396, directory, target);
 }
 
+export function DeleteLocalBackup(id: string): $CancellablePromise<void> {
+    return $Call.ByID(1135134851, id);
+}
+
 export function DeleteSubmission(source: string, id: string, coordinate: string, requestID: string): $CancellablePromise<void> {
     return $Call.ByID(772976710, source, id, coordinate, requestID);
 }
@@ -256,6 +260,10 @@ export function InspectDirectory(directory: string): $CancellablePromise<$models
     return $Call.ByID(810732014, directory);
 }
 
+export function InspectInstallDestination(tool: string, scope: string, project: string, name: string): $CancellablePromise<string> {
+    return $Call.ByID(3992695154, tool, scope, project, name);
+}
+
 export function ListDrafts(): $CancellablePromise<client$0.DraftSummary[] | null> {
     return $Call.ByID(128189985);
 }
@@ -274,6 +282,14 @@ export function ListSources(): $CancellablePromise<client$0.Source[] | null> {
 
 export function LoadPublicationDraft(source: string, account: string): $CancellablePromise<string> {
     return $Call.ByID(2563309976, source, account);
+}
+
+export function LocalBackups(): $CancellablePromise<client$0.LocalBackup[] | null> {
+    return $Call.ByID(2767581039);
+}
+
+export function LocalInventory(): $CancellablePromise<client$0.LocalInventory> {
+    return $Call.ByID(132025804);
 }
 
 export function LockProject(path: string): $CancellablePromise<client$0.ProjectState> {
@@ -340,6 +356,18 @@ export function PlanInstall(coordinate: string, tool: string, scope: string, pro
     return $Call.ByID(2734487297, coordinate, tool, scope, project);
 }
 
+export function PlanLocalAction(target: string, action: string, destination: string): $CancellablePromise<$models.ChangePlan> {
+    return $Call.ByID(617560619, target, action, destination);
+}
+
+export function PlanLocalEdit(target: string, path: string, fingerprint: string, content: string): $CancellablePromise<$models.ChangePlan> {
+    return $Call.ByID(2444225165, target, path, fingerprint, content);
+}
+
+export function PlanLocalSource(target: string, coordinate: string, replace: boolean): $CancellablePromise<$models.ChangePlan> {
+    return $Call.ByID(2473192052, target, coordinate, replace);
+}
+
 export function PlanRemove(target: string): $CancellablePromise<$models.ChangePlan> {
     return $Call.ByID(1053909590, target);
 }
@@ -399,6 +427,10 @@ export function ReadDraftFile(id: string, path: string): $CancellablePromise<cli
     return $Call.ByID(683278778, id, path);
 }
 
+export function ReadLocalSkill(target: string, path: string): $CancellablePromise<client$0.LocalDocument> {
+    return $Call.ByID(3060513749, target, path);
+}
+
 export function ReadPreviewFile(target: client$0.PreviewTarget, path: string): $CancellablePromise<client$0.PreviewContent> {
     return $Call.ByID(1876381001, target, path);
 }
@@ -425,6 +457,10 @@ export function RenewSkillConfiguration(target: string, digest: string): $Cancel
 
 export function RetractEvaluation(source: string, id: string, key: string): $CancellablePromise<void> {
     return $Call.ByID(3844365116, source, id, key);
+}
+
+export function RevealLocalSkill(target: string): $CancellablePromise<void> {
+    return $Call.ByID(3168565320, target);
 }
 
 export function Review(source: string, id: string, reason: string, requestID: string, approve: boolean): $CancellablePromise<client$0.ReleaseInfo> {
@@ -465,6 +501,14 @@ export function SetDesktopPreferences(v: $models.DesktopPreferences): $Cancellab
 
 export function SetFeaturedSkill(source: string, $namespace: string, name: string, featured: boolean, key: string): $CancellablePromise<void> {
     return $Call.ByID(837992514, source, $namespace, name, featured, key);
+}
+
+export function SetLocalHidden(target: string, hidden: boolean): $CancellablePromise<void> {
+    return $Call.ByID(1948450778, target, hidden);
+}
+
+export function SetLocalRoot(path: string, add: boolean): $CancellablePromise<void> {
+    return $Call.ByID(2011158310, path, add);
 }
 
 export function SetPlatformRole(source: string, id: string, role: registryv1$0.PlatformRole, granted: boolean, key: string): $CancellablePromise<void> {

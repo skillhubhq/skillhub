@@ -158,12 +158,18 @@ func (s *Store) checkedInstallation(ctx context.Context, target string) (*Instal
 	if err != nil {
 		return nil, err
 	}
+	// 未受管理的目录、文件和符号链接都保留原样，无需读取其中内容。
+	if record == nil {
+		if _, err := os.Lstat(target); errors.Is(err, os.ErrNotExist) {
+			return nil, nil
+		} else if err != nil {
+			return nil, fmt.Errorf("inspect target %s: %w", target, err)
+		}
+		return nil, fmt.Errorf("%w: %s", ErrUnmanaged, target)
+	}
 	fingerprint, exists, err := fingerprintAt(target)
 	if err != nil {
 		return nil, fmt.Errorf("inspect target: %w", err)
-	}
-	if exists && record == nil {
-		return nil, ErrUnmanaged
 	}
 	if record != nil && (!exists || record.Fingerprint != fingerprint) {
 		return nil, ErrModified
@@ -392,6 +398,25 @@ func (s *Store) apply(ctx context.Context, plan InstallPlan, archive []byte, hoo
 				return err
 			}
 		}
+		isSuite := false
+		suites, err := s.Suites(ctx)
+		if err != nil {
+			return err
+		}
+		for _, suite := range suites {
+			if suite.Target == target {
+				isSuite = true
+			}
+			for _, member := range suite.Members {
+				if member.Target == target {
+					isSuite = true
+				}
+			}
+		}
+		preference, err := s.localPreference(ctx, target)
+		if err != nil {
+			return err
+		}
 		tx, err := s.db.BeginTx(ctx, nil)
 		if err != nil {
 			return err
@@ -405,6 +430,14 @@ func (s *Store) apply(ctx context.Context, plan InstallPlan, archive []byte, hoo
 		}
 		if err != nil {
 			return err
+		}
+		if plan.Before != nil {
+			backup := LocalBackup{Suite: isSuite, ID: uuid.NewString(), Target: target, CreatedAt: time.Now().UTC().Format(time.RFC3339), Action: plan.Action, Fingerprint: plan.Before.Fingerprint, Directory: dir, Installation: plan.Before}
+			backup.Preference = preference
+			rawBackup, _ := json.Marshal(backup)
+			if _, err = tx.ExecContext(ctx, "INSERT INTO local_backups(id,record) VALUES(?,?)", backup.ID, string(rawBackup)); err != nil {
+				return err
+			}
 		}
 		journal.Committed = true
 		raw, _ := json.Marshal(journal)
@@ -433,6 +466,9 @@ func (s *Store) saveJournal(ctx context.Context, journal installJournal) error {
 }
 
 func (s *Store) recoverTarget(ctx context.Context, target string) error {
+	if err := s.recoverLocal(ctx, target); err != nil {
+		return err
+	}
 	var raw string
 	err := s.db.QueryRowContext(ctx, "SELECT record FROM install_journals WHERE target=?", target).Scan(&raw)
 	if errors.Is(err, sql.ErrNoRows) {
@@ -514,14 +550,19 @@ func (s *Store) recoverTarget(ctx context.Context, target string) error {
 			return err
 		}
 	}
-	if err = os.RemoveAll(j.Directory); err != nil {
-		return err
+	if !j.Committed || j.Plan.Before == nil {
+		if err = os.RemoveAll(j.Directory); err != nil {
+			return err
+		}
 	}
 	_, err = s.db.ExecContext(ctx, "DELETE FROM install_journals WHERE target=?", target)
 	return err
 }
 
 func (s *Store) Recover(ctx context.Context) error {
+	if err := s.recoverLocalChanges(ctx); err != nil {
+		return err
+	}
 	rows, err := s.db.QueryContext(ctx, "SELECT target FROM install_journals ORDER BY target")
 	if err != nil {
 		return err

@@ -142,7 +142,7 @@
 .context-navigation {
   position: relative;
   z-index: 1;
-  min-height: 52px;
+  min-height: 46px;
   border-top: 1px solid var(--line);
   gap: 16px;
 }
@@ -168,7 +168,7 @@
 .context-actions {
   margin-left: auto;
   display: flex;
-  gap: 18px;
+  gap: 12px;
   align-items: center;
   min-width: 0;
 }
@@ -202,10 +202,10 @@
   width: 100%;
   max-width: 1280px;
   margin: 0 auto;
-  padding: 30px 32px 32px;
+  padding: 24px 32px 32px;
 }
 .community-shell .page-header {
-  margin-bottom: 24px;
+  margin-bottom: 20px;
   min-height: 0;
 }
 .community-shell .page-discover .page-header {

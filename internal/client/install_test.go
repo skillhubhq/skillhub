@@ -7,6 +7,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"testing"
 
@@ -272,8 +273,19 @@ func TestUnmanagedAndStalePlan(t *testing.T) {
 	s := testStore(t)
 	data, digest := testArchive(t, "first")
 	target := t.TempDir()
-	if _, err := s.PlanInstall(ctx, record(target, digest), data); !errors.Is(err, ErrUnmanaged) {
+	marker := filepath.Join(target, "notes.txt")
+	if err := os.WriteFile(marker, []byte("keep my files"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	canonical, err := canonicalTarget(target)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := s.PlanInstall(ctx, record(target, digest), data); !errors.Is(err, ErrUnmanaged) || !strings.Contains(err.Error(), canonical) {
 		t.Fatalf("unmanaged: %v", err)
+	}
+	if content, err := os.ReadFile(marker); err != nil || string(content) != "keep my files" {
+		t.Fatal("unmanaged files changed", err)
 	}
 	target = filepath.Join(target, "managed")
 	a, err := s.PlanInstall(ctx, record(target, digest), data)

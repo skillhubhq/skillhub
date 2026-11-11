@@ -1,3 +1,6 @@
+import { ActionMenu } from "./ActionMenu";
+import { ReportButton } from "./Moderation";
+import { LocalReader } from "./LocalLibrary";
 import { VersionComparison } from "./VersionComparison";
 import { SubscribeButton } from "./Subscriptions";
 import { SkillMetadata } from "./SkillMetadata";
@@ -57,6 +60,13 @@ export function Discover() {
     [tool, setTool] = useState("codex"),
     [scope, setScope] = useState("project"),
     [project, setProject] = useState("");
+  const [existingTarget, setExistingTarget] = useState("");
+  const [existingValid, setExistingValid] = useState(false);
+  const [readExisting, setReadExisting] = useState(false);
+  useEffect(() => {
+    setExistingTarget("");
+    setExistingValid(false);
+  }, [tool, scope, project, install]);
   const [detailTab, setDetailTab] = useState("readme");
   const [detailError, setDetailError] = useState("");
   const [detailAttempt, setDetailAttempt] = useState(0);
@@ -645,21 +655,6 @@ export function Discover() {
             }
           />
           <div className="detail-action-bar">
-            {!isWeb && (
-              <ProjectLink
-                className="source-web-link"
-                href={skillWebURL(
-                  ui.sources.find(
-                    (s) => s.alias === selected.coordinate.split("/")[0],
-                  )?.url ?? "",
-                  selected.skill.namespace,
-                  selected.skill.name,
-                  version,
-                )}
-              >
-                {t("View on source Hub", "在来源网站查看")} ↗
-              </ProjectLink>
-            )}
             <button
               className="primary install-primary"
               disabled={!preview || ui.busy}
@@ -686,29 +681,52 @@ export function Discover() {
                 }}
               />
             )}
-            {preview && (
-              <VersionComparison
-                coordinate={selected.coordinate}
-                release={preview.release}
-              />
-            )}
             {detailSummary.value?.can_interact && (
               <SubscribeButton coordinate={selected.coordinate} />
             )}
-            <SkillMetadata
-              source={selected.coordinate.split("/")[0]}
-              skill={selected.skill}
-              saved={() => {
-                void ui.run(async () => {
-                  const skill = await API.GetSkill(
-                    selected.coordinate.split("/")[0],
+            <ActionMenu label={t("More actions", "更多操作")}>
+              {preview && (
+                <VersionComparison
+                  coordinate={selected.coordinate}
+                  release={preview.release}
+                />
+              )}
+              <SkillMetadata
+                source={selected.coordinate.split("/")[0]}
+                skill={selected.skill}
+                saved={() => {
+                  void ui.run(async () => {
+                    const skill = await API.GetSkill(
+                      selected.coordinate.split("/")[0],
+                      selected.skill.namespace,
+                      selected.skill.name,
+                    );
+                    setSelected({ ...selected, skill });
+                  });
+                }}
+              />
+              {preview && detailSummary.value?.can_interact && (
+                <ReportButton
+                  source={selected.coordinate.split("/")[0]}
+                  release={preview.release.id}
+                />
+              )}
+              {!isWeb && (
+                <ProjectLink
+                  className="source-web-link"
+                  href={skillWebURL(
+                    ui.sources.find(
+                      (s) => s.alias === selected.coordinate.split("/")[0],
+                    )?.url ?? "",
                     selected.skill.namespace,
                     selected.skill.name,
-                  );
-                  setSelected({ ...selected, skill });
-                });
-              }}
-            />
+                    version,
+                  )}
+                >
+                  {t("View on source Hub", "在来源网站查看")} ↗
+                </ProjectLink>
+              )}
+            </ActionMenu>
             {detailSummary.error && (
               <button onClick={detailSummary.reload}>
                 {t("Retry community actions", "重新加载社区操作")}
@@ -937,7 +955,17 @@ export function Discover() {
           </div>
         </section>
       ) : null}
-      {install && selected && (
+      {readExisting && existingTarget && (
+        <LocalReader
+          item={{
+            target: existingTarget,
+            name: selected?.skill.name || "",
+            manager: "external",
+          }}
+          close={() => setReadExisting(false)}
+        />
+      )}
+      {install && !readExisting && selected && (
         <Modal
           stable
           title={`${t("Install skill")} · ${skillTitle(preview?.release || selected.skill)}`}
@@ -959,10 +987,34 @@ export function Discover() {
           ) : (
             <form
               className="form-grid"
-              onSubmit={(e) => {
+              onSubmit={async (e) => {
                 e.preventDefault();
-                setInstall(false);
-                ui.plan(() =>
+                let occupied = false;
+                const inspected = await ui.run(async () => {
+                  const target = await API.InspectInstallDestination(
+                    tool,
+                    scope,
+                    scope === "project" ? project : "",
+                    selected.skill.name,
+                  );
+                  if (
+                    target &&
+                    (!preview?.suite ||
+                      !(inventory.value ?? []).some((i) => i.target === target))
+                  ) {
+                    occupied = true;
+                    setExistingTarget(target);
+                    try {
+                      await API.ReadLocalSkill(target, "SKILL.md");
+                      setExistingValid(true);
+                    } catch {
+                      setExistingValid(false);
+                    }
+                  }
+                  return true;
+                });
+                if (occupied || !inspected) return;
+                const ready = await ui.plan(() =>
                   API.PlanInstall(
                     `${selected.coordinate}@${version}`,
                     tool,
@@ -970,6 +1022,7 @@ export function Discover() {
                     scope === "project" ? project : "",
                   ),
                 );
+                if (ready) setInstall(false);
               }}
             >
               <Field label={t("Tool")}>
@@ -1011,6 +1064,71 @@ export function Discover() {
                   "Review the destination and file changes before installing.",
                 )}
               </p>
+              {existingTarget && (
+                <section className="notice full install-conflict" role="status">
+                  <strong>
+                    {t("This folder already exists", "此目录已有内容")}
+                  </strong>
+                  <p className="path">{existingTarget}</p>
+                  <p>
+                    {existingValid
+                      ? t(
+                          "Review the existing skill before choosing its update source.",
+                          "先查看已有技能，再选择其更新来源。",
+                        )
+                      : t(
+                          "This folder is not a readable skill. Choose another project or tool.",
+                          "此目录不是可读取的技能，请选择其他项目或工具。",
+                        )}
+                  </p>
+                  {existingValid && (
+                    <div className="actions">
+                      <button
+                        type="button"
+                        onClick={() => setReadExisting(true)}
+                      >
+                        {t("View local files", "查看本地文件")}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={ui.busy}
+                        onClick={async () => {
+                          if (
+                            await ui.plan(() =>
+                              API.PlanLocalSource(
+                                existingTarget,
+                                `${selected.coordinate}@${version}`,
+                                false,
+                              ),
+                            )
+                          )
+                            setInstall(false);
+                        }}
+                      >
+                        {t("Keep and associate", "保留并关联")}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={ui.busy}
+                        onClick={async () => {
+                          if (
+                            await ui.plan(() =>
+                              API.PlanLocalSource(
+                                existingTarget,
+                                `${selected.coordinate}@${version}`,
+                                true,
+                              ),
+                            )
+                          )
+                            setInstall(false);
+                        }}
+                      >
+                        {t("Compare replacement", "比较替换内容")}
+                      </button>
+                    </div>
+                  )}
+                </section>
+              )}
               <div className="actions full">
                 <button
                   className="primary"

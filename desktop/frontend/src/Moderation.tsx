@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 import { API, Field, Modal, Empty, useUI } from "./ui";
 import { ResourceState, useResource, useMutationKey } from "./community-ui";
 import { dateLabel, t } from "./i18n";
@@ -43,6 +43,7 @@ function ReportDialog({
     key = useMutationKey();
   const [reason, setReason] = useState(""),
     [sent, setSent] = useState(false);
+  const formID = useId();
   const access = useResource(
     () => API.CommunityParticipation(source),
     [source],
@@ -52,6 +53,23 @@ function ReportDialog({
       stable="compact"
       title={t("Report content", "举报内容")}
       onClose={close}
+      footer={
+        !sent && access.value?.supported ? (
+          <div className="actions">
+            <button type="button" onClick={close}>
+              {t("Cancel", "取消")}
+            </button>
+            <button
+              type="submit"
+              form={formID}
+              className="primary"
+              disabled={ui.busy || !reason.trim()}
+            >
+              {t("Send report", "提交举报")}
+            </button>
+          </div>
+        ) : undefined
+      }
     >
       {sent ? (
         <Empty title={t("Report received", "举报已提交")}>
@@ -64,6 +82,7 @@ function ReportDialog({
         <ResourceState {...access} retry={access.reload}>
           {access.value?.supported ? (
             <form
+              id={formID}
               onSubmit={(e) => {
                 e.preventDefault();
                 void ui.run(async () => {
@@ -80,8 +99,8 @@ function ReportDialog({
             >
               <p>
                 {t(
-                  "Describe the issue for the Hub administrators. Do not include passwords or other secrets.",
-                  "向 Hub 管理员说明问题，请勿填写密码或其他密钥。",
+                  "What should the Hub administrators review?",
+                  "请说明需要 Hub 管理员处理的问题。",
                 )}
               </p>
               <Field label={t("Reason", "原因")}>
@@ -94,17 +113,6 @@ function ReportDialog({
                   onChange={(e) => setReason(e.target.value)}
                 />
               </Field>
-              <div className="actions">
-                <button type="button" onClick={close}>
-                  {t("Cancel", "取消")}
-                </button>
-                <button
-                  className="primary"
-                  disabled={ui.busy || !reason.trim()}
-                >
-                  {t("Send report", "提交举报")}
-                </button>
-              </div>
             </form>
           ) : (
             access.value && (
