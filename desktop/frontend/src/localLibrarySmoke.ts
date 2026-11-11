@@ -69,6 +69,12 @@ export async function runLocalLibrarySmoke(
         .querySelector("dialog[open] .modal-head")
         ?.textContent?.includes("Changes complete") ?? false,
   );
+  await wait(() => {
+    const close = document.querySelector<HTMLButtonElement>(
+      "dialog[open] .modal-head > button",
+    );
+    return !!close && !close.disabled;
+  });
   document
     .querySelector<HTMLButtonElement>("dialog[open] .modal-head > button")!
     .click();
@@ -126,6 +132,12 @@ export async function runLocalLibrarySmoke(
         .querySelector("dialog[open] .modal-head")
         ?.textContent?.includes("Changes complete") ?? false,
   );
+  await wait(() => {
+    const close = document.querySelector<HTMLButtonElement>(
+      "dialog[open] .modal-head > button",
+    );
+    return !!close && !close.disabled;
+  });
   document
     .querySelector<HTMLButtonElement>("dialog[open] .modal-head > button")!
     .click();
