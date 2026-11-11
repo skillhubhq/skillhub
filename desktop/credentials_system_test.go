@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"os"
 	"os/exec"
@@ -93,10 +94,18 @@ func TestDesktopUsesSystemCredentialStore(t *testing.T) {
 		}
 	}
 	ref := sources["system-company"].CredentialRef
-	token, err := credentials.Get(ref)
+	stored, err := credentials.Get(ref)
 	if err != nil {
 		t.Fatal(err)
 	}
+	var saved struct {
+		Access  string `json:"access"`
+		Refresh string `json:"refresh"`
+	}
+	if !strings.HasPrefix(stored, "skillhub-session-v1:") || json.Unmarshal([]byte(strings.TrimPrefix(stored, "skillhub-session-v1:")), &saved) != nil || len(saved.Refresh) != 43 {
+		t.Fatal("system credential does not contain a renewable session")
+	}
+	token := saved.Access
 	if _, err = companyStore.Authenticate(context.Background(), token); err != nil {
 		t.Fatal("saved system credential was not a valid Hub session")
 	}
@@ -106,6 +115,9 @@ func TestDesktopUsesSystemCredentialStore(t *testing.T) {
 	}
 	if _, err = companyStore.Authenticate(context.Background(), token); !errors.Is(err, hub.ErrUnauthenticated) {
 		t.Fatal("CLI logout did not revoke the remote session")
+	}
+	if _, err = companyStore.RefreshSession(context.Background(), saved.Refresh, "56f5e2f2-18a9-4d30-a13a-7f8c51a04de3"); !errors.Is(err, hub.ErrUnauthenticated) {
+		t.Fatal("CLI logout did not revoke the refresh credential")
 	}
 	if _, err = service.Identity("system-company"); connect.CodeOf(err) != connect.CodeUnauthenticated {
 		t.Fatal("App retained the logged-out CLI identity")
