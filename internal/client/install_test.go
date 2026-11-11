@@ -277,7 +277,11 @@ func TestUnmanagedAndStalePlan(t *testing.T) {
 	if err := os.WriteFile(marker, []byte("keep my files"), 0600); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := s.PlanInstall(ctx, record(target, digest), data); !errors.Is(err, ErrUnmanaged) || !strings.Contains(err.Error(), target) {
+	canonical, err := canonicalTarget(target)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := s.PlanInstall(ctx, record(target, digest), data); !errors.Is(err, ErrUnmanaged) || !strings.Contains(err.Error(), canonical) {
 		t.Fatalf("unmanaged: %v", err)
 	}
 	if content, err := os.ReadFile(marker); err != nil || string(content) != "keep my files" {
