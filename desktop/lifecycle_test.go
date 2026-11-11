@@ -66,3 +66,18 @@ func TestTrayTemplateHasVisibleMarkAndTransparency(t *testing.T) {
 		t.Fatal("tray mark is blank or a solid square", opaque, transparent)
 	}
 }
+
+func TestDesktopPreferencesRejectEscapingSymlink(t *testing.T) {
+	root := t.TempDir()
+	t.Setenv("SKILLHUB_HOME", root)
+	outside := filepath.Join(t.TempDir(), "settings.json")
+	if err := os.WriteFile(outside, []byte(`{"keep_running":false}`), 0600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink(outside, filepath.Join(root, "desktop-preferences.json")); err != nil {
+		t.Skip("symlinks unavailable", err)
+	}
+	if _, err := readDesktopPreferences(); err == nil {
+		t.Fatal("read preferences outside the data directory")
+	}
+}

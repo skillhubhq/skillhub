@@ -6,11 +6,13 @@ import (
 	"image"
 	"image/color"
 	"image/png"
+	"io"
 	"os"
 	"path/filepath"
 	"runtime"
 	"sync"
 
+	"github.com/google/uuid"
 	"github.com/skillhubhq/skillhub/internal/client"
 	"github.com/wailsapp/wails/v3/pkg/application"
 	"github.com/wailsapp/wails/v3/pkg/events"
@@ -42,7 +44,23 @@ func readDesktopPreferences() (DesktopPreferences, error) {
 	if err != nil {
 		return v, err
 	}
-	b, err := os.ReadFile(path)
+	root, err := os.OpenRoot(filepath.Dir(path))
+	if os.IsNotExist(err) {
+		return v, nil
+	}
+	if err != nil {
+		return v, err
+	}
+	defer root.Close()
+	file, err := root.Open(filepath.Base(path))
+	if os.IsNotExist(err) {
+		return v, nil
+	}
+	if err != nil {
+		return v, err
+	}
+	defer file.Close()
+	b, err := io.ReadAll(io.LimitReader(file, 16384))
 	if os.IsNotExist(err) {
 		return v, nil
 	}
@@ -67,16 +85,19 @@ func (s *DesktopService) SetDesktopPreferences(v DesktopPreferences) error {
 	if err != nil {
 		return err
 	}
-	if err = os.MkdirAll(filepath.Dir(path), 0700); err != nil {
-		return err
-	}
-	previous := desktopLifecycle.preferences
-	raw, _ := json.Marshal(v)
-	temp, err := os.CreateTemp(filepath.Dir(path), ".desktop-preferences-")
+	root, err := os.OpenRoot(filepath.Dir(path))
 	if err != nil {
 		return err
 	}
-	defer os.Remove(temp.Name())
+	defer root.Close()
+	previous := desktopLifecycle.preferences
+	raw, _ := json.Marshal(v)
+	name := ".desktop-preferences-" + uuid.NewString()
+	temp, err := root.OpenFile(name, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0600)
+	if err != nil {
+		return err
+	}
+	defer root.Remove(name)
 	if _, err = temp.Write(raw); err == nil {
 		err = temp.Sync()
 	}
@@ -93,7 +114,7 @@ func (s *DesktopService) SetDesktopPreferences(v DesktopPreferences) error {
 		}
 	}
 	if err == nil {
-		err = os.Rename(temp.Name(), path)
+		err = root.Rename(name, filepath.Base(path))
 	}
 	if err != nil {
 		if v.StartAtLogin != previous.StartAtLogin {
