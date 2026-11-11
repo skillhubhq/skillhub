@@ -5,6 +5,7 @@ import (
 	"image/png"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 )
 
@@ -34,7 +35,8 @@ func TestDesktopPreferencesPersistAndDefault(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if info.Mode().Perm()&0077 != 0 {
+	// Windows 使用用户目录 ACL；Unix 权限位断言仅适用于 POSIX 文件系统。
+	if runtime.GOOS != "windows" && info.Mode().Perm()&0077 != 0 {
 		t.Fatal("preferences too permissive")
 	}
 	entries, _ := filepath.Glob(filepath.Join(filepath.Dir(path), ".desktop-preferences-*"))
