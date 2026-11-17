@@ -50,6 +50,10 @@ func TestCheckReleaseSelection(t *testing.T) {
 		status, version, asset     string
 	}{
 		{"stable skips preview", `[ {"tag_name":"v2.0.0-beta.1","prerelease":true}, {"tag_name":"v1.1.0","body":"<script>untrusted</script>","html_url":"https://evil.invalid","assets":[{"name":"skillhub-app-v1.1.0-macos-arm64.zip","state":"uploaded","size":9},{"name":"skillhub-app-v1.1.0-macos-arm64.dmg","state":"uploaded","size":12}]} ]`, "darwin", "arm64", false, "available", "1.1.0", "skillhub-app-v1.1.0-macos-arm64.dmg"},
+		{"Intel prefers matching DMG", `[{"tag_name":"v1.1.0","assets":[{"name":"skillhub-app-v1.1.0-macos-arm64.dmg","state":"uploaded","size":12},{"name":"skillhub-app-v1.1.0-macos-amd64.zip","state":"uploaded","size":12},{"name":"skillhub-app-v1.1.0-macos-amd64.dmg","state":"uploaded","size":12}]}]`, "darwin", "amd64", false, "available", "1.1.0", "skillhub-app-v1.1.0-macos-amd64.dmg"},
+		{"Intel never offers ARM package", `[{"tag_name":"v1.1.0","assets":[{"name":"skillhub-app-v1.1.0-macos-arm64.dmg","state":"uploaded","size":12}]}]`, "darwin", "amd64", false, "no_package", "1.1.0", ""},
+		{"ARM never offers Intel package", `[{"tag_name":"v1.1.0","assets":[{"name":"skillhub-app-v1.1.0-macos-amd64.dmg","state":"uploaded","size":12}]}]`, "darwin", "arm64", false, "no_package", "1.1.0", ""},
+		{"Intel zip fallback", `[{"tag_name":"v1.1.0","assets":[{"name":"skillhub-app-v1.1.0-macos-amd64.zip","state":"uploaded","size":12}]}]`, "darwin", "amd64", false, "available", "1.1.0", "skillhub-app-v1.1.0-macos-amd64.zip"},
 		{"preview opt in", `[{"tag_name":"v2.0.0-beta.1","prerelease":true,"assets":[{"name":"skillhub-app-v2.0.0-beta.1-windows-amd64.zip","state":"uploaded","size":9}]}]`, "windows", "amd64", true, "available", "2.0.0-beta.1", "skillhub-app-v2.0.0-beta.1-windows-amd64.zip"},
 		{"no downgrade", `[{"tag_name":"v0.9.0"}]`, "darwin", "arm64", false, "up_to_date", "0.9.0", ""},
 		{"missing package is not current", `[{"tag_name":"v2.0.0","assets":[{"name":"skillhub-app-v2.0.0-windows-amd64.zip","state":"uploaded","size":9}]}]`, "darwin", "arm64", false, "no_package", "2.0.0", ""},

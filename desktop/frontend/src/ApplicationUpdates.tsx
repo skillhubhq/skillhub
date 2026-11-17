@@ -90,7 +90,7 @@ export function ApplicationUpdates() {
           <h2>{t("App updates", "App 更新")}</h2>
           <p>
             {info
-              ? `SkillHub ${info.version} · ${info.platform === "darwin" ? "macOS" : info.platform === "windows" ? "Windows" : info.platform} ${info.architecture === "arm64" ? "Apple silicon" : "x64"}`
+              ? `SkillHub ${info.version} · ${info.platform === "darwin" ? "macOS" : info.platform === "windows" ? "Windows" : info.platform} ${info.platform === "darwin" ? (info.architecture === "arm64" ? "Apple silicon" : "Intel") : info.architecture}`
               : t("Loading version…", "正在读取版本…")}
           </p>
           {info && (

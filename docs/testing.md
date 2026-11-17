@@ -53,6 +53,8 @@ The native fixture also verifies that an empty review queue uses one compact, fu
 
 For manual checks, build the production App and run `scripts/desktop_fixture.py --app PATH_TO_APP_EXECUTABLE`. Inspect light/dark themes, English/Chinese, narrow windows, keyboard focus, menus, dialogs, native pickers and error/empty states. Verify discovery → exact version → install/update/remove, publication → independent review → feedback, and account/permission management. Native credentials/pickers and clean-device installation require actual platform testing; a browser build is insufficient.
 
+The full race suite has a 20-minute per-package timeout. The 2,000-skill capacity regression runs unchanged on both macOS architectures; Intel hosted runners need more time with SQLite race instrumentation.
+
 ## Database and capacity
 
 `SKILLHUB_TEST_POSTGRES_DSN` must select a disposable PostgreSQL service with permission to create/drop test databases. Use protected environment injection. Install matching-major `pg_dump`/`pg_restore` on PATH.
@@ -127,3 +129,5 @@ The native fixture verifies both desktop content scrolling and Web document scro
 Delivery regression covers authorization on both compared versions, publication notifications after audience changes, token scopes and revocation, suite member ownership, modified files, exact digests and five tool adapters. Run `go test -race ./...`; set `SKILLHUB_TEST_POSTGRES_DSN` to a dedicated disposable PostgreSQL database to run the same HTTP contracts and schema-upgrade checks there. Native smoke also exercises suite publication/install/remove, subscriptions, token revocation and the comparison dialog.
 
 Session renewal regression covers SQLite and PostgreSQL rotation, lost-response recovery, replay revocation, short access overlap, absolute/idle expiry, disabled accounts, password changes, device authorization and schema upgrades. Shared-client tests exercise concurrent App/CLI callers, network failure, credential-store recovery and independent connection logout. For desktop lifecycle checks, close and reopen the installed window through the menu bar/tray, verify Quit ends the process, and verify both Desktop behavior settings persist. Start-at-login registration is user-controlled and should be verified under a disposable OS account.
+
+The macOS CI matrix runs on Apple silicon and Intel (`macos-15-intel`). Each architecture must pass native WebView, system credential-store, installation and App replacement checks before packaging. Release preparation requires both native reports and rejects mismatched binary or DMG architecture metadata.

@@ -103,8 +103,8 @@ Web provides the community, publishing and review experience for one Hub. App an
 
 | Component | Packaged platforms |
 | --- | --- |
-| Desktop app | macOS Apple silicon · Windows x64 |
-| Hub and CLI | Linux x64 · macOS Apple silicon · Windows x64 |
+| Desktop app | macOS Apple silicon / Intel · Windows x64 |
+| Hub and CLI | Linux x64 · macOS Apple silicon / Intel · Windows x64 |
 
 macOS requires 13 or later; Windows App requires WebView2. The macOS DMG is ad-hoc signed, without Developer ID signing or notarization; Windows builds are unsigned. App can check for updates and open the download page; installation is manual. Linux App packages are not provided. [Installation and verification →](docs/distribution.md)
 

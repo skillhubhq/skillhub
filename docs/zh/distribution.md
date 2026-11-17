@@ -8,7 +8,7 @@ GitHub 是源码、Issue 和版本下载的官方入口。各 Hub 只链接软�
 
 Linux Hub/CLI 使用无 CGO 构建，不依赖 CI 运行器的 glibc 版本。
 
-矩阵为 Linux amd64 Hub/CLI、macOS arm64 Hub/CLI/App、Windows amd64 Hub/CLI/App。暂不分发 Linux App 或 Intel macOS 包。macOS 需 13+，Windows App 需 WebView2。桌面安装包未提供正式签名、公证或自动安装。
+矩阵为 Linux amd64 Hub/CLI、macOS arm64 和 amd64 Hub/CLI/App、Windows amd64 Hub/CLI/App。暂不分发 Linux App。macOS 需 13+，Windows App 需 WebView2。桌面安装包未提供正式签名、公证或自动安装。
 
 版本包含 Hub/CLI 的 tar.gz/zip、App ZIP、macOS DMG、`SHA256SUMS`、`PROVENANCE.json`（revision、CI、目标及摘要），归档内含许可证和依赖清单。
 
@@ -17,6 +17,8 @@ Linux 用 `sha256sum --ignore-missing -c SHA256SUMS` 并确认目标文件 OK；
 App 设置手动检查固定 GitHub Releases API，可筛稳定/预览并打开精确版本页。请求不带 Hub 凭据，不替换程序；网络/权限/平台缺包不显示已最新。最多查 100 条，满页视为无法确认完整性。见[更新](client-updates.md)。
 
 ## 手动安装 macOS [#manual-macos-installation]
+
+在「关于本机」查看芯片：Apple M 系列选择 `arm64`，Intel 处理器选择 `amd64`。App 更新检查会自动匹配架构。两种安装包使用相同的应用标识和本地存储。
 
 DMG 包含 App、Applications 快捷方式、许可证与双语说明。退出旧 App，拖入替换，弹出映像再打开。连接、凭据、草稿、偏好和技能位于 bundle 外，应保留。降级遵循兼容/迁移说明。
 

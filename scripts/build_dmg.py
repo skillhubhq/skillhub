@@ -30,6 +30,10 @@ def build(app, output):
         for path in directory.rglob('*'):
             if path.is_file() and not path.is_symlink():
                 check_project_references(path.read_bytes(), path.name)
+    architectures = subprocess.check_output(['lipo', '-archs', str(app / 'Contents/MacOS/SkillHub')], text=True).strip()
+    arch = {'arm64': 'arm64', 'x86_64': 'amd64'}.get(architectures)
+    if arch is None:
+        raise ValueError('Expected one supported macOS architecture')
     output.parent.mkdir(parents=True, exist_ok=True)
     temporary_root = ROOT / '.local/dmg-build'
     temporary_root.mkdir(parents=True, exist_ok=True)
@@ -72,7 +76,7 @@ installing remain manual. A private repository may require GitHub access.
     digest = hashlib.sha256(output.read_bytes()).hexdigest()
     manifest = {'file': output.name, 'sha256': digest, 'version': info.get('SkillHubVersion'),
                 'revision': info.get('SkillHubRevision'), 'build': info.get('SkillHubBuild'),
-                'developer_id_signed': False, 'notarized': False, 'installation': 'manual'}
+                'goarch': arch, 'developer_id_signed': False, 'notarized': False, 'installation': 'manual'}
     output.with_suffix('.dmg.json').write_text(json.dumps(manifest, indent=2) + '\n')
     output.with_suffix('.dmg.sha256').write_text(f'{digest}  {output.name}\n')
     print(json.dumps(manifest, indent=2))

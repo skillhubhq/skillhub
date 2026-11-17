@@ -91,7 +91,7 @@ jobs:
               f"Preview candidate {os.environ['RELEASE_TAG']} from `{os.environ['REVISION']}`.\n\n"
               f"CI: https://github.com/{os.environ['GH_REPO']}/actions/runs/{os.environ['CI_RUN']}\n\n"
               "Review feature notes and target-environment acceptance before publishing this draft.\n\n"
-              "Desktop packages are unsigned previews, without automatic updates. macOS requires 13+ and Apple silicon; Windows requires x64 and WebView2. Linux desktop is not included.\n\n"
+              "Desktop packages are unsigned previews, without automatic updates. macOS requires 13+ on Apple silicon or Intel; Windows requires x64 and WebView2. Linux desktop is not included.\n\n"
               "Verify SHA256SUMS and PROVENANCE.json. Back up existing Hubs before upgrading. Third-party notices are included in each archive.\n")
           PY
           gh release create "$RELEASE_TAG" dist/release/* --target "$REVISION" --draft --prerelease --title "SkillHub $RELEASE_TAG Preview" --notes-file .local/release-notes.md

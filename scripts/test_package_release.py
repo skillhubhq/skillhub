@@ -12,7 +12,7 @@ from package_release import ROOT, package
 class PackageReleaseTests(unittest.TestCase):
     def fixture(self, root):
         revision = "a" * 40
-        for runner, goos, arch in [("ubuntu-latest", "linux", "amd64"), ("macos-latest", "darwin", "arm64"), ("windows-latest", "windows", "amd64")]:
+        for runner, goos, arch in [("ubuntu-latest", "linux", "amd64"), ("macos-latest", "darwin", "arm64"), ("macos-15-intel", "darwin", "amd64"), ("windows-latest", "windows", "amd64")]:
             for kind in (["hub-cli"] if goos == "linux" else ["hub-cli", "desktop"]):
                 path = root / f"{kind}-{runner}"
                 (path / "third-party").mkdir(parents=True)
@@ -26,7 +26,7 @@ class PackageReleaseTests(unittest.TestCase):
                 else:
                     image = path / "SkillHub-macos.dmg"
                     image.write_bytes(b"fixture disk image")
-                    (path / "SkillHub-macos.dmg.json").write_text(json.dumps({"version": json.loads((ROOT / "desktop/frontend/package.json").read_text())["version"], "revision": revision, "build": "source", "sha256": hashlib.sha256(image.read_bytes()).hexdigest()}))
+                    (path / "SkillHub-macos.dmg.json").write_text(json.dumps({"version": json.loads((ROOT / "desktop/frontend/package.json").read_text())["version"], "revision": revision, "build": "source", "goarch": arch, "sha256": hashlib.sha256(image.read_bytes()).hexdigest()}))
                     with zipfile.ZipFile(path / "SkillHub-macos.zip", "w") as z:
                         info = zipfile.ZipInfo("SkillHub.app/Contents/MacOS/SkillHub")
                         info.external_attr = 0o100755 << 16
@@ -44,7 +44,7 @@ class PackageReleaseTests(unittest.TestCase):
             tag, revision = self.fixture(root)
             dest = root / "release"
             result = package(tag, revision, "123", root, dest)
-            self.assertEqual(len(result["artifacts"]), 6)
+            self.assertEqual(len(result["artifacts"]), 9)
             with tarfile.open(dest / f"skillhub-{tag}-linux-amd64.tar.gz") as archive:
                 self.assertEqual(archive.getmember("skillhub").mode & 0o777, 0o755)
                 self.assertIn("third-party/LICENSE.example", archive.getnames())
@@ -52,9 +52,33 @@ class PackageReleaseTests(unittest.TestCase):
             with zipfile.ZipFile(dest / f"skillhub-app-{tag}-macos-arm64.zip") as archive:
                 self.assertEqual(archive.getinfo("SkillHub.app/Contents/MacOS/SkillHub").external_attr >> 16 & 0o777, 0o755)
                 self.assertIn("NOTICE", archive.namelist())
-            self.assertEqual(len((dest / "SHA256SUMS").read_text().splitlines()), 6)
+            self.assertEqual(len((dest / "SHA256SUMS").read_text().splitlines()), 9)
             with self.assertRaises(FileExistsError):
                 package(tag, revision, "123", root, dest)
+
+    def test_intel_artifacts_and_architecture_guards(self):
+        for failure in (None, "binary", "dmg", "native", "missing"):
+            with self.subTest(failure=failure), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                tag, revision = self.fixture(root)
+                source = root / "desktop-macos-15-intel"
+                if failure in ("binary", "dmg"):
+                    path = source / ("build.json" if failure == "binary" else "SkillHub-macos.dmg.json")
+                    meta = json.loads(path.read_text())
+                    meta["goarch"] = "arm64"
+                    path.write_text(json.dumps(meta))
+                elif failure == "native":
+                    (root / "native-runtime-macos-15-intel/native-smoke.json").write_text('{"passed":false}')
+                elif failure == "missing":
+                    (source / "build.json").unlink()
+                if failure:
+                    with self.assertRaises((ValueError, FileNotFoundError)):
+                        package(tag, revision, "123", root, root / "release")
+                    continue
+                result = package(tag, revision, "123", root, root / "release")
+                for name in (f"skillhub-{tag}-macos-amd64.tar.gz", f"skillhub-app-{tag}-macos-amd64.zip", f"skillhub-app-{tag}-macos-amd64.dmg"):
+                    self.assertEqual(result["artifacts"][name]["target"], "darwin/amd64")
+                self.assertIn("macos-15-intel", result["native_checks"])
 
     def test_rejects_nonportable_linux_artifact(self):
         for cgo in ["1", None]:

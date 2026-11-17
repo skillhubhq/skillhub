@@ -46,7 +46,7 @@ func check(ctx context.Context, client *http.Client, address, current, platform,
 	if platform == "darwin" {
 		platform = "macos"
 	}
-	if !(platform == "macos" && arch == "arm64" || platform == "windows" && arch == "amd64") {
+	if !(platform == "macos" && (arch == "arm64" || arch == "amd64") || platform == "windows" && arch == "amd64") {
 		r.Status = "unsupported"
 		return r
 	}
