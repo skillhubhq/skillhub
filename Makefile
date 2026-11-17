@@ -13,14 +13,14 @@ proto-check: proto
 	test -z "$$(git ls-files --others --exclude-standard gen sdk/typescript/gen)"
 
 test:
-	go test -race ./...
+	go test -race -timeout 20m ./...
 
 check: proto-deps
 	buf format --diff --exit-code
 	buf lint
 	buf build
 	go vet ./...
-	go test -race ./...
+	go test -race -timeout 20m ./...
 	npm --prefix sdk/typescript test
 
 docs-web:

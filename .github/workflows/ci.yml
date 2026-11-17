@@ -47,6 +47,7 @@ jobs:
             exit 1
           fi
   go:
+    timeout-minutes: 40
     strategy:
       fail-fast: false
       matrix:
@@ -66,7 +67,7 @@ jobs:
           node-version: 24.21.0
       - run: make web
       - run: go vet ./...
-      - run: go test -race ./...
+      - run: go test -race -timeout 20m ./...
       - run: |
           if [[ "$RUNNER_OS" == "Linux" ]]; then export CGO_ENABLED=0; fi
           go build -trimpath -o "bin/skillhub-server${EXE_SUFFIX}" ./cmd/skillhub-server
@@ -180,7 +181,7 @@ jobs:
       - run: test -z "$(git ls-files --others --exclude-standard frontend/bindings)"
         shell: bash
       - run: go run golang.org/x/vuln/cmd/govulncheck@v1.7.0 ./...
-      - run: go test -race ./...
+      - run: go test -race -timeout 20m ./...
       - name: Build native runtime fixture dependencies
         working-directory: .
         shell: bash

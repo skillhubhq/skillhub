@@ -53,6 +53,8 @@ The native fixture also verifies that an empty review queue uses one compact, fu
 
 For manual checks, build the production App and run `scripts/desktop_fixture.py --app PATH_TO_APP_EXECUTABLE`. Inspect light/dark themes, English/Chinese, narrow windows, keyboard focus, menus, dialogs, native pickers and error/empty states. Verify discovery → exact version → install/update/remove, publication → independent review → feedback, and account/permission management. Native credentials/pickers and clean-device installation require actual platform testing; a browser build is insufficient.
 
+The full race suite has a 20-minute per-package timeout. The 2,000-skill capacity regression runs unchanged on both macOS architectures; Intel hosted runners need more time with SQLite race instrumentation.
+
 ## Database and capacity
 
 `SKILLHUB_TEST_POSTGRES_DSN` must select a disposable PostgreSQL service with permission to create/drop test databases. Use protected environment injection. Install matching-major `pg_dump`/`pg_restore` on PATH.
