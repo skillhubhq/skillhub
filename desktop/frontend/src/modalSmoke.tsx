@@ -257,6 +257,28 @@ export async function runModalSmoke(
     );
     click("dialog:last-of-type .modal-head button");
     click("[data-late]");
+    const busyDialog =
+      document.querySelector<HTMLDialogElement>("dialog[open]")!;
+    const closeButton =
+      busyDialog.querySelector<HTMLButtonElement>(".modal-head button")!;
+    check(
+      closeButton.matches(":disabled"),
+      "pending operation disables dialog close",
+    );
+    closeButton.click();
+    check(busyDialog.open, "disabled close keeps the pending dialog open");
+    rejectPending!(new Error("Deferred failure"));
+    const until = Date.now() + 15000;
+    while (closeButton.matches(":disabled") && Date.now() < until)
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    check(
+      !closeButton.matches(":disabled"),
+      "finished operation restores dialog close",
+    );
+    click("dialog .modal-head button");
+    check(!busyDialog.isConnected, "enabled close removes the dialog");
+    click("[data-modal-trigger]");
+    click("[data-late]");
     flushSync(unmountDialog);
     click("[data-modal-trigger]");
     rejectPending!(new Error("Late failure"));

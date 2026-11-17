@@ -162,7 +162,7 @@ export async function runDeliverySmoke(
   const dialogButton = (text: string) =>
     [
       ...document.querySelectorAll<HTMLButtonElement>("dialog[open] button"),
-    ].find((b) => b.textContent === text && !b.disabled);
+    ].find((b) => b.textContent === text && !b.matches(":disabled"));
   await wait(() => !!dialogButton("Updates"));
   dialogButton("Updates")!.click();
   await wait(() => !!dialogButton("Following"));
@@ -195,13 +195,19 @@ export async function runDeliverySmoke(
       subscriptionsDialog.textContent?.includes("No followed skills yet"),
     "removing the last subscription shows an explicit empty state without resizing the dialog",
   );
+  const closeDialog = async (dialog: Element) => {
+    const button = () =>
+      dialog.querySelector<HTMLButtonElement>(
+        'button[aria-label="Close dialog"]',
+      );
+    await wait(() => !!button() && !button()!.matches(":disabled"));
+    button()!.click();
+    await wait(() => !dialog.isConnected);
+  };
   while (document.querySelector("dialog[open]")) {
     const dialogs = document.querySelectorAll("dialog[open]");
     const top = dialogs[dialogs.length - 1];
-    top
-      .querySelector<HTMLButtonElement>('button[aria-label="Close dialog"]')!
-      .click();
-    await wait(() => !top.isConnected);
+    await closeDialog(top);
   }
   location.hash = "publish?source=public";
   await wait(() =>
@@ -243,12 +249,8 @@ export async function runDeliverySmoke(
     "suite search Enter searches without submitting the publication form",
   );
   check(true, "suite search renders an explicit no-results state");
-  document
-    .querySelector<HTMLButtonElement>(
-      'dialog[open] button[aria-label="Close dialog"]',
-    )!
-    .click();
-  await wait(() => !document.querySelector("dialog[open]"));
+  await closeDialog(document.querySelector("dialog[open]")!);
+  check(true, "suite composer closes after pending actions finish");
   location.hash = "sources";
   await wait(() => !!document.querySelector(".source-card"));
 }
