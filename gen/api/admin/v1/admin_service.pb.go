@@ -1649,7 +1649,7 @@ type ListNamespacesRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// 分页条件。
 	Page *v11.PageRequest `protobuf:"bytes,1,opt,name=page,proto3" json:"page,omitempty"`
-	// 仅返回当前身份可提交版本的命名空间；提交时仍重新校验权限。
+	// 仅返回当前身份可投稿的命名空间，审核要求按当前投稿者计算；提交时仍重新校验权限。
 	ForSubmission bool `protobuf:"varint,2,opt,name=for_submission,json=forSubmission,proto3" json:"for_submission,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache

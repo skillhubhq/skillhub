@@ -910,7 +910,7 @@ export type ListNamespacesRequest = Message<"api.admin.v1.ListNamespacesRequest"
   page?: PageRequest | undefined;
 
   /**
-   * 仅返回当前身份可提交版本的命名空间；提交时仍重新校验权限。
+   * 仅返回当前身份可投稿的命名空间，审核要求按当前投稿者计算；提交时仍重新校验权限。
    *
    * @generated from field: bool for_submission = 2;
    */

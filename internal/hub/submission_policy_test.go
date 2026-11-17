@@ -43,7 +43,7 @@ func testMemberSubmissions(t *testing.T, cfg hubdb.Config) {
 		for _, submission := range []bool{false, true} {
 			spaces, err := s.listNamespaces(ctx, user, Page{}, submission)
 			mustGovernance(t, err)
-			if len(spaces.Items) != 1 || spaces.Items[0].Name != "team" {
+			if len(spaces.Items) != 1 || spaces.Items[0].Name != "team" || spaces.Items[0].ReviewRequired != submission {
 				t.Fatalf("missing submission space: %+v", spaces)
 			}
 		}
