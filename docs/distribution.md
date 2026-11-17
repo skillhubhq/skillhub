@@ -8,13 +8,13 @@ Use [Releases](https://github.com/skillhubhq/skillhub/releases), including prere
 
 Linux Hub/CLI binaries use a CGO-free build and do not require the CI runner’s glibc version.
 
-The current release matrix is Linux amd64 Hub/CLI, macOS arm64 Hub/CLI/App and Windows amd64 Hub/CLI/App. Linux App and Intel macOS packages are not currently published. macOS requires 13+; Windows App requires WebView2. Desktop packages do not include paid platform signing or Apple notarization. Signing, notarization and automatic App updates require separate work and are not implied by GitHub hosting.
+The current release matrix is Linux amd64 Hub/CLI, macOS arm64 and amd64 Hub/CLI/App and Windows amd64 Hub/CLI/App. Linux App packages are not currently published. macOS requires 13+; Windows App requires WebView2. Desktop packages do not include paid platform signing or Apple notarization. Signing, notarization and automatic App updates require separate work and are not implied by GitHub hosting.
 
 A release contains:
 
 - `skillhub-VERSION-OS-ARCH.tar.gz` / `.zip`: CLI and Hub with embedded Web.
 - `skillhub-app-VERSION-OS-ARCH.zip`: desktop App.
-- `skillhub-app-VERSION-macos-arm64.dmg`: manual macOS installer image.
+- `skillhub-app-VERSION-macos-ARCH.dmg`: manual macOS installer image (`arm64` for Apple silicon, `amd64` for Intel).
 - `SHA256SUMS`: hashes for the application archives.
 - `PROVENANCE.json`: exact source revision, CI run, artifact targets and hashes.
 - License texts and dependency inventories inside the application archives.
@@ -24,6 +24,8 @@ Download the archive and SHA256SUMS from the same release. On Linux use `sha256s
 App settings provides manual update checking against the official GitHub Releases API, stable/preview filtering and an exact-version download-page link. It sends no Hub credentials and does not download or replace executables. Private-repository access, network failures and unavailable platform packages are explicit states, not an up-to-date result. The check is bounded to 100 recent releases; a full page is reported as unverifiable rather than claiming completeness. The [desktop updates](client-updates.md) describes the update and installation behavior.
 
 ## Manual macOS installation
+
+In About This Mac, choose `arm64` for an Apple M-series chip or `amd64` for an Intel processor. App update checks select the matching architecture automatically. Both packages use the same application identity and local storage.
 
 A macOS DMG contains SkillHub.app, an Applications shortcut, license notices and bilingual installation instructions. Quit an existing App, drag the new copy to Applications, choose Replace, eject the image and reopen the installed App. Connections, credentials, drafts, preferences and installed skills live outside the bundle; keep those directories when replacing the application. Check database compatibility before downgrading.
 

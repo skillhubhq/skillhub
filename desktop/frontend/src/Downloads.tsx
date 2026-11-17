@@ -90,7 +90,10 @@ export function Downloads() {
           <dl>
             <dt>macOS</dt>
             <dd>
-              {t("Apple silicon · macOS 13+", "Apple 芯片 · macOS 13 及以上")}
+              {t(
+                "Apple silicon or Intel · macOS 13+",
+                "Apple 芯片或 Intel · macOS 13 及以上",
+              )}
             </dd>
             <dt>Windows</dt>
             <dd>{t("x64 · WebView2 required", "x64 · 需要 WebView2")}</dd>
@@ -101,8 +104,8 @@ export function Downloads() {
           </ProjectLink>
           <small>
             {t(
-              "Choose a skillhub-app archive for your platform. Linux desktop packages are not available yet.",
-              "选择对应平台的 skillhub-app 安装包。暂不提供 Linux 桌面版本。",
+              "Choose arm64 for Apple silicon or amd64 for Intel Mac. Linux desktop packages are not available yet.",
+              "Apple 芯片选择 arm64，Intel Mac 选择 amd64。暂不提供 Linux 桌面版本。",
             )}
           </small>
         </article>

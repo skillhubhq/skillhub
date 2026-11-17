@@ -24,13 +24,13 @@ def package(tag, revision, run_id, artifacts, dest):
     dest.mkdir(parents=True, exist_ok=False)
     provenance = {"version": tag, "revision": revision, "ci_run": str(run_id), "desktop_signed": False,
                   "target_deployment_acceptance": "not_run", "artifacts": {}}
-    for runner in ["ubuntu-latest", "macos-latest", "windows-latest"]:
+    for runner in ["ubuntu-latest", "macos-latest", "macos-15-intel", "windows-latest"]:
         for kind in (["hub-cli"] if runner == "ubuntu-latest" else ["hub-cli", "desktop"]):
             source = artifacts / f"{kind}-{runner}"
             metadata = json.loads((source / "build.json").read_text())
             if metadata["revision"] != revision or metadata["dirty"]:
                 raise ValueError("Artifact source revision/cleanliness mismatch")
-            target = {"ubuntu-latest": ("linux", "amd64"), "macos-latest": ("darwin", "arm64"), "windows-latest": ("windows", "amd64")}[runner]
+            target = {"ubuntu-latest": ("linux", "amd64"), "macos-latest": ("darwin", "arm64"), "macos-15-intel": ("darwin", "amd64"), "windows-latest": ("windows", "amd64")}[runner]
             if (metadata["goos"], metadata["goarch"]) != target:
                 raise ValueError("CI runner architecture changed; update the supported release matrix explicitly")
             if target[0] == "linux" and metadata.get("cgo_enabled") != "0":
@@ -79,6 +79,7 @@ def package(tag, revision, run_id, artifacts, dest):
                 image_metadata = json.loads((source / "SkillHub-macos.dmg.json").read_text())
                 digest = hashlib.sha256(image.read_bytes()).hexdigest()
                 if (image_metadata.get("revision") != revision or image_metadata.get("version") != version
+                        or image_metadata.get("goarch") != target[1]
                         or image_metadata.get("build") != "source" or image_metadata.get("sha256") != digest):
                     raise ValueError("DMG source version/revision/integrity mismatch")
                 image_output = dest / f"skillhub-app-{tag}-macos-{target[1]}.dmg"
