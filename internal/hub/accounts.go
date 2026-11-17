@@ -12,9 +12,10 @@ import (
 )
 
 type NamespaceAccess struct {
-	CanManage  bool `json:"can_manage"`
-	CanPublish bool `json:"can_publish"`
-	CanReview  bool `json:"can_review"`
+	CanManage   bool `json:"can_manage"`
+	CanPublish  bool `json:"can_publish"`
+	CanMaintain bool `json:"can_maintain"`
+	CanReview   bool `json:"can_review"`
 }
 
 func (s *Store) NamespaceAccess(ctx context.Context, actor Identity, namespace string) (NamespaceAccess, error) {
@@ -28,7 +29,7 @@ func (s *Store) NamespaceAccess(ctx context.Context, actor Identity, namespace s
 		roles []taxonomy.NamespaceRole
 		value *bool
 	}{
-		{nil, &result.CanManage}, {[]taxonomy.NamespaceRole{taxonomy.NamespaceRole_NAMESPACE_ROLE_MAINTAINER}, &result.CanPublish}, {[]taxonomy.NamespaceRole{taxonomy.NamespaceRole_NAMESPACE_ROLE_REVIEWER}, &result.CanReview},
+		{nil, &result.CanManage}, {[]taxonomy.NamespaceRole{taxonomy.NamespaceRole_NAMESPACE_ROLE_MAINTAINER}, &result.CanMaintain}, {[]taxonomy.NamespaceRole{taxonomy.NamespaceRole_NAMESPACE_ROLE_REVIEWER}, &result.CanReview},
 	} {
 		err = requireRole(ctx, tx, user, namespace, check.roles...)
 		if err != nil && !errors.Is(err, ErrForbidden) {
@@ -36,6 +37,11 @@ func (s *Store) NamespaceAccess(ctx context.Context, actor Identity, namespace s
 		}
 		*check.value = err == nil
 	}
+	err = s.requireSubmissionNamespace(ctx, tx, user, namespace)
+	if err != nil && !errors.Is(err, ErrForbidden) {
+		return result, err
+	}
+	result.CanPublish = err == nil
 	return result, nil
 }
 

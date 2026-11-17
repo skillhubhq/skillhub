@@ -18,8 +18,13 @@ func (s *Store) DeleteRelease(ctx context.Context, actor Identity, key string, c
 		return DeletedRelease{}, ErrInvalid
 	}
 	result, err := mutate(s, ctx, actor, "release.delete", key, cmd, func(tx *hubdb.Tx, user Identity) error {
+		var r Release
+		err := tx.QueryRowContext(ctx, "SELECT namespace,submitted_by FROM releases WHERE id=?", cmd.ReleaseID).Scan(&r.Namespace, &r.SubmittedBy)
+		if err == nil {
+			return s.requireReleaseAuthor(ctx, tx, user, r, taxonomy.NamespaceRole_NAMESPACE_ROLE_MAINTAINER)
+		}
 		var ns string
-		err := tx.QueryRowContext(ctx, "SELECT namespace FROM releases WHERE id=? UNION ALL SELECT namespace FROM release_tombstones WHERE id=?", cmd.ReleaseID, cmd.ReleaseID).Scan(&ns)
+		err = tx.QueryRowContext(ctx, "SELECT namespace FROM releases WHERE id=? UNION ALL SELECT namespace FROM release_tombstones WHERE id=?", cmd.ReleaseID, cmd.ReleaseID).Scan(&ns)
 		if err != nil {
 			return assertExists(err)
 		}

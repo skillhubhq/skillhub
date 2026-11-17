@@ -39,9 +39,15 @@ Grants are additive; there is no explicit deny rule. Reader grants do not bypass
 
 Catalog, detail, comments, downloads and cache reuse recheck authorization after permission revocation or withdrawal. Files already installed on a user's disk cannot be recalled remotely. Bookmarks belong only to their owner. Review binds content and audience; modifying content or widening its audience requires another publication workflow.
 
+## Member submission policy
+
+With `publishing.submission: members`, every active member may contribute to unarchived shared teams. This policy applies equally to local accounts and admitted third-party identities. It grants submission access, while review, team administration and maintenance of other authors' skills still require their respective roles.
+
+Contributors can update skills they originally created, inspect their own submissions, scans and review feedback, manage their own evaluation evidence, withdraw their submitted versions and delete rejected or withdrawn versions. Cleaning a version retains its authorship and audit record. Another contributor cannot claim that skill name. Published content continues to use its configured audience. Every contribution made through the member policy requires independent approval. Disabling an account or closing a team removes its submission access. See [configuration](configuration.md#member-submissions).
+
 ## Enterprise admission
 
-Use the identity provider's application assignment to control eligibility, and retain a local emergency administrator. By default, a newly verified enterprise identity enters the approval queue. A Hub or people administrator verifies its stable identity and approves access. Operators may explicitly enable automatic admission. New enterprise members have no publishing, review or administration roles until granted separately.
+Use the identity provider's application assignment to control eligibility, and retain a local emergency administrator. By default, a newly verified enterprise identity enters the approval queue. A Hub or people administrator verifies its stable identity and approves access. Operators may explicitly enable automatic admission. New enterprise members receive no namespace or administration roles; their submission access follows the configured publishing policy.
 
 Local accounts do not automatically become enterprise accounts. Invitation claiming, identity prebinding, SCIM, directory group mapping, immediate offboarding synchronization and account migration are not implemented. Enterprise Hub sessions last eight hours. Disabling a Hub user immediately revokes Hub sessions, but disabling that user only in the identity provider does not notify the Hub. Offboarding procedures must include Hub account disablement. See [enterprise login](enterprise-login.md).
 

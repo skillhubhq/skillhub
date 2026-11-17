@@ -475,10 +475,12 @@ message GetNamespaceAccessRequest {
 message GetNamespaceAccessResponse {
   // 可配置空间与授权。
   bool can_manage = 1;
-  // 可发布与撤下。
+  // 可投稿，内容所有权与审核要求由服务端分别校验。
   bool can_publish = 2;
   // 可独立审核，仍禁止自审。
   bool can_review = 3;
+  // 可维护空间内其他作者的版本。
+  bool can_maintain = 4;
 }
 // ResetUserPasswordRequest 不保存明文密码。
 message ResetUserPasswordRequest {

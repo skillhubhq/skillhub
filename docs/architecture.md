@@ -24,6 +24,8 @@ Browser sessions use HttpOnly, SameSite cookies with Origin and custom-header ch
 
 Every content operation rechecks version availability and the skill’s current access policy. Namespace roles, group audiences and platform duties have distinct responsibilities. Profile projections redact login identity except for authorized administrative/self access. See [identity and access](identity-and-access.md).
 
+The optional member-submission policy grants contribution access to shared active namespaces independently of namespace maintenance. The first submission fixes a skill's original contributor; retained release metadata preserves this ownership after package cleanup. Contributors can update their own skills and manage their own submitted versions, while each policy-based submission requires independent review. Namespace-wide read and maintenance checks remain role-based. The server returns submission and maintenance capabilities separately to clients.
+
 ## Catalog and governance
 
 Skills own their access policy and editable presentation. Immutable published packages contain digests and submission snapshots. Submission revisions have independent IDs; superseded submissions cannot be approved. Queries select the highest stable readable semantic version (or prerelease when no stable exists) before filtering by query/category/tags/curation. Recent ordering uses each skill’s latest publication sequence and deterministic cursor paging. Curation is a Hub-admin mutation keyed by namespace/name; it does not bypass authorization.

@@ -24,6 +24,25 @@ const api = (
       can_manage: false,
     },
 });
+test("member submission policy opens authoring without review or management", async () => {
+  const access = await loadWorkspaceAccess(
+    api([{ rows: [{ name: "team", archived: false }], next_page: "" }], {
+      team: {
+        can_publish: true,
+        can_maintain: false,
+        can_review: false,
+        can_manage: false,
+      },
+    }),
+    "enterprise",
+    false,
+  );
+  assert.deepEqual(access, { publish: true, review: false, manage: false });
+  for (const page of ["publish", "submissions"])
+    assert.equal(canOpenWorkspacePage(access, page), true);
+  for (const page of ["review", "management"])
+    assert.equal(canOpenWorkspacePage(access, page), false);
+});
 test("ordinary enterprise members have no studio capabilities", async () => {
   const access = await loadWorkspaceAccess(api(), "enterprise", false);
   assert.deepEqual(access, noWorkspaceAccess);

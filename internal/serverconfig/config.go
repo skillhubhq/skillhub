@@ -28,6 +28,7 @@ type Config struct {
 	Mode           string           `yaml:"mode"`
 	Limits         hubpolicy.Limits `yaml:"limits"`
 	Auth           Auth             `yaml:"auth"`
+	Publishing     Publishing       `yaml:"publishing"`
 	Site           Site             `yaml:"site"`
 	Database       Database         `yaml:"database"`
 	Data           string           `yaml:"data"`
@@ -36,6 +37,10 @@ type Config struct {
 	Name           string           `yaml:"name"`
 	Private        bool             `yaml:"private"`
 	TrustedProxies []string         `yaml:"trusted_proxies"`
+}
+
+type Publishing struct {
+	Submission string `yaml:"submission"`
 }
 
 type Auth struct {
@@ -177,7 +182,7 @@ func (c Config) DatabaseConfig() (hubdb.Config, error) {
 }
 
 func (c Config) Policy() hubpolicy.Policy {
-	return hubpolicy.Policy{Mode: c.Mode, Admission: c.Auth.Admission, Limits: c.Limits}
+	return hubpolicy.Policy{Mode: c.Mode, Admission: c.Auth.Admission, Submission: c.Publishing.Submission, Limits: c.Limits}
 }
 
 // Providers 在启动时解析密钥，不把密钥值写入配置或错误信息。

@@ -25,6 +25,7 @@ export interface FileDifference {
 export interface NamespaceAccess {
     "can_manage": boolean;
     "can_publish": boolean;
+    "can_maintain": boolean;
     "can_review": boolean;
 }
 

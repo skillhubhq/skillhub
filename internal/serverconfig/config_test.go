@@ -41,6 +41,31 @@ func TestConfigStrictAndPreservesFalse(t *testing.T) {
 	}
 }
 
+func TestMemberSubmissionConfiguration(t *testing.T) {
+	for _, value := range []string{"granted", "members", "all", "MEMBERS"} {
+		t.Run(value, func(t *testing.T) {
+			path := filepath.Join(t.TempDir(), "hub.yaml")
+			if err := os.WriteFile(path, []byte("publishing:\n  submission: "+value+"\n"), 0600); err != nil {
+				t.Fatal(err)
+			}
+			cfg, err := Load(path)
+			if err != nil {
+				t.Fatal(err)
+			}
+			valid := value == "granted" || value == "members"
+			if (cfg.Validate() == nil) != valid {
+				t.Fatal("incorrect policy validation")
+			}
+			if cfg.Policy().MemberSubmissions() != (value == "members") {
+				t.Fatal("policy did not reach Hub")
+			}
+		})
+	}
+	if Defaults().Policy().MemberSubmissions() {
+		t.Fatal("default opens submissions")
+	}
+}
+
 func TestSecretsAndValidation(t *testing.T) {
 	c := Defaults()
 	c.Auth.Providers = []identityprovider.Config{{ID: "work", Type: "oidc", Name: "Work account", Issuer: "https://identity.example.com/tenant", ClientID: "app-id", ClientSecretEnv: "TEST_AUTH_SECRET"}}

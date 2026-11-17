@@ -21,6 +21,7 @@ The proxy example is only for a directly connected, same-host proxy. Containers 
 | `mode` | YAML only | `enterprise`; also supports `community` |
 | `auth.admission` | YAML only | `approval` in enterprise mode; `automatic` in community mode |
 | `auth.providers` | YAML only | empty; up to eight OIDC/GitHub adapters |
+| `publishing.submission` | YAML only | `granted`; `members` allows all active members to submit to shared teams |
 | `limits` | YAML only | community quotas; see [community hosting](community-hosting.md) |
 | `site` | YAML only | optional HTTPS privacy, terms, contact and filing links |
 | `database.driver` | `--database-driver` | `sqlite`; also supports `postgres` |
@@ -51,6 +52,17 @@ auth:
 Replace the placeholders. A secret file contains only its value, optionally followed by a newline, and must be readable only by trusted operators and the service. Alternatively use `client_secret_env: SKILLHUB_IDENTITY_SECRET`; configure exactly one source. Inline secrets are not supported. Secrets have an 8 KiB bound and are never printed.
 
 Register `PUBLIC_URL/auth/providers/company/callback`. Providers only authenticate. `auth.admission: automatic` creates an ordinary member on the first verified external sign-in; `approval` requires administrator admission. Omit it to use the mode default. This setting is independent of `private` and publication permissions. Provider entries can use either supported adapter in either mode. See [community hosting and adapters](community-hosting.md) and [Entra setup](enterprise-login.md). Changes require a restart.
+
+## Member submissions
+
+```yaml
+publishing:
+  submission: members
+```
+
+This enables submissions for existing and future active members in all unarchived shared teams. Members can create skills, submit updates to skills they originally created, and manage their own submissions and evaluation evidence. Their submissions always require independent review, including in teams that otherwise allow direct publishing. Namespace maintenance and review roles retain their existing scope. Personal namespaces remain separately authorized.
+
+The default `granted` requires an explicit Maintainer or namespace Admin role. Changing the policy requires a restart. Switching back removes policy-based submission access without changing accounts, grants or published content. Web, App and CLI use the same Hub authorization. See [identity and access](identity-and-access.md).
 
 ## Validate, initialize, run
 

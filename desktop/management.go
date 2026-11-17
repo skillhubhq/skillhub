@@ -183,7 +183,7 @@ func (s *DesktopService) NamespaceAccess(source, namespace string) (hub.Namespac
 	if err != nil {
 		return hub.NamespaceAccess{}, err
 	}
-	return hub.NamespaceAccess{CanManage: r.Msg.CanManage, CanPublish: r.Msg.CanPublish, CanReview: r.Msg.CanReview}, nil
+	return hub.NamespaceAccess{CanManage: r.Msg.CanManage, CanPublish: r.Msg.CanPublish, CanMaintain: r.Msg.CanMaintain, CanReview: r.Msg.CanReview}, nil
 }
 func (s *DesktopService) LookupUsers(source, namespace, query, token string) (AdminPage, error) {
 	remote, err := s.core.Remote(s.ctx, source)

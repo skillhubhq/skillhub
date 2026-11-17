@@ -36,18 +36,18 @@ type EvaluationPage struct {
 	CanManage bool                 `json:"can_manage"`
 }
 
-// 发布版本沿用内容受众；未发布或撤下版本仅允许履职角色访问。
-func evaluationAccess(ctx context.Context, tx *hubdb.Tx, u Identity, id string) (Release, error) {
+// 发布版本沿用内容受众；未发布或撤下版本允许履职角色及有投稿权限的作者访问。
+func (s *Store) evaluationAccess(ctx context.Context, tx *hubdb.Tx, u Identity, id string) (Release, error) {
 	args := append(principalArgs(u), sql.Named("release", id))
-	r, err := scanRelease(tx.QueryRowContext(ctx, `SELECT `+releaseColumns+` FROM releases r WHERE r.id=@release AND ((r.status=2 AND `+readableSQL+`) OR (r.status<>2 AND `+manageableSQL+`))`, args...))
+	r, err := scanRelease(tx.QueryRowContext(ctx, `SELECT `+releaseColumns+` FROM releases r WHERE r.id=@release AND r.cleaned=0 AND ((r.status=2 AND `+readableSQL+`) OR (`+s.submissionReadableSQL()+`))`, args...))
 	return r, assertExists(err)
 }
-func evaluationManager(ctx context.Context, tx *hubdb.Tx, u Identity, id string) (Release, error) {
+func (s *Store) evaluationManager(ctx context.Context, tx *hubdb.Tx, u Identity, id string) (Release, error) {
 	r, err := releaseByID(ctx, tx, id)
 	if err != nil {
 		return r, err
 	}
-	if err = requireRole(ctx, tx, u, r.Namespace, taxonomy.NamespaceRole_NAMESPACE_ROLE_MAINTAINER); err != nil {
+	if err = s.requireReleaseAuthor(ctx, tx, u, r, taxonomy.NamespaceRole_NAMESPACE_ROLE_MAINTAINER); err != nil {
 		return Release{}, ErrNotFound
 	}
 	return r, nil
@@ -75,7 +75,7 @@ func (s *Store) ImportEvaluation(ctx context.Context, actor Identity, key, id st
 	}
 	cmd := struct{ ReleaseID, Digest string }{id, digest}
 	return mutate(s, ctx, actor, "evaluation.import", key, cmd, func(tx *hubdb.Tx, u Identity) error {
-		r, e := evaluationManager(ctx, tx, u, id)
+		r, e := s.evaluationManager(ctx, tx, u, id)
 		if e != nil {
 			return e
 		}
@@ -128,10 +128,10 @@ func (s *Store) ListEvaluations(ctx context.Context, actor Identity, id string) 
 		return out, err
 	}
 	defer tx.Rollback()
-	if _, err = evaluationAccess(ctx, tx, u, id); err != nil {
+	if _, err = s.evaluationAccess(ctx, tx, u, id); err != nil {
 		return out, err
 	}
-	_, err = evaluationManager(ctx, tx, u, id)
+	_, err = s.evaluationManager(ctx, tx, u, id)
 	out.CanManage = err == nil
 	rows, err := tx.QueryContext(ctx, "SELECT metadata,'' AS document,retracted FROM evaluation_evidence WHERE release_id=? ORDER BY sequence DESC LIMIT 100", id)
 	if err != nil {
@@ -157,7 +157,7 @@ func (s *Store) GetEvaluation(ctx context.Context, actor Identity, id string) (E
 	if err = tx.QueryRowContext(ctx, "SELECT release_id FROM evaluation_evidence WHERE id=?", id).Scan(&release); err != nil {
 		return EvaluationEvidence{}, assertExists(err)
 	}
-	if _, err = evaluationAccess(ctx, tx, u, release); err != nil {
+	if _, err = s.evaluationAccess(ctx, tx, u, release); err != nil {
 		return EvaluationEvidence{}, err
 	}
 	return scanEvidence(tx.QueryRowContext(ctx, "SELECT metadata,document,retracted FROM evaluation_evidence WHERE id=?", id))
@@ -168,7 +168,7 @@ func (s *Store) RetractEvaluation(ctx context.Context, actor Identity, key, id s
 		if err := tx.QueryRowContext(ctx, "SELECT release_id FROM evaluation_evidence WHERE id=?", id).Scan(&release); err != nil {
 			return assertExists(err)
 		}
-		_, err := evaluationManager(ctx, tx, u, release)
+		_, err := s.evaluationManager(ctx, tx, u, release)
 		return err
 	}, func(tx *hubdb.Tx, u Identity) (struct{}, error) {
 		e, err := scanEvidence(tx.QueryRowContext(ctx, "SELECT metadata,'' AS document,retracted FROM evaluation_evidence WHERE id=?", id))

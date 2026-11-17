@@ -2236,10 +2236,12 @@ type GetNamespaceAccessResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// 可配置空间与授权。
 	CanManage bool `protobuf:"varint,1,opt,name=can_manage,json=canManage,proto3" json:"can_manage,omitempty"`
-	// 可发布与撤下。
+	// 可投稿，内容所有权与审核要求由服务端分别校验。
 	CanPublish bool `protobuf:"varint,2,opt,name=can_publish,json=canPublish,proto3" json:"can_publish,omitempty"`
 	// 可独立审核，仍禁止自审。
-	CanReview     bool `protobuf:"varint,3,opt,name=can_review,json=canReview,proto3" json:"can_review,omitempty"`
+	CanReview bool `protobuf:"varint,3,opt,name=can_review,json=canReview,proto3" json:"can_review,omitempty"`
+	// 可维护空间内其他作者的版本。
+	CanMaintain   bool `protobuf:"varint,4,opt,name=can_maintain,json=canMaintain,proto3" json:"can_maintain,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2291,6 +2293,13 @@ func (x *GetNamespaceAccessResponse) GetCanPublish() bool {
 func (x *GetNamespaceAccessResponse) GetCanReview() bool {
 	if x != nil {
 		return x.CanReview
+	}
+	return false
+}
+
+func (x *GetNamespaceAccessResponse) GetCanMaintain() bool {
+	if x != nil {
+		return x.CanMaintain
 	}
 	return false
 }
@@ -3107,14 +3116,15 @@ const file_api_admin_v1_admin_service_proto_rawDesc = "" +
 	"\x05users\x18\x01 \x03(\v2\x12.api.admin.v1.UserR\x05users\x12-\n" +
 	"\x04page\x18\x02 \x01(\v2\x19.api.common.v1.PageResultR\x04page\"D\n" +
 	"\x19GetNamespaceAccessRequest\x12'\n" +
-	"\tnamespace\x18\x01 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18?R\tnamespace\"{\n" +
+	"\tnamespace\x18\x01 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18?R\tnamespace\"\x9e\x01\n" +
 	"\x1aGetNamespaceAccessResponse\x12\x1d\n" +
 	"\n" +
 	"can_manage\x18\x01 \x01(\bR\tcanManage\x12\x1f\n" +
 	"\vcan_publish\x18\x02 \x01(\bR\n" +
 	"canPublish\x12\x1d\n" +
 	"\n" +
-	"can_review\x18\x03 \x01(\bR\tcanReview\"\xa3\x01\n" +
+	"can_review\x18\x03 \x01(\bR\tcanReview\x12!\n" +
+	"\fcan_maintain\x18\x04 \x01(\bR\vcanMaintain\"\xa3\x01\n" +
 	"\x18ResetUserPasswordRequest\x12;\n" +
 	"\bmutation\x18\x01 \x01(\v2\x17.api.common.v1.MutationB\x06\xbaH\x03\xc8\x01\x01R\bmutation\x12#\n" +
 	"\auser_id\x18\x02 \x01(\tB\n" +

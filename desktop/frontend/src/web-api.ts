@@ -683,6 +683,7 @@ const supported: Partial<PlatformAPI> = {
     return {
       can_manage: r.canManage,
       can_publish: r.canPublish,
+      can_maintain: r.canMaintain,
       can_review: r.canReview,
     };
   },
