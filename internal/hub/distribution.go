@@ -40,7 +40,7 @@ func (s *Store) CompareReleases(ctx context.Context, actor Identity, namespace, 
 	bundles := []*packageformat.Bundle{}
 	for _, id := range []string{beforeID, afterID} {
 		args := append(principalArgs(u), sql.Named("id", id), sql.Named("ns", namespace), sql.Named("name", name))
-		r, e := scanRelease(tx.QueryRowContext(ctx, "SELECT "+releaseColumns+" FROM releases r WHERE r.id=@id AND r.namespace=@ns AND r.name=@name AND r.cleaned=0 AND ((r.status=2 AND "+readableSQL+") OR "+manageableSQL+")", args...))
+		r, e := scanRelease(tx.QueryRowContext(ctx, "SELECT "+releaseColumns+" FROM releases r WHERE r.id=@id AND r.namespace=@ns AND r.name=@name AND r.cleaned=0 AND ((r.status=2 AND "+readableSQL+") OR "+s.submissionReadableSQL()+")", args...))
 		if e != nil {
 			return result, assertExists(e)
 		}

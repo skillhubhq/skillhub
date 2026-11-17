@@ -8,7 +8,6 @@ import (
 	"unicode/utf8"
 
 	"github.com/google/uuid"
-	taxonomy "github.com/skillhubhq/skillhub/gen/common/registry/v1"
 )
 
 type AccessToken struct {
@@ -47,7 +46,7 @@ func (s *Store) CreateAccessToken(ctx context.Context, actor Identity, name, sco
 		return v, "", err
 	}
 	if scope == "publish" {
-		if err = requireRole(ctx, tx, u, namespace, taxonomy.NamespaceRole_NAMESPACE_ROLE_MAINTAINER); err != nil {
+		if err = s.requireSubmissionNamespace(ctx, tx, u, namespace); err != nil {
 			return v, "", err
 		}
 	}

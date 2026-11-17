@@ -203,7 +203,7 @@ func (s *Server) GetNamespaceAccess(ctx context.Context, req *connect.Request[ad
 	if err != nil {
 		return nil, err
 	}
-	return connect.NewResponse(&adminv1.GetNamespaceAccessResponse{CanManage: result.CanManage, CanPublish: result.CanPublish, CanReview: result.CanReview}), nil
+	return connect.NewResponse(&adminv1.GetNamespaceAccessResponse{CanManage: result.CanManage, CanPublish: result.CanPublish, CanMaintain: result.CanMaintain, CanReview: result.CanReview}), nil
 }
 func (s *Server) ResetUserPassword(ctx context.Context, req *connect.Request[adminv1.ResetUserPasswordRequest]) (*connect.Response[adminv1.ResetUserPasswordResponse], error) {
 	user, err := s.identity(ctx, req.Header())

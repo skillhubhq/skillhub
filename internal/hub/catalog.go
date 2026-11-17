@@ -186,7 +186,7 @@ func (s *Store) SubmitRelease(ctx context.Context, actor Identity, key string, c
 	}
 	cmd.ArchiveDigest = packageformat.Digest(cmd.Archive)
 	return mutate(s, ctx, actor, "release.submit", key, cmd, func(tx *hubdb.Tx, user Identity) error {
-		return requireRole(ctx, tx, user, cmd.Namespace, taxonomy.NamespaceRole_NAMESPACE_ROLE_MAINTAINER)
+		return s.requireSubmissionNamespace(ctx, tx, user, cmd.Namespace)
 	}, func(tx *hubdb.Tx, user Identity) (Release, error) {
 		if err := s.checkSubmissionQuota(ctx, tx, user, cmd); err != nil {
 			return Release{}, err
@@ -194,6 +194,9 @@ func (s *Store) SubmitRelease(ctx context.Context, actor Identity, key string, c
 		bundle, err := packageformat.Inspect(cmd.Archive)
 		if err != nil || len(bundleMarkdown(bundle)) > 256<<10 {
 			return Release{}, ErrInvalid
+		}
+		if err = s.requireSkillSubmission(ctx, tx, user, cmd.Namespace, bundle.Metadata.Name); err != nil {
+			return Release{}, err
 		}
 		if err = s.validateSuite(ctx, tx, user, bundle); err != nil {
 			return Release{}, err
@@ -234,7 +237,7 @@ func (s *Store) SubmitRelease(ctx context.Context, actor Identity, key string, c
 		if err != nil {
 			return Release{}, err
 		}
-		review = cmd.Provenance != nil || review || s.policy.IsCommunity() || report.Blocking || !report.Complete || len(report.Findings) > 0
+		review = requireRole(ctx, tx, user, cmd.Namespace, taxonomy.NamespaceRole_NAMESPACE_ROLE_MAINTAINER) != nil || cmd.Provenance != nil || review || s.policy.IsCommunity() || report.Blocking || !report.Complete || len(report.Findings) > 0
 		status := taxonomy.ReleaseStatus_RELEASE_STATUS_PUBLISHED
 		if review {
 			status = taxonomy.ReleaseStatus_RELEASE_STATUS_PENDING
@@ -381,7 +384,7 @@ func (s *Store) YankRelease(ctx context.Context, actor Identity, key string, cmd
 		if err != nil {
 			return err
 		}
-		return requireRole(ctx, tx, user, r.Namespace, taxonomy.NamespaceRole_NAMESPACE_ROLE_MAINTAINER)
+		return s.requireReleaseAuthor(ctx, tx, user, r, taxonomy.NamespaceRole_NAMESPACE_ROLE_MAINTAINER)
 	}, func(tx *hubdb.Tx, user Identity) (Release, error) {
 		r, err := releaseByID(ctx, tx, cmd.ReleaseID)
 		if err != nil {
@@ -484,7 +487,7 @@ func (s *Store) listReleases(ctx context.Context, actor Identity, namespace, nam
 		if user.ID == "" {
 			return PageResult[Release]{}, ErrUnauthenticated
 		}
-		visibility = manageableSQL
+		visibility = s.submissionReadableSQL()
 	}
 	args := append(principalArgs(user), sql.Named("namespace", namespace), sql.Named("name", name), sql.Named("mine", filter.Mine), sql.Named("active", filter.ActiveOnly), sql.Named("status", filter.Status), sql.Named("query", strings.ToLower(filter.Query)))
 	columns := strings.Replace(releaseColumns, "r.markdown", "''", 1)
@@ -530,7 +533,7 @@ func (s *Store) GetSubmission(ctx context.Context, actor Identity, id string) (R
 	if err != nil {
 		return Release{}, nil, err
 	}
-	if err = requireRole(ctx, tx, user, r.Namespace, taxonomy.NamespaceRole_NAMESPACE_ROLE_MAINTAINER, taxonomy.NamespaceRole_NAMESPACE_ROLE_REVIEWER); err != nil {
+	if err = s.requireReleaseAuthor(ctx, tx, user, r, taxonomy.NamespaceRole_NAMESPACE_ROLE_MAINTAINER, taxonomy.NamespaceRole_NAMESPACE_ROLE_REVIEWER); err != nil {
 		return Release{}, nil, err
 	}
 	data, err := s.readBlob(r.Digest)

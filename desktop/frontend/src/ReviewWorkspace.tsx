@@ -696,7 +696,9 @@ export function ReviewWorkspace({
               </details>
               <div className="review-decision">
                 {cleanup.value &&
-                  access.value?.can_publish &&
+                  (access.value?.can_maintain ||
+                    (access.value?.can_publish &&
+                      selected.release.submitted_by === identity.id)) &&
                   [
                     Status.ReleaseStatus_RELEASE_STATUS_REJECTED,
                     Status.ReleaseStatus_RELEASE_STATUS_YANKED,
@@ -741,7 +743,9 @@ export function ReviewWorkspace({
                       </div>
                     </>
                   )}
-                {access.value?.can_publish &&
+                {(access.value?.can_maintain ||
+                  (access.value?.can_publish &&
+                    selected.release.submitted_by === identity.id)) &&
                   [
                     Status.ReleaseStatus_RELEASE_STATUS_PENDING,
                     Status.ReleaseStatus_RELEASE_STATUS_PUBLISHED,

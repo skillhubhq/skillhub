@@ -18,6 +18,7 @@ trusted_proxies:
 
 | YAML 字段 | 命令行参数 | 默认值 |
 | --- | --- | --- |
+| `publishing.submission` | 仅 YAML | `granted`；设为 `members` 后，所有有效成员可向共享团队投稿 |
 | `database.driver` | `--database-driver` | `sqlite`，另支持 `postgres` |
 | `database.dsn_file` | `--database-dsn-file` | 空；也可用 `SKILLHUB_DATABASE_DSN` |
 | `data` | `--data` | `.local/hub` |
@@ -46,6 +47,17 @@ auth:
 替换占位符；密钥文件仅包含值，可带一个结尾换行，只允许服务账号和可信运维读取。也可使用 `client_secret_env: SKILLHUB_IDENTITY_SECRET` 并注入对应环境变量；二者同时配置会报错。不支持 YAML 内联 `client_secret`。密钥上限 8 KiB，永不打印。
 
 服务管理器可注入环境变量或挂载密钥文件，Hub 本身不依赖云 SDK。修改后需重启。回调地址为 `PUBLIC_URL/auth/providers/company/callback`。首次准入仍需结合身份提供方的应用分配，参见[企业登录](enterprise-login.md)。
+
+## 全员投稿 [#member-submissions]
+
+```yaml
+publishing:
+  submission: members
+```
+
+现有和以后加入的有效成员均可向所有未归档的共享团队投稿。成员可以创建技能、更新自己最初创建的技能，管理本人提交与评测证据。普通成员的投稿始终需要独立审核，包括原本允许直接发布的团队。维护和审核角色保持既有职责范围，个人空间仍单独授权。
+
+默认 `granted` 要求显式授予 Maintainer 或命名空间 Admin。修改策略后需重启；改回默认策略会收回全员投稿能力，保留账号、授权和已发布内容。Web、App 和 CLI 使用同一套 Hub 授权，参见[身份与权限](identity-and-access.md)。
 
 ## 校验、初始化、运行 [#validate-initialize-run]
 

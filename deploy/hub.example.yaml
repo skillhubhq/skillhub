@@ -5,6 +5,9 @@ listen: 127.0.0.1:8080
 public_url: https://skills.example.com
 name: Company Skills
 private: true
+# Set members to let every active member submit to shared teams for review.
+publishing:
+  submission: granted
 database:
   driver: sqlite
 # PostgreSQL alternative (use a new database and dedicated data directory):

@@ -9,6 +9,9 @@ const Community = "community"
 const AdmissionApproval = "approval"
 const AdmissionAutomatic = "automatic"
 
+const SubmissionGranted = "granted"
+const SubmissionMembers = "members"
+
 type Limits struct {
 	RequestsPerMinute int   `yaml:"requests_per_minute"`
 	Users             int   `yaml:"users"`
@@ -21,9 +24,10 @@ type Limits struct {
 }
 
 type Policy struct {
-	Mode      string
-	Admission string
-	Limits    Limits
+	Mode       string
+	Admission  string
+	Submission string
+	Limits     Limits
 }
 
 func Defaults() Limits {
@@ -31,11 +35,16 @@ func Defaults() Limits {
 }
 func (p Policy) IsCommunity() bool { return p.Mode == Community }
 
+func (p Policy) MemberSubmissions() bool { return p.Submission == SubmissionMembers }
+
 // AutomaticAdmission 只控制新外部身份准入，不授予命名空间或平台权限。
 func (p Policy) AutomaticAdmission() bool {
 	return p.Admission == AdmissionAutomatic || p.Admission == "" && p.IsCommunity()
 }
 func (p Policy) Validate() error {
+	if p.Submission != "" && p.Submission != SubmissionGranted && p.Submission != SubmissionMembers {
+		return errors.New("publishing.submission must be granted or members")
+	}
 	if p.Admission != "" && p.Admission != AdmissionApproval && p.Admission != AdmissionAutomatic {
 		return errors.New("auth.admission must be approval or automatic")
 	}

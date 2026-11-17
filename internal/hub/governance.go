@@ -138,12 +138,12 @@ type ScanReport struct {
 	ScannedAt time.Time `json:"scanned_at"`
 }
 
-func scanAccess(ctx context.Context, tx *hubdb.Tx, u Identity, id string) (Release, error) {
+func (s *Store) scanAccess(ctx context.Context, tx *hubdb.Tx, u Identity, id string) (Release, error) {
 	r, err := releaseByID(ctx, tx, id)
 	if err != nil {
 		return r, err
 	}
-	if err = requireRole(ctx, tx, u, r.Namespace, taxonomy.NamespaceRole_NAMESPACE_ROLE_MAINTAINER, taxonomy.NamespaceRole_NAMESPACE_ROLE_REVIEWER); err != nil {
+	if err = s.requireReleaseAuthor(ctx, tx, u, r, taxonomy.NamespaceRole_NAMESPACE_ROLE_MAINTAINER, taxonomy.NamespaceRole_NAMESPACE_ROLE_REVIEWER); err != nil {
 		return Release{}, ErrNotFound
 	}
 	return r, nil
@@ -182,7 +182,7 @@ func (s *Store) GetScanReport(ctx context.Context, actor Identity, id string) (S
 		return ScanReport{}, err
 	}
 	defer tx.Rollback()
-	r, err := scanAccess(ctx, tx, u, id)
+	r, err := s.scanAccess(ctx, tx, u, id)
 	if err != nil {
 		return ScanReport{}, err
 	}
@@ -193,7 +193,7 @@ func (s *Store) GetScanReport(ctx context.Context, actor Identity, id string) (S
 	return report, err
 }
 func (s *Store) ScanRelease(ctx context.Context, actor Identity, key, id string) (ScanReport, error) {
-	return mutate(s, ctx, actor, "release.scan", key, id, func(tx *hubdb.Tx, u Identity) error { _, err := scanAccess(ctx, tx, u, id); return err }, func(tx *hubdb.Tx, u Identity) (ScanReport, error) {
+	return mutate(s, ctx, actor, "release.scan", key, id, func(tx *hubdb.Tx, u Identity) error { _, err := s.scanAccess(ctx, tx, u, id); return err }, func(tx *hubdb.Tx, u Identity) (ScanReport, error) {
 		r, err := releaseByID(ctx, tx, id)
 		if err != nil {
 			return ScanReport{}, err
@@ -241,7 +241,7 @@ func (s *Store) ListNotifications(ctx context.Context, actor Identity, page Page
 	if err = authenticatedOnly(tx, u); err != nil {
 		return PageResult[ReviewNotification]{}, err
 	}
-	visible := `r.cleaned=0 AND ((n.kind='review' AND ` + manageableSQL + `) OR (n.kind IN ('reply','update') AND ` + readableSQL + `))`
+	visible := `r.cleaned=0 AND ((n.kind='review' AND ` + s.submissionReadableSQL() + `) OR (n.kind IN ('reply','update') AND ` + readableSQL + `))`
 	return pageQuery(s, ctx, tx, page, scope(u.ID, "notifications", nil), `SELECT n.sequence,CASE WHEN `+visible+` THEN n.release_id ELSE '' END,CASE WHEN `+visible+` THEN r.namespace||'/'||r.name||'@'||r.version ELSE '' END,n.approved,n.is_read,n.created_at,n.kind,CASE WHEN `+visible+` THEN n.comment_id ELSE '' END,NOT (`+visible+`) FROM review_notifications n JOIN releases r ON r.id=n.release_id WHERE n.recipient=@actor AND (@after='' OR n.sequence<CAST(COALESCE(NULLIF(@after,''),'0') AS INTEGER)) ORDER BY n.sequence DESC LIMIT @limit`, principalArgs(u), func(rows *sql.Rows) (ReviewNotification, string, error) {
 		var n ReviewNotification
 		var seq, at int64
